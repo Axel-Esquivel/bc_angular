@@ -1,0 +1,25 @@
+.cart-panel {
+  background: #ffffff;
+  padding: 1rem;
+  border-radius: 10px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.eyebrow {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #69707a;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.actions {
+  text-align: right;
+}

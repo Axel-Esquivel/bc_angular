@@ -1,0 +1,47 @@
+<section class="cart-panel">
+  <header class="panel-header">
+    <div>
+      <p class="eyebrow">Carrito</p>
+      <h2>Líneas</h2>
+    </div>
+  </header>
+
+  <p-table [value]="lines" responsiveLayout="scroll">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Producto</th>
+        <th style="width: 8rem">Cantidad</th>
+        <th style="width: 6rem">Precio</th>
+        <th style="width: 7rem">Subtotal</th>
+        <th style="width: 4rem"></th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-line>
+      <tr>
+        <td>{{ line.productName }}</td>
+        <td>
+          <p-inputNumber
+            [ngModel]="line.quantity"
+            (ngModelChange)="onQuantityChange(line, $event)"
+            [min]="1"
+            [showButtons]="true"
+            buttonLayout="horizontal"
+            inputId="qty-{{ line.productId }}"
+            decrementButtonClass="p-button-text"
+            incrementButtonClass="p-button-text"
+          ></p-inputNumber>
+        </td>
+        <td>{{ line.unitPrice | currency: 'USD' }}</td>
+        <td>{{ line.subtotal | currency: 'USD' }}</td>
+        <td class="actions">
+          <p-button icon="pi pi-trash" severity="danger" size="small" (onClick)="onRemove(line)"></p-button>
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="5">Aún no hay productos en el carrito.</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</section>

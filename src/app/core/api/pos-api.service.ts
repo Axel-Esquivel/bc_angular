@@ -14,7 +14,7 @@ export class PosApiService {
     this.baseUrl = `${this.config.apiBaseUrl}/pos`;
   }
 
-  // TODO: Confirmar endpoints reales en `pos.controller.ts` antes de usar en producción
+  // TODO: Confirmar estos endpoints en `pos.controller.ts` del backend antes de usarlos en producción
 
   createCart(): Observable<ApiResponse<PosCart>> {
     return this.http.post<ApiResponse<PosCart>>(`${this.baseUrl}/carts`, {});

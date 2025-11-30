@@ -1,85 +1,88 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { FormsModule } from '@angular/forms';
-import { TableModule } from 'primeng/table';
-import { InputNumberModule } from 'primeng/inputnumber';
-import { ButtonModule } from 'primeng/button';
-import { InputTextModule } from 'primeng/inputtext';
-
 import { ProductsApiService } from '../../../../core/api/products-api.service';
+import { PosApiService } from '../../../../core/api/pos-api.service';
 import { PosCartLine } from '../../../../shared/models/pos.model';
 import { Product } from '../../../../shared/models/product.model';
+import { CartLinesPanelComponent } from '../../components/cart-lines-panel/cart-lines-panel.component';
+import { ProductSelectorComponent } from '../../components/product-selector/product-selector.component';
+import { TotalsPanelComponent } from '../../components/totals-panel/totals-panel.component';
 
 @Component({
   selector: 'app-pos-terminal-page',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, TableModule, InputNumberModule, ButtonModule, InputTextModule],
+  imports: [CommonModule, ProductSelectorComponent, CartLinesPanelComponent, TotalsPanelComponent],
   templateUrl: './pos-terminal-page.component.html',
   styleUrl: './pos-terminal-page.component.scss',
 })
 export class PosTerminalPageComponent implements OnInit {
-  private readonly fb = inject(FormBuilder);
   private readonly productsApi = inject(ProductsApiService);
+  private readonly posApi = inject(PosApiService);
 
-  productResults: Product[] = [];
+  products: Product[] = [];
+  productsLoading = false;
   cartLines: PosCartLine[] = [];
   subtotal = 0;
 
-  readonly searchForm = this.fb.nonNullable.group({
-    search: ['', Validators.required],
-  });
-
   ngOnInit(): void {
-    this.searchProducts();
+    this.onSearchProducts('');
   }
 
-  searchProducts(): void {
-    const search = this.searchForm.getRawValue().search;
-    this.productsApi.getProducts({ search }).subscribe({
+  onSearchProducts(term: string): void {
+    this.productsLoading = true;
+    this.productsApi.getProducts({ search: term }).subscribe({
       next: (response) => {
-        this.productResults = response.result.items ?? [];
+        this.products = response.result.items ?? [];
+        this.productsLoading = false;
       },
       error: () => {
-        this.productResults = [];
+        this.products = [];
+        this.productsLoading = false;
       },
     });
   }
 
-  addToCart(product: Product): void {
+  onAddProduct(product: Product): void {
     const existing = this.cartLines.find((line) => line.productId === product.id);
     if (existing) {
       existing.quantity += 1;
       existing.subtotal = existing.quantity * (existing.unitPrice ?? 0);
     } else {
-      this.cartLines.push({
-        productId: product.id,
-        productName: product.name,
-        quantity: 1,
-        unitPrice: product.price ?? 0,
-        subtotal: product.price ?? 0,
-      });
+      this.cartLines = [
+        ...this.cartLines,
+        {
+          productId: product.id,
+          productName: product.name,
+          quantity: 1,
+          unitPrice: product.price ?? 0,
+          subtotal: product.price ?? 0,
+        },
+      ];
     }
     this.recalculateTotals();
   }
 
-  updateQuantity(line: PosCartLine, quantity: number): void {
-    line.quantity = quantity;
-    line.subtotal = quantity * (line.unitPrice ?? 0);
+  onQuantityChange(lineId: string, quantity: number): void {
+    this.cartLines = this.cartLines.map((line) =>
+      line.productId === lineId
+        ? { ...line, quantity, subtotal: quantity * (line.unitPrice ?? 0) }
+        : line
+    );
     this.recalculateTotals();
   }
 
-  removeLine(line: PosCartLine): void {
-    this.cartLines = this.cartLines.filter((l) => l.productId !== line.productId);
+  onRemoveLine(lineId: string): void {
+    this.cartLines = this.cartLines.filter((line) => line.productId !== lineId);
     this.recalculateTotals();
   }
 
-  recalculateTotals(): void {
+  onCheckout(): void {
+    // TODO: Conectar con PosApiService cuando los endpoints de tickets/ventas estén confirmados
+    void this.posApi;
+    alert('Cobro registrado en modo demostración.');
+  }
+
+  private recalculateTotals(): void {
     this.subtotal = this.cartLines.reduce((acc, line) => acc + line.subtotal, 0);
-  }
-
-  checkout(): void {
-    // TODO: Conectar con `PosApiService` cuando los endpoints estén confirmados
-    alert('Cobro registrado en modo demo.');
   }
 }

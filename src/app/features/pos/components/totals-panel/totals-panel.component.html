@@ -1,0 +1,20 @@
+<section class="totals-panel">
+  <div class="summary">
+    <div>
+      <p class="eyebrow">Resumen</p>
+      <h3>Total a cobrar</h3>
+      <p class="muted">{{ itemsCount }} artículo(s) en el carrito</p>
+    </div>
+    <div class="amount">{{ total | currency: 'USD' }}</div>
+  </div>
+
+  <p-button
+    label="Cobrar"
+    icon="pi pi-check"
+    size="large"
+    severity="success"
+    class="checkout-button"
+    [disabled]="itemsCount === 0"
+    (onClick)="onCheckout()"
+  ></p-button>
+</section>

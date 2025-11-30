@@ -1,0 +1,45 @@
+.products-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  background: #ffffff;
+  padding: 1rem;
+  border-radius: 10px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.eyebrow {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #69707a;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.subtitle {
+  margin: 0.25rem 0 0;
+  color: #69707a;
+}
+
+.search-form {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.products-table {
+  width: 100%;
+}
+
+.product-name {
+  font-weight: 600;
+}
+
+.muted {
+  color: #8690a3;
+}

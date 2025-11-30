@@ -1,0 +1,41 @@
+<section class="products-panel">
+  <header class="panel-header">
+    <div>
+      <p class="eyebrow">POS</p>
+      <h2>Seleccionar producto</h2>
+      <p class="subtitle">Busca por nombre o SKU y agrega productos al carrito.</p>
+    </div>
+  </header>
+
+  <form class="search-form" [formGroup]="searchForm" (ngSubmit)="onSubmit()">
+    <input pInputText formControlName="term" placeholder="Nombre, SKU o código" />
+    <p-button type="submit" label="Buscar" icon="pi pi-search" [disabled]="searchForm.invalid || loading"></p-button>
+  </form>
+
+  <p-table [value]="products" [loading]="loading" responsiveLayout="scroll" class="products-table">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Producto</th>
+        <th>Precio</th>
+        <th style="width: 8rem"></th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-product>
+      <tr>
+        <td>
+          <div class="product-name">{{ product.name }}</div>
+          <small class="muted">SKU: {{ product.sku || 'N/D' }}</small>
+        </td>
+        <td>{{ product.price | currency: 'USD' }}</td>
+        <td>
+          <p-button label="Agregar" icon="pi pi-plus" size="small" (onClick)="onAdd(product)"></p-button>
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="3">Sin resultados. Intenta con otro término.</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</section>

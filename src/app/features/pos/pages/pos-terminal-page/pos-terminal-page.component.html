@@ -1,68 +1,20 @@
-<div class="pos-layout">
-  <div class="products-panel">
-    <h3>Búsqueda de productos</h3>
-    <form [formGroup]="searchForm" class="search-form" (ngSubmit)="searchProducts()">
-      <input pInputText formControlName="search" placeholder="Nombre o SKU" />
-      <p-button type="submit" label="Buscar" icon="pi pi-search" [disabled]="searchForm.invalid"></p-button>
-    </form>
-
-    <p-table [value]="productResults" responsiveLayout="scroll">
-      <ng-template pTemplate="header">
-        <tr>
-          <th>Producto</th>
-          <th>Precio</th>
-          <th></th>
-        </tr>
-      </ng-template>
-      <ng-template pTemplate="body" let-product>
-        <tr>
-          <td>{{ product.name }}</td>
-          <td>{{ product.price | currency:'USD' }}</td>
-          <td>
-            <p-button label="Agregar" icon="pi pi-plus" size="small" (onClick)="addToCart(product)"></p-button>
-          </td>
-        </tr>
-      </ng-template>
-    </p-table>
+<section class="pos-layout">
+  <div class="pos-column">
+    <bc-pos-product-selector
+      [products]="products"
+      [loading]="productsLoading"
+      (search)="onSearchProducts($event)"
+      (addProduct)="onAddProduct($event)"
+    ></bc-pos-product-selector>
   </div>
 
-  <div class="cart-panel">
-    <h3>Carrito</h3>
-    <p-table [value]="cartLines" responsiveLayout="scroll">
-      <ng-template pTemplate="header">
-        <tr>
-          <th>Producto</th>
-          <th>Cantidad</th>
-          <th>Precio</th>
-          <th>Subtotal</th>
-          <th></th>
-        </tr>
-      </ng-template>
-      <ng-template pTemplate="body" let-line>
-        <tr>
-          <td>{{ line.productName }}</td>
-          <td>
-            <p-inputNumber
-              [ngModel]="line.quantity"
-              (ngModelChange)="updateQuantity(line, $event || 0)"
-              [min]="1"
-            ></p-inputNumber>
-          </td>
-          <td>{{ line.unitPrice | currency:'USD' }}</td>
-          <td>{{ line.subtotal | currency:'USD' }}</td>
-          <td>
-            <p-button icon="pi pi-trash" severity="danger" size="small" (onClick)="removeLine(line)"></p-button>
-          </td>
-        </tr>
-      </ng-template>
-    </p-table>
+  <div class="pos-column">
+    <bc-pos-cart-lines
+      [lines]="cartLines"
+      (quantityChange)="onQuantityChange($event.lineId, $event.quantity)"
+      (remove)="onRemoveLine($event)"
+    ></bc-pos-cart-lines>
 
-    <div class="totals">
-      <div class="total-row">
-        <span>Total</span>
-        <strong>{{ subtotal | currency:'USD' }}</strong>
-      </div>
-      <p-button label="Cobrar" icon="pi pi-check" (onClick)="checkout()" [disabled]="!cartLines.length"></p-button>
-    </div>
+    <bc-pos-totals [total]="subtotal" [itemsCount]="cartLines.length" (checkout)="onCheckout()"></bc-pos-totals>
   </div>
-</div>
+</section>
