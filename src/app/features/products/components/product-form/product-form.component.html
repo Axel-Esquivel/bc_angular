@@ -1,0 +1,47 @@
+<p-card header="Producto">
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="product-form">
+    <div class="form-row">
+      <label for="name">Nombre *</label>
+      <input pInputText id="name" type="text" formControlName="name" placeholder="Ej. Camisa polo" />
+      <small class="error" *ngIf="form.controls.name.touched && form.controls.name.invalid">El nombre es obligatorio</small>
+    </div>
+
+    <div class="form-row">
+      <label for="sku">SKU</label>
+      <input pInputText id="sku" type="text" formControlName="sku" placeholder="Código interno" />
+    </div>
+
+    <div class="form-row">
+      <label for="category">Categoría</label>
+      <p-select
+        inputId="category"
+        [options]="categoryOptions"
+        optionLabel="label"
+        optionValue="value"
+        formControlName="category"
+        placeholder="Selecciona una categoría"
+      ></p-select>
+    </div>
+
+    <div class="form-row">
+      <label for="price">Precio</label>
+      <p-inputNumber inputId="price" formControlName="price" mode="currency" currency="USD" locale="es-CO"></p-inputNumber>
+      <small class="error" *ngIf="form.controls.price.touched && form.controls.price.invalid">El precio debe ser válido</small>
+    </div>
+
+    <div class="form-row">
+      <label for="description">Descripción</label>
+      <textarea pInputTextarea id="description" rows="3" formControlName="description"></textarea>
+    </div>
+
+    <div class="form-row switch-row">
+      <label for="isActive">Activo</label>
+      <p-inputSwitch inputId="isActive" formControlName="isActive"></p-inputSwitch>
+    </div>
+
+    <div class="actions">
+      <p-button type="submit" label="Guardar" [loading]="saving" icon="pi pi-save"></p-button>
+      <p-button label="Cancelar" severity="secondary" (onClick)="onCancel()" [disabled]="saving"></p-button>
+    </div>
+  </form>
+</p-card>

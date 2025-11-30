@@ -2,10 +2,11 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { TableModule } from 'primeng/table';
-import { DropdownModule } from 'primeng/dropdown';
-import { InputTextModule } from 'primeng/inputtext';
 import { ButtonModule } from 'primeng/button';
+import { CardModule } from 'primeng/card';
+import { InputTextModule } from 'primeng/inputtext';
+import { SelectModule } from 'primeng/select';
+import { TableModule } from 'primeng/table';
 
 import { ProductsApiService } from '../../../../core/api/products-api.service';
 import { Product } from '../../../../shared/models/product.model';
@@ -13,7 +14,7 @@ import { Product } from '../../../../shared/models/product.model';
 @Component({
   selector: 'app-products-list-page',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule, TableModule, DropdownModule, InputTextModule, ButtonModule],
+  imports: [CommonModule, RouterModule, ReactiveFormsModule, CardModule, ButtonModule, InputTextModule, SelectModule, TableModule],
   templateUrl: './products-list-page.component.html',
   styleUrl: './products-list-page.component.scss',
 })
@@ -23,10 +24,12 @@ export class ProductsListPageComponent implements OnInit {
 
   products: Product[] = [];
   loading = false;
-  categories = [
+
+  readonly categoryOptions = [
     { label: 'Todas', value: '' },
-    { label: 'Bebidas', value: 'beverages' },
-    { label: 'Snacks', value: 'snacks' },
+    { label: 'General', value: 'general' },
+    { label: 'Servicios', value: 'services' },
+    { label: 'Electrónica', value: 'electronics' },
   ];
 
   readonly filtersForm = this.fb.nonNullable.group({
@@ -40,22 +43,20 @@ export class ProductsListPageComponent implements OnInit {
 
   loadProducts(): void {
     this.loading = true;
-    const filters = this.filtersForm.getRawValue();
-    this.productsApi.getProducts({
-      search: filters.search || undefined,
-      category: filters.category || undefined,
-    }).subscribe({
+    const { search, category } = this.filtersForm.getRawValue();
+    this.productsApi.getProducts({ search: search?.trim(), category: category || undefined }).subscribe({
       next: (response) => {
         this.products = response.result.items ?? [];
         this.loading = false;
       },
       error: () => {
+        this.products = [];
         this.loading = false;
       },
     });
   }
 
-  clearFilters(): void {
+  onResetFilters(): void {
     this.filtersForm.reset({ search: '', category: '' });
     this.loadProducts();
   }

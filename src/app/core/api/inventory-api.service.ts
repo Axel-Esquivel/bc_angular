@@ -17,6 +17,7 @@ export class InventoryApiService {
   getStockByWarehouse(params?: {
     warehouseId?: string;
     productId?: string;
+    category?: string;
     search?: string;
     page?: number;
     limit?: number;
@@ -24,6 +25,7 @@ export class InventoryApiService {
     let httpParams = new HttpParams();
     if (params?.warehouseId) httpParams = httpParams.set('warehouseId', params.warehouseId);
     if (params?.productId) httpParams = httpParams.set('productId', params.productId);
+    if (params?.category) httpParams = httpParams.set('category', params.category);
     if (params?.search) httpParams = httpParams.set('search', params.search);
     if (params?.page) httpParams = httpParams.set('page', params.page);
     if (params?.limit) httpParams = httpParams.set('limit', params.limit);

@@ -1,106 +1,87 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { CardModule } from 'primeng/card';
-import { InputTextModule } from 'primeng/inputtext';
-import { InputNumberModule } from 'primeng/inputnumber';
-import { DropdownModule } from 'primeng/dropdown';
-import { ButtonModule } from 'primeng/button';
-import { InputTextareaModule } from 'primeng/inputtextarea';
+import { MessageModule } from 'primeng/message';
 
 import { ProductsApiService } from '../../../../core/api/products-api.service';
 import { Product } from '../../../../shared/models/product.model';
+import { ProductFormComponent } from '../../components/product-form/product-form.component';
 
 @Component({
   selector: 'app-product-form-page',
   standalone: true,
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    RouterModule,
-    CardModule,
-    InputTextModule,
-    InputNumberModule,
-    DropdownModule,
-    ButtonModule,
-    InputTextareaModule,
-  ],
+  imports: [CommonModule, CardModule, MessageModule, ProductFormComponent],
   templateUrl: './product-form-page.component.html',
   styleUrl: './product-form-page.component.scss',
 })
 export class ProductFormPageComponent implements OnInit {
-  private readonly productsApi = inject(ProductsApiService);
-  private readonly fb = inject(FormBuilder);
-  private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly productsApi = inject(ProductsApiService);
 
-  productId: string | null = null;
+  product: Product | null = null;
   loading = false;
-  categories = [
-    { label: 'Bebidas', value: 'beverages' },
-    { label: 'Snacks', value: 'snacks' },
-    { label: 'Otros', value: 'others' },
-  ];
-
-  readonly form = this.fb.nonNullable.group({
-    name: ['', Validators.required],
-    sku: [''],
-    category: [''],
-    price: [0, [Validators.required, Validators.min(0)]],
-    description: [''],
-    isActive: [true],
-  });
+  saving = false;
+  isEdit = false;
+  loadError = false;
 
   ngOnInit(): void {
-    this.productId = this.route.snapshot.paramMap.get('id');
-    if (this.productId) {
-      this.loadProduct(this.productId);
+    const productId = this.route.snapshot.paramMap.get('id');
+    if (productId) {
+      this.isEdit = true;
+      this.fetchProduct(productId);
     }
   }
 
-  loadProduct(id: string): void {
+  onSubmit(payload: Partial<Product>): void {
+    this.isEdit ? this.updateProduct(payload) : this.createProduct(payload);
+  }
+
+  onCancel(): void {
+    this.router.navigate(['/products']);
+  }
+
+  private fetchProduct(id: string): void {
     this.loading = true;
+    this.loadError = false;
     this.productsApi.getProductById(id).subscribe({
       next: (response) => {
-        const product = response.result as Product;
-        this.form.patchValue({
-          name: product.name,
-          sku: product.sku ?? '',
-          category: product.category ?? '',
-          price: product.price ?? 0,
-          description: product.description ?? '',
-          isActive: product.isActive ?? true,
-        });
+        this.product = response.result ?? null;
         this.loading = false;
       },
       error: () => {
+        this.product = null;
         this.loading = false;
+        this.loadError = true;
       },
     });
   }
 
-  submit(): void {
-    if (this.form.invalid) {
-      this.form.markAllAsTouched();
-      return;
-    }
-
-    const dto = this.form.getRawValue();
-    this.loading = true;
-
-    const request$ = this.productId
-      ? this.productsApi.updateProduct(this.productId, dto)
-      : this.productsApi.createProduct(dto);
-
-    request$.subscribe({
-      next: () => {
-        this.loading = false;
-        this.router.navigate(['/products']);
-      },
+  private createProduct(payload: Partial<Product>): void {
+    this.saving = true;
+    this.productsApi.createProduct(payload).subscribe({
+      next: () => this.navigateToList(),
       error: () => {
-        this.loading = false;
+        this.saving = false;
       },
     });
+  }
+
+  private updateProduct(payload: Partial<Product>): void {
+    if (!this.product?.id) return;
+
+    this.saving = true;
+    this.productsApi.updateProduct(this.product.id, payload).subscribe({
+      next: () => this.navigateToList(),
+      error: () => {
+        this.saving = false;
+      },
+    });
+  }
+
+  private navigateToList(): void {
+    this.saving = false;
+    this.router.navigate(['/products']);
   }
 }

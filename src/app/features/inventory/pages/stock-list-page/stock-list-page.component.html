@@ -1,35 +1,29 @@
 <div class="page-header">
-  <h2>Inventario por bodega</h2>
-</div>
-
-<div class="filters" [formGroup]="filtersForm">
-  <div class="filter-item">
-    <label for="warehouse">Bodega</label>
-    <p-dropdown id="warehouse" formControlName="warehouseId" [options]="warehouses"></p-dropdown>
-  </div>
-  <div class="filter-item">
-    <label for="search">Buscar</label>
-    <input id="search" pInputText formControlName="search" placeholder="Producto o variante" />
-  </div>
-  <div class="filter-actions">
-    <p-button label="Aplicar" icon="pi pi-filter" (onClick)="loadStock()"></p-button>
-    <p-button label="Limpiar" icon="pi pi-times" severity="secondary" (onClick)="resetFilters()"></p-button>
+  <div>
+    <h2>Inventario</h2>
+    <p>Consulta el stock por bodega y categoría.</p>
   </div>
 </div>
 
-<p-table [value]="stocks" [loading]="loading" responsiveLayout="scroll">
-  <ng-template pTemplate="header">
-    <tr>
-      <th>Variante</th>
-      <th>Bodega</th>
-      <th>Stock</th>
-    </tr>
-  </ng-template>
-  <ng-template pTemplate="body" let-stock>
-    <tr>
-      <td>{{ stock.variantName }}</td>
-      <td>{{ stock.warehouseName }}</td>
-      <td>{{ stock.quantity }}</td>
-    </tr>
-  </ng-template>
-</p-table>
+<p-card>
+  <bc-stock-filters (applyFilters)="onApplyFilters($event)"></bc-stock-filters>
+</p-card>
+
+<p-card>
+  <p-table [value]="stock" [loading]="loading" dataKey="variantId">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Variante</th>
+        <th>Bodega</th>
+        <th>Cantidad</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-item>
+      <tr>
+        <td>{{ item.variantName }}</td>
+        <td>{{ item.warehouseName }}</td>
+        <td>{{ item.quantity }}</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</p-card>

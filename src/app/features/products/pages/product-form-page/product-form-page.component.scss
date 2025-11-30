@@ -1,27 +1,6 @@
-.product-form {
+.page-header {
   display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.form-row {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 1rem;
-}
-
-.form-field {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.form-actions {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.error {
-  color: #b71c1c;
-  font-size: 0.85rem;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
 }

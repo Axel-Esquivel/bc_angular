@@ -1,64 +1,50 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
+import { CardModule } from 'primeng/card';
 import { TableModule } from 'primeng/table';
-import { DropdownModule } from 'primeng/dropdown';
-import { InputTextModule } from 'primeng/inputtext';
-import { ButtonModule } from 'primeng/button';
 
 import { InventoryApiService } from '../../../../core/api/inventory-api.service';
 import { VariantStock } from '../../../../shared/models/product.model';
+import { StockFiltersComponent, StockFilterValues } from '../../components/stock-filters/stock-filters.component';
 
 @Component({
   selector: 'app-stock-list-page',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, TableModule, DropdownModule, InputTextModule, ButtonModule],
+  imports: [CommonModule, CardModule, TableModule, StockFiltersComponent],
   templateUrl: './stock-list-page.component.html',
   styleUrl: './stock-list-page.component.scss',
 })
 export class StockListPageComponent implements OnInit {
   private readonly inventoryApi = inject(InventoryApiService);
-  private readonly fb = inject(FormBuilder);
 
-  stocks: VariantStock[] = [];
+  stock: VariantStock[] = [];
   loading = false;
-
-  warehouses = [
-    { label: 'Todas', value: '' },
-    { label: 'Central', value: 'central' },
-    { label: 'Secundaria', value: 'secondary' },
-  ];
-
-  readonly filtersForm = this.fb.nonNullable.group({
-    warehouseId: [''],
-    search: [''],
-  });
 
   ngOnInit(): void {
     this.loadStock();
   }
 
-  loadStock(): void {
+  onApplyFilters(filters: StockFilterValues): void {
+    this.loadStock(filters);
+  }
+
+  private loadStock(filters?: StockFilterValues): void {
     this.loading = true;
-    const filters = this.filtersForm.getRawValue();
     this.inventoryApi
       .getStockByWarehouse({
-        warehouseId: filters.warehouseId || undefined,
-        search: filters.search || undefined,
+        search: filters?.search?.trim() || undefined,
+        warehouseId: filters?.warehouseId || undefined,
+        category: filters?.category || undefined,
       })
       .subscribe({
         next: (response) => {
-          this.stocks = response.result.items ?? [];
+          this.stock = response.result.items ?? [];
           this.loading = false;
         },
         error: () => {
+          this.stock = [];
           this.loading = false;
         },
       });
-  }
-
-  resetFilters(): void {
-    this.filtersForm.reset({ warehouseId: '', search: '' });
-    this.loadStock();
   }
 }

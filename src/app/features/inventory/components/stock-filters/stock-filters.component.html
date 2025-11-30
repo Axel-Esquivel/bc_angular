@@ -1,0 +1,32 @@
+<form class="filters" [formGroup]="form" (ngSubmit)="onSubmit()">
+  <div class="filter-item">
+    <label for="search">Buscar</label>
+    <input pInputText id="search" type="text" placeholder="Producto o referencia" formControlName="search" />
+  </div>
+  <div class="filter-item">
+    <label for="warehouse">Bodega</label>
+    <p-select
+      inputId="warehouse"
+      [options]="warehouseOptions"
+      optionLabel="label"
+      optionValue="value"
+      formControlName="warehouseId"
+      placeholder="Todas"
+    ></p-select>
+  </div>
+  <div class="filter-item">
+    <label for="category">Categoría</label>
+    <p-select
+      inputId="category"
+      [options]="categoryOptions"
+      optionLabel="label"
+      optionValue="value"
+      formControlName="category"
+      placeholder="Todas"
+    ></p-select>
+  </div>
+  <div class="actions">
+    <p-button type="submit" label="Aplicar" icon="pi pi-search"></p-button>
+    <p-button label="Limpiar" severity="secondary" (onClick)="onReset()"></p-button>
+  </div>
+</form>

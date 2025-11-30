@@ -35,6 +35,7 @@ export class MainLayoutComponent {
   readonly menuItems = [
     { label: 'Dashboard', routerLink: '/dashboard' },
     { label: 'Productos', routerLink: '/products' },
+    { label: 'Inventario', routerLink: '/inventory/stock' },
     { label: 'POS', routerLink: '/pos' },
   ];
 
