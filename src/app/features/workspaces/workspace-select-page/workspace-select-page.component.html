@@ -1,7 +1,71 @@
-<p-card header="Seleccionar workspace">
-  <p>Listado de workspaces pendiente de conexión con el backend.</p>
-  <div class="actions">
-    <p-button label="Refrescar" severity="secondary"></p-button>
-    <p-button label="Crear workspace" severity="success"></p-button>
+<div class="workspace-select">
+  <div class="workspace-select__create">
+    <p-card header="Crear workspace">
+      <form class="form" [formGroup]="createForm" (ngSubmit)="submitCreate()">
+        <div class="form__field">
+          <label for="name">Nombre</label>
+          <input id="name" type="text" pInputText formControlName="name" placeholder="Nombre del workspace" />
+          <small class="form__error" *ngIf="createForm.controls.name.touched && createForm.controls.name.invalid">
+            El nombre es obligatorio.
+          </small>
+        </div>
+
+        <div class="form__field">
+          <label for="description">Descripción (opcional)</label>
+          <textarea
+            id="description"
+            rows="3"
+            pInputTextarea
+            formControlName="description"
+            placeholder="Describe brevemente el workspace"
+          ></textarea>
+        </div>
+
+        <div class="form__actions">
+          <p-button type="submit" label="Crear workspace" [loading]="creating" [disabled]="createForm.invalid"></p-button>
+        </div>
+      </form>
+    </p-card>
   </div>
-</p-card>
+
+  <div class="workspace-select__list">
+    <p-card header="Mis workspaces">
+      <div class="list__actions">
+        <p-button label="Recargar" severity="secondary" [loading]="loadingWorkspaces" (onClick)="loadWorkspaces()"></p-button>
+      </div>
+
+      <ng-container *ngIf="!workspacesUnavailable; else pendingEndpoint">
+        <p-table [value]="workspaces" [loading]="loadingWorkspaces" responsiveLayout="scroll">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Nombre</th>
+              <th>Descripción</th>
+            </tr>
+          </ng-template>
+
+          <ng-template pTemplate="body" let-workspace>
+            <tr>
+              <td>{{ workspace.name }}</td>
+              <td>{{ workspace.description || '—' }}</td>
+            </tr>
+          </ng-template>
+
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td colspan="2">No hay workspaces disponibles.</td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </ng-container>
+
+      <ng-template #pendingEndpoint>
+        <div class="list__placeholder">
+          <p>
+            El listado de workspaces depende del endpoint <code>GET /workspaces</code>, que aún no está disponible en el backend.
+          </p>
+          <p-button label="Reintentar" severity="info" [loading]="loadingWorkspaces" (onClick)="loadWorkspaces()"></p-button>
+        </div>
+      </ng-template>
+    </p-card>
+  </div>
+</div>
