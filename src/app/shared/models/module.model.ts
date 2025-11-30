@@ -4,4 +4,7 @@ export interface ModuleInfo {
   version: string;
   enabled: boolean;
   dependencies: string[];
+  resolvedDependencies: string[];
+  missingDependencies: string[];
+  degraded: boolean;
 }

@@ -63,6 +63,13 @@ export const routes: Routes = [
             (m) => m.PosTerminalPageComponent
           ),
       },
+      {
+        path: 'settings/modules',
+        loadComponent: () =>
+          import('./features/settings/pages/modules-page/modules-page.component').then(
+            (m) => m.ModulesPageComponent
+          ),
+      },
     ],
   },
   { path: '**', redirectTo: '' },

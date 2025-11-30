@@ -1,0 +1,56 @@
+<div class="modules-page">
+  <p-card header="Gestor de módulos" subheader="Activa o desactiva los módulos disponibles en el sistema.">
+    <ng-template pTemplate="content">
+      <p-table [value]="modules" [loading]="loading" responsiveLayout="scroll">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Módulo</th>
+            <th>Dependencias</th>
+            <th>Estado</th>
+            <th class="actions-column">Acciones</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-module>
+          <tr>
+            <td>
+              <div class="module-name">
+                <span class="name">{{ module.name }}</span>
+                <span class="version">v{{ module.version }}</span>
+              </div>
+              <div class="description" *ngIf="module.description">{{ module.description }}</div>
+            </td>
+            <td>
+              <div class="dependencies" *ngIf="module.dependencies?.length; else noDependencies">
+                <p-chip *ngFor="let dependency of module.dependencies" [label]="dependency" class="dependency-chip"></p-chip>
+              </div>
+              <ng-template #noDependencies>
+                <span class="muted">Sin dependencias</span>
+              </ng-template>
+              <div class="missing-dependencies" *ngIf="hasMissingDependencies(module)">
+                <p-tag severity="danger" value="Dependencias faltantes"></p-tag>
+                <div class="missing-list">
+                  <p-chip *ngFor="let missing of module.missingDependencies" [label]="missing" class="missing-chip"></p-chip>
+                </div>
+              </div>
+            </td>
+            <td>
+              <div class="status">
+                <p-tag [severity]="module.enabled ? 'success' : 'danger'" [value]="module.enabled ? 'Activo' : 'Inactivo'"></p-tag>
+                <p-tag *ngIf="module.degraded" severity="warn" value="Degradado"></p-tag>
+              </div>
+            </td>
+            <td class="actions-column">
+              <p-button
+                [label]="module.enabled ? 'Desactivar' : 'Activar'"
+                [severity]="module.enabled ? 'danger' : 'success'"
+                [loading]="isProcessing(module.name)"
+                [disabled]="isProcessing(module.name)"
+                (onClick)="toggleModule(module)"
+              ></p-button>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </ng-template>
+  </p-card>
+</div>

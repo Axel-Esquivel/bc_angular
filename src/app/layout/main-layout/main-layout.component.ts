@@ -9,6 +9,7 @@ import { PanelMenuModule } from 'primeng/panelmenu';
 import { AuthService } from '../../core/auth/auth.service';
 import { ThemeService } from '../../core/theme/theme.service';
 import { TranslationService } from '../../core/i18n/translation.service';
+import { ModuleMenuService } from '../../core/layout/module-menu.service';
 
 @Component({
   selector: 'app-main-layout',
@@ -21,6 +22,7 @@ export class MainLayoutComponent {
   private readonly authService = inject(AuthService);
   private readonly themeService = inject(ThemeService);
   private readonly translationService = inject(TranslationService);
+  private readonly moduleMenuService = inject(ModuleMenuService);
 
   readonly languages = [
     { label: 'Español', value: 'es' },
@@ -32,12 +34,7 @@ export class MainLayoutComponent {
     { label: 'Oscuro', value: 'lara-dark-blue' },
   ];
 
-  readonly menuItems = [
-    { label: 'Dashboard', routerLink: '/dashboard' },
-    { label: 'Productos', routerLink: '/products' },
-    { label: 'Inventario', routerLink: '/inventory/stock' },
-    { label: 'POS', routerLink: '/pos' },
-  ];
+  readonly menuItems$ = this.moduleMenuService.getMenuItems();
 
   readonly currentUser$ = this.authService.getCurrentUser();
 

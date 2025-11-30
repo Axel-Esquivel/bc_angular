@@ -1,0 +1,52 @@
+.modules-page {
+  padding: 1.5rem;
+
+  :host ::ng-deep .p-card {
+    width: 100%;
+  }
+
+  .module-name {
+    display: flex;
+    gap: 0.5rem;
+    align-items: baseline;
+    font-weight: 600;
+
+    .version {
+      color: var(--text-color-secondary);
+      font-size: 0.85rem;
+    }
+  }
+
+  .description {
+    color: var(--text-color-secondary);
+    margin-top: 0.25rem;
+  }
+
+  .dependencies,
+  .missing-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.25rem;
+  }
+
+  .dependency-chip,
+  .missing-chip {
+    padding: 0.1rem 0.5rem;
+  }
+
+  .muted {
+    color: var(--text-color-secondary);
+    font-size: 0.9rem;
+  }
+
+  .status {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .actions-column {
+    width: 160px;
+  }
+}
