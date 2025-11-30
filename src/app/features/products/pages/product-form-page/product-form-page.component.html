@@ -1,0 +1,36 @@
+<p-card [header]="productId ? 'Editar producto' : 'Crear producto'">
+  <form [formGroup]="form" (ngSubmit)="submit()" class="product-form">
+    <div class="form-row">
+      <div class="form-field">
+        <label for="name">Nombre</label>
+        <input id="name" pInputText formControlName="name" required />
+        <small class="error" *ngIf="form.controls.name.invalid && form.controls.name.touched">Nombre requerido</small>
+      </div>
+      <div class="form-field">
+        <label for="sku">SKU</label>
+        <input id="sku" pInputText formControlName="sku" />
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-field">
+        <label for="category">Categoría</label>
+        <p-dropdown id="category" formControlName="category" [options]="categories" placeholder="Selecciona"></p-dropdown>
+      </div>
+      <div class="form-field">
+        <label for="price">Precio</label>
+        <p-inputNumber id="price" formControlName="price" mode="currency" currency="USD" locale="en-US"></p-inputNumber>
+      </div>
+    </div>
+
+    <div class="form-field">
+      <label for="description">Descripción</label>
+      <textarea id="description" pInputTextarea formControlName="description" rows="3"></textarea>
+    </div>
+
+    <div class="form-actions">
+      <p-button type="submit" label="Guardar" [disabled]="form.invalid || loading"></p-button>
+      <p-button label="Cancelar" severity="secondary" [routerLink]="['/products']"></p-button>
+    </div>
+  </form>
+</p-card>

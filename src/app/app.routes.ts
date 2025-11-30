@@ -28,6 +28,41 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/dashboard/dashboard-page.component').then((m) => m.DashboardPageComponent),
       },
+      {
+        path: 'products/new',
+        loadComponent: () =>
+          import('./features/products/pages/product-form-page/product-form-page.component').then(
+            (m) => m.ProductFormPageComponent
+          ),
+      },
+      {
+        path: 'products/:id',
+        loadComponent: () =>
+          import('./features/products/pages/product-form-page/product-form-page.component').then(
+            (m) => m.ProductFormPageComponent
+          ),
+      },
+      {
+        path: 'products',
+        loadComponent: () =>
+          import('./features/products/pages/products-list-page/products-list-page.component').then(
+            (m) => m.ProductsListPageComponent
+          ),
+      },
+      {
+        path: 'inventory/stock',
+        loadComponent: () =>
+          import('./features/inventory/pages/stock-list-page/stock-list-page.component').then(
+            (m) => m.StockListPageComponent
+          ),
+      },
+      {
+        path: 'pos',
+        loadComponent: () =>
+          import('./features/pos/pages/pos-terminal-page/pos-terminal-page.component').then(
+            (m) => m.PosTerminalPageComponent
+          ),
+      },
     ],
   },
   { path: '**', redirectTo: '' },

@@ -1,0 +1,48 @@
+<div class="page-header">
+  <h2>Productos</h2>
+  <div class="actions">
+    <p-button label="Nuevo producto" icon="pi pi-plus" routerLink="/products/new"></p-button>
+  </div>
+</div>
+
+<div class="filters" [formGroup]="filtersForm">
+  <div class="filter-item">
+    <label for="search">Búsqueda</label>
+    <input id="search" pInputText formControlName="search" placeholder="Nombre, SKU" />
+  </div>
+  <div class="filter-item">
+    <label for="category">Categoría</label>
+    <p-dropdown id="category" formControlName="category" [options]="categories"></p-dropdown>
+  </div>
+  <div class="filter-actions">
+    <p-button label="Filtrar" icon="pi pi-filter" (onClick)="loadProducts()"></p-button>
+    <p-button label="Limpiar" icon="pi pi-times" severity="secondary" (onClick)="clearFilters()"></p-button>
+  </div>
+</div>
+
+<p-table [value]="products" [loading]="loading" dataKey="id" responsiveLayout="scroll">
+  <ng-template pTemplate="header">
+    <tr>
+      <th>Nombre</th>
+      <th>SKU</th>
+      <th>Categoría</th>
+      <th>Precio</th>
+      <th>Estado</th>
+      <th>Acciones</th>
+    </tr>
+  </ng-template>
+  <ng-template pTemplate="body" let-product>
+    <tr>
+      <td>{{ product.name }}</td>
+      <td>{{ product.sku || '-' }}</td>
+      <td>{{ product.category || '-' }}</td>
+      <td>{{ product.price | currency:'USD' }}</td>
+      <td>
+        <span class="status-pill" [class.inactive]="!product.isActive">{{ product.isActive ? 'Activo' : 'Inactivo' }}</span>
+      </td>
+      <td>
+        <p-button label="Editar" icon="pi pi-pencil" size="small" [routerLink]="['/products', product.id]"></p-button>
+      </td>
+    </tr>
+  </ng-template>
+</p-table>
