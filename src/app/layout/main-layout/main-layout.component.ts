@@ -6,9 +6,9 @@ import { ToolbarModule } from 'primeng/toolbar';
 import { ButtonModule } from 'primeng/button';
 import { PanelMenuModule } from 'primeng/panelmenu';
 
-import { AuthService } from '../../../core/auth/auth.service';
-import { ThemeService } from '../../../core/theme/theme.service';
-import { TranslationService } from '../../../core/i18n/translation.service';
+import { AuthService } from '../../core/auth/auth.service';
+import { ThemeService } from '../../core/theme/theme.service';
+import { TranslationService } from '../../core/i18n/translation.service';
 
 @Component({
   selector: 'app-main-layout',

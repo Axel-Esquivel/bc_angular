@@ -3,7 +3,7 @@ import { Routes } from '@angular/router';
 import { LoginPageComponent } from './features/auth/login-page/login-page.component';
 import { RegisterPageComponent } from './features/auth/register-page/register-page.component';
 import { InitialSetupPageComponent } from './features/setup/initial-setup-page/initial-setup-page.component';
-import { MainLayoutComponent } from './features/layout/main-layout/main-layout.component';
+import { MainLayoutComponent } from './layout/main-layout/main-layout.component';
 import { AuthGuard } from './core/auth/auth.guard';
 
 export const routes: Routes = [
