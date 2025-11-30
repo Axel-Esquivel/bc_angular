@@ -1,0 +1,20 @@
+:host {
+  display: block;
+}
+
+.list__actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 0.75rem;
+}
+
+.list__placeholder {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: flex-start;
+}
+
+.list__actions-cell {
+  text-align: right;
+}

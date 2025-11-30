@@ -1,0 +1,21 @@
+<section class="workspace-select">
+  <header class="workspace-select__header">
+    <div>
+      <p class="eyebrow">Workspaces</p>
+      <h1>Selecciona o crea un workspace</h1>
+      <p class="subtitle">Cada workspace representa una empresa o entorno de trabajo independiente.</p>
+    </div>
+  </header>
+
+  <div class="workspace-select__grid">
+    <app-workspace-create-card [loading]="creatingWorkspace" (create)="createWorkspace($event)"></app-workspace-create-card>
+
+    <app-workspace-list
+      [workspaces]="workspaces"
+      [loading]="loadingWorkspaces"
+      [unavailable]="workspacesUnavailable"
+      (refresh)="loadWorkspaces()"
+      (select)="selectWorkspace($event)"
+    ></app-workspace-list>
+  </div>
+</section>

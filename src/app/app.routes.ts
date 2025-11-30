@@ -13,7 +13,7 @@ export const routes: Routes = [
   {
     path: 'workspaces/select',
     loadComponent: () =>
-      import('./features/workspaces/workspace-select-page/workspace-select-page.component').then(
+      import('./features/workspaces/pages/workspace-select-page/workspace-select-page.component').then(
         (m) => m.WorkspaceSelectPageComponent
       ),
   },

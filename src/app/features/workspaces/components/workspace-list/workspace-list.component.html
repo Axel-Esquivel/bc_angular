@@ -1,0 +1,47 @@
+<p-card header="Mis workspaces">
+  <div class="list__actions">
+    <p-button label="Recargar" severity="secondary" [loading]="loading" (onClick)="refresh.emit()"></p-button>
+  </div>
+
+  <ng-container *ngIf="!unavailable; else unavailableBlock">
+    <p-table [value]="workspaces ?? []" [loading]="loading" responsiveLayout="scroll">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Nombre</th>
+          <th>Descripción</th>
+          <th style="width: 1%"></th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-workspace>
+        <tr>
+          <td>{{ workspace.name }}</td>
+          <td>{{ workspace.description || '—' }}</td>
+          <td class="list__actions-cell">
+            <p-button
+              label="Ingresar"
+              size="small"
+              [disabled]="loading"
+              (onClick)="select.emit(workspace)"
+            ></p-button>
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="3">No hay workspaces disponibles.</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </ng-container>
+
+  <ng-template #unavailableBlock>
+    <div class="list__placeholder">
+      <p>
+        El listado de workspaces depende del endpoint <code>GET /workspaces</code>, que aún no está disponible en el backend.
+      </p>
+      <p-button label="Reintentar" severity="info" [loading]="loading" (onClick)="refresh.emit()"></p-button>
+    </div>
+  </ng-template>
+</p-card>
