@@ -1,0 +1,47 @@
+.layout {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.topbar {
+  justify-content: space-between;
+}
+
+.app-title {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.p-select,
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.content {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  height: 100%;
+}
+
+.sidebar {
+  border-right: 1px solid var(--surface-border);
+  padding: 1rem;
+}
+
+.main-content {
+  padding: 1rem;
+  overflow: auto;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.user-name {
+  font-weight: 600;
+}

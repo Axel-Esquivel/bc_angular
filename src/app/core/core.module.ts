@@ -1,6 +1,6 @@
 import { ModuleWithProviders, NgModule, Optional, SkipSelf } from '@angular/core';
 
-import { APP_CONFIG, AppConfig, DEFAULT_APP_CONFIG } from './config/app-config';
+import { APP_CONFIG, APP_CONFIG_VALUE, AppConfig } from './config/app-config';
 
 @NgModule({
   providers: [],
@@ -12,7 +12,7 @@ export class CoreModule {
     }
   }
 
-  static forRoot(config: AppConfig = DEFAULT_APP_CONFIG): ModuleWithProviders<CoreModule> {
+  static forRoot(config: AppConfig = APP_CONFIG_VALUE): ModuleWithProviders<CoreModule> {
     return {
       ngModule: CoreModule,
       providers: [{ provide: APP_CONFIG, useValue: config }],

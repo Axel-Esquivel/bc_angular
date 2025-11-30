@@ -1,0 +1,22 @@
+<div class="register-container">
+  <p-card header="Registro" class="register-card">
+    <form [formGroup]="form" (ngSubmit)="submit()" class="register-form">
+      <div class="form-field">
+        <label for="name">Nombre</label>
+        <input id="name" type="text" pInputText formControlName="name" placeholder="Nombre completo" />
+      </div>
+
+      <div class="form-field">
+        <label for="email">Correo</label>
+        <input id="email" type="email" pInputText formControlName="email" placeholder="correo@empresa.com" />
+      </div>
+
+      <div class="form-field">
+        <label for="password">Contraseña</label>
+        <input id="password" type="password" pPassword formControlName="password" toggleMask="true" />
+      </div>
+
+      <p-button type="submit" label="Crear cuenta" [disabled]="form.invalid"></p-button>
+    </form>
+  </p-card>
+</div>
