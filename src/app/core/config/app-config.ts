@@ -12,7 +12,7 @@ export interface AppConfig {
 export const APP_CONFIG = new InjectionToken<AppConfig>('APP_CONFIG');
 
 export const APP_CONFIG_VALUE: AppConfig = {
-  apiBaseUrl: 'http://localhost:3000/api',
+  apiBaseUrl: '/api',
   socketUrl: 'http://localhost:3000',
   defaultLanguage: 'es',
   supportedLanguages: ['es', 'en'],
