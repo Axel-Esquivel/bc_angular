@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { TableModule } from 'primeng/table';
@@ -21,11 +21,13 @@ export class ProductSelectorComponent {
   @Output() search = new EventEmitter<string>();
   @Output() addProduct = new EventEmitter<Product>();
 
-  private readonly fb = inject(FormBuilder);
+  readonly searchForm: FormGroup;
 
-  readonly searchForm = this.fb.nonNullable.group({
-    term: [''],
-  });
+  constructor(private readonly fb: FormBuilder) {
+    this.searchForm = this.fb.nonNullable.group({
+      term: [''],
+    });
+  }
 
   onSubmit(): void {
     const { term } = this.searchForm.getRawValue();

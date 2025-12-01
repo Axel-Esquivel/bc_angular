@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, inject } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
+import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { InputNumberModule } from 'primeng/inputnumber';
@@ -41,16 +41,25 @@ export class ProductFormComponent implements OnChanges {
     { label: 'Electrónica', value: 'electronics' },
   ];
 
-  private readonly fb = inject(FormBuilder);
+  readonly form: FormGroup<{
+    name: FormControl<string>;
+    sku: FormControl<string>;
+    category: FormControl<string>;
+    price: FormControl<number>;
+    description: FormControl<string>;
+    isActive: FormControl<boolean>;
+  }>;
 
-  readonly form = this.fb.nonNullable.group({
-    name: ['', Validators.required],
-    sku: [''],
-    category: [''],
-    price: [0, [Validators.required, Validators.min(0)]],
-    description: [''],
-    isActive: [true],
-  });
+  constructor(private readonly fb: FormBuilder) {
+    this.form = this.fb.nonNullable.group({
+      name: this.fb.nonNullable.control('', Validators.required),
+      sku: this.fb.nonNullable.control(''),
+      category: this.fb.nonNullable.control(''),
+      price: this.fb.nonNullable.control(0, [Validators.required, Validators.min(0)]),
+      description: this.fb.nonNullable.control(''),
+      isActive: this.fb.nonNullable.control(true),
+    });
+  }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['product']) {

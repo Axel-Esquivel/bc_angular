@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { SelectModule } from 'primeng/select';
@@ -26,12 +26,14 @@ export class TotalsPanelComponent {
     { label: 'Transferencia', value: 'transfer' },
   ];
 
-  private readonly fb = inject(FormBuilder);
+  readonly paymentForm: FormGroup;
 
-  readonly paymentForm = this.fb.nonNullable.group({
-    method: ['cash', Validators.required],
-    amount: [0, [Validators.required, Validators.min(0)]],
-  });
+  constructor(private readonly fb: FormBuilder) {
+    this.paymentForm = this.fb.nonNullable.group({
+      method: ['cash', Validators.required],
+      amount: [0, [Validators.required, Validators.min(0)]],
+    });
+  }
 
   insufficientAmount = false;
 

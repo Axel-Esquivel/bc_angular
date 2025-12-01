@@ -5,7 +5,7 @@ import { ButtonModule } from 'primeng/button';
 import { DatePickerModule } from 'primeng/datepicker';
 import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
-import { Table, TableModule } from 'primeng/table';
+import { TableModule } from 'primeng/table';
 import { ToolbarModule } from 'primeng/toolbar';
 
 import { ReportsApiService } from '../../../../core/api/reports-api.service';
@@ -31,7 +31,7 @@ export class ReportsDashboardPageComponent implements OnInit {
   private readonly reportsApi = inject(ReportsApiService);
   private readonly fb = inject(FormBuilder);
 
-  @ViewChild('dataTable') dataTable?: Table;
+  @ViewChild('dataTable') dataTable?: import('primeng/table').Table;
 
   readonly reportOptions = [
     { label: 'Ventas por día', value: 'salesDaily' satisfies ReportType },

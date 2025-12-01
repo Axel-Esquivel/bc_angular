@@ -1,8 +1,10 @@
 import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
-import { provideAnimations } from '@angular/platform-browser/animations';
+import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
+import Aura from '@primeuix/themes/aura';
+import { providePrimeNG } from 'primeng/config';
 
 import { APP_CONFIG, APP_CONFIG_VALUE } from './core/config/app-config';
 import { routes } from './app.routes';
@@ -13,7 +15,13 @@ export const appConfig: ApplicationConfig = {
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes),
     provideHttpClient(withInterceptorsFromDi()),
-    provideAnimations(),
+    provideAnimationsAsync(),
+    providePrimeNG({
+      theme: {
+        preset: Aura,
+        options: { darkModeSelector: 'html.p-dark' },
+      },
+    }),
     { provide: APP_CONFIG, useValue: APP_CONFIG_VALUE },
     { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },
   ],

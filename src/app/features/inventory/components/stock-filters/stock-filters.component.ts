@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Output, inject } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
+import { Component, EventEmitter, Output } from '@angular/core';
+import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
@@ -34,13 +34,15 @@ export class StockFiltersComponent {
     { label: 'Electrónica', value: 'electronics' },
   ];
 
-  private readonly fb = inject(FormBuilder);
+  readonly form: FormGroup;
 
-  readonly form = this.fb.nonNullable.group({
-    search: [''],
-    warehouseId: [''],
-    category: [''],
-  });
+  constructor(private readonly fb: FormBuilder) {
+    this.form = this.fb.nonNullable.group({
+      search: [''],
+      warehouseId: [''],
+      category: [''],
+    });
+  }
 
   onSubmit(): void {
     this.applyFilters.emit(this.form.getRawValue());

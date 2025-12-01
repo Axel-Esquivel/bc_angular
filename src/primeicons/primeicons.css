@@ -1,0 +1,41 @@
+.pi {
+  display: inline-block;
+  font-style: normal;
+  line-height: 1;
+}
+
+.pi::before {
+  content: '';
+}
+
+.pi.pi-search::before {
+  content: '\1F50D';
+}
+
+.pi.pi-plus::before {
+  content: '\2795';
+}
+
+.pi.pi-pencil::before {
+  content: '\270E';
+}
+
+.pi.pi-trash::before {
+  content: '\1F5D1';
+}
+
+.pi.pi-save::before {
+  content: '\1F4BE';
+}
+
+.pi.pi-check::before {
+  content: '\2713';
+}
+
+.pi.pi-moon::before {
+  content: '\1F319';
+}
+
+.pi-button .pi {
+  margin-right: 0.5rem;
+}

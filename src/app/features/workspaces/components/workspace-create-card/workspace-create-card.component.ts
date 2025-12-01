@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Output, Input, inject } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Component, EventEmitter, Output, Input } from '@angular/core';
+import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { InputTextModule } from 'primeng/inputtext';
@@ -17,12 +17,14 @@ export class WorkspaceCreateCardComponent {
   @Input() loading = false;
   @Output() create = new EventEmitter<{ name: string; description?: string }>();
 
-  private readonly fb = inject(FormBuilder);
+  readonly form: FormGroup<{ name: FormControl<string>; description: FormControl<string> }>;
 
-  readonly form = this.fb.nonNullable.group({
-    name: ['', Validators.required],
-    description: [''],
-  });
+  constructor(private readonly fb: FormBuilder) {
+    this.form = this.fb.nonNullable.group({
+      name: this.fb.nonNullable.control('', Validators.required),
+      description: this.fb.nonNullable.control(''),
+    });
+  }
 
   submit(): void {
     if (this.form.invalid) {
