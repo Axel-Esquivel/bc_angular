@@ -57,6 +57,13 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'reports',
+        loadComponent: () =>
+          import('./features/reports/pages/reports-dashboard-page/reports-dashboard-page.component').then(
+            (m) => m.ReportsDashboardPageComponent
+          ),
+      },
+      {
         path: 'pos',
         loadComponent: () =>
           import('./features/pos/pages/pos-terminal-page/pos-terminal-page.component').then(

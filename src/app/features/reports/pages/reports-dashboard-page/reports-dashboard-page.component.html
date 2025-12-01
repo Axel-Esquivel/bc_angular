@@ -1,0 +1,74 @@
+<div class="page-header">
+  <div>
+    <h2>Reportes</h2>
+    <p>Visualiza indicadores clave de ventas e inventario.</p>
+  </div>
+</div>
+
+<p-toolbar styleClass="toolbar">
+  <div class="filters" [formGroup]="filtersForm">
+    <div class="filter-group">
+      <label for="reportType">Tipo de reporte</label>
+      <p-select
+        inputId="reportType"
+        [options]="reportOptions"
+        optionLabel="label"
+        optionValue="value"
+        formControlName="reportType"
+        (onChange)="onReportTypeChange()"
+        placeholder="Selecciona un reporte"
+      ></p-select>
+    </div>
+    <div class="filter-group">
+      <label for="startDate">Desde</label>
+      <p-calendar inputId="startDate" formControlName="startDate" dateFormat="yy-mm-dd" [showIcon]="true"></p-calendar>
+    </div>
+    <div class="filter-group">
+      <label for="endDate">Hasta</label>
+      <p-calendar inputId="endDate" formControlName="endDate" dateFormat="yy-mm-dd" [showIcon]="true"></p-calendar>
+    </div>
+    <div class="filter-group">
+      <label for="warehouse">Almacén</label>
+      <input pInputText id="warehouse" type="text" formControlName="warehouseId" placeholder="Todos" />
+    </div>
+    <div class="filter-group">
+      <label for="search">Buscar</label>
+      <input pInputText id="search" type="text" formControlName="search" placeholder="Producto o nota" />
+    </div>
+    <div class="filter-actions">
+      <p-button label="Aplicar" icon="pi pi-search" (onClick)="onApplyFilters()"></p-button>
+      <p-button label="Limpiar" severity="secondary" (onClick)="onClearFilters()"></p-button>
+    </div>
+  </div>
+</p-toolbar>
+
+<div class="table-header">
+  <div class="summary">
+    <h3>Resultados</h3>
+    <p>{{ rows.length }} registros encontrados</p>
+  </div>
+  <div class="global-search">
+    <span class="p-input-icon-left">
+      <i class="pi pi-search"></i>
+      <input pInputText type="text" placeholder="Filtro global" (input)="onGlobalFilter($event)" />
+    </span>
+  </div>
+</div>
+
+<p-table #dataTable [value]="rows" [loading]="loading" [globalFilterFields]="columns.map((c) => c.field)">
+  <ng-template pTemplate="header">
+    <tr>
+      <th *ngFor="let column of columns">{{ column.header }}</th>
+    </tr>
+  </ng-template>
+  <ng-template pTemplate="body" let-row>
+    <tr>
+      <td *ngFor="let column of columns">{{ row[column.field] ?? '-' }}</td>
+    </tr>
+  </ng-template>
+  <ng-template pTemplate="emptymessage">
+    <tr>
+      <td [attr.colspan]="columns.length">No hay datos para los filtros seleccionados.</td>
+    </tr>
+  </ng-template>
+</p-table>
