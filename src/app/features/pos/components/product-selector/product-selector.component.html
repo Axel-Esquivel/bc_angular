@@ -9,7 +9,7 @@
 
   <form class="search-form" [formGroup]="searchForm" (ngSubmit)="onSubmit()">
     <input pInputText formControlName="term" placeholder="Nombre, SKU o código" />
-    <p-button type="submit" label="Buscar" icon="pi pi-search" [disabled]="searchForm.invalid || loading"></p-button>
+    <p-button type="submit" label="Buscar" icon="pi pi-search" [disabled]="loading"></p-button>
   </form>
 
   <p-table [value]="products" [loading]="loading" responsiveLayout="scroll" class="products-table">

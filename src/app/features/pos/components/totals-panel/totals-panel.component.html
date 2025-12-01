@@ -8,13 +8,42 @@
     <div class="amount">{{ total | currency: 'USD' }}</div>
   </div>
 
-  <p-button
-    label="Cobrar"
-    icon="pi pi-check"
-    size="large"
-    severity="success"
-    class="checkout-button"
-    [disabled]="itemsCount === 0"
-    (onClick)="onCheckout()"
-  ></p-button>
+  <form class="payment-form" [formGroup]="paymentForm" (ngSubmit)="onCheckout()">
+    <div class="form-row">
+      <label for="method">Método de pago</label>
+      <p-select
+        inputId="method"
+        formControlName="method"
+        [options]="paymentMethods"
+        optionLabel="label"
+        optionValue="value"
+        placeholder="Selecciona método"
+      ></p-select>
+    </div>
+
+    <div class="form-row">
+      <label for="amount">Monto recibido</label>
+      <p-inputNumber
+        inputId="amount"
+        formControlName="amount"
+        mode="currency"
+        currency="USD"
+        [minFractionDigits]="0"
+        [maxFractionDigits]="2"
+      ></p-inputNumber>
+      <small class="muted">Cambio: {{ changeDue | currency: 'USD' }}</small>
+    </div>
+
+    <div *ngIf="insufficientAmount" class="warning">El monto recibido es menor al total.</div>
+
+    <p-button
+      type="submit"
+      label="Cobrar"
+      icon="pi pi-check"
+      size="large"
+      severity="success"
+      class="checkout-button"
+      [disabled]="itemsCount === 0"
+    ></p-button>
+  </form>
 </section>

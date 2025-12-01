@@ -15,6 +15,10 @@
       (remove)="onRemoveLine($event)"
     ></bc-pos-cart-lines>
 
-    <bc-pos-totals [total]="subtotal" [itemsCount]="cartLines.length" (checkout)="onCheckout()"></bc-pos-totals>
+    <bc-pos-totals
+      [total]="total"
+      [itemsCount]="cartLines.length"
+      (checkout)="onCheckout($event)"
+    ></bc-pos-totals>
   </div>
 </section>

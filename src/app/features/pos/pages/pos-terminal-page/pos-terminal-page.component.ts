@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
 import { ProductsApiService } from '../../../../core/api/products-api.service';
 import { PosApiService } from '../../../../core/api/pos-api.service';
-import { PosCartLine } from '../../../../shared/models/pos.model';
+import { PosCartLine, PosPayment } from '../../../../shared/models/pos.model';
 import { Product } from '../../../../shared/models/product.model';
 import { CartLinesPanelComponent } from '../../components/cart-lines-panel/cart-lines-panel.component';
 import { ProductSelectorComponent } from '../../components/product-selector/product-selector.component';
@@ -22,7 +22,7 @@ export class PosTerminalPageComponent implements OnInit {
   products: Product[] = [];
   productsLoading = false;
   cartLines: PosCartLine[] = [];
-  subtotal = 0;
+  total = 0;
 
   ngOnInit(): void {
     this.onSearchProducts('');
@@ -30,7 +30,7 @@ export class PosTerminalPageComponent implements OnInit {
 
   onSearchProducts(term: string): void {
     this.productsLoading = true;
-    this.productsApi.getProducts({ search: term }).subscribe({
+    this.productsApi.getProducts({ search: term?.trim() || undefined }).subscribe({
       next: (response) => {
         this.products = response.result.items ?? [];
         this.productsLoading = false;
@@ -45,8 +45,15 @@ export class PosTerminalPageComponent implements OnInit {
   onAddProduct(product: Product): void {
     const existing = this.cartLines.find((line) => line.productId === product.id);
     if (existing) {
-      existing.quantity += 1;
-      existing.subtotal = existing.quantity * (existing.unitPrice ?? 0);
+      this.cartLines = this.cartLines.map((line) =>
+        line.productId === product.id
+          ? {
+              ...line,
+              quantity: line.quantity + 1,
+              subtotal: (line.quantity + 1) * (line.unitPrice ?? 0),
+            }
+          : line
+      );
     } else {
       this.cartLines = [
         ...this.cartLines,
@@ -63,9 +70,10 @@ export class PosTerminalPageComponent implements OnInit {
   }
 
   onQuantityChange(lineId: string, quantity: number): void {
+    const safeQuantity = quantity > 0 ? quantity : 1;
     this.cartLines = this.cartLines.map((line) =>
       line.productId === lineId
-        ? { ...line, quantity, subtotal: quantity * (line.unitPrice ?? 0) }
+        ? { ...line, quantity: safeQuantity, subtotal: safeQuantity * (line.unitPrice ?? 0) }
         : line
     );
     this.recalculateTotals();
@@ -76,13 +84,13 @@ export class PosTerminalPageComponent implements OnInit {
     this.recalculateTotals();
   }
 
-  onCheckout(): void {
+  onCheckout(payment: PosPayment): void {
     // TODO: Conectar con PosApiService cuando los endpoints de tickets/ventas estén confirmados
     void this.posApi;
-    alert('Cobro registrado en modo demostración.');
+    alert(`Cobro registrado en modo demostración. Método: ${payment.method}. Monto: ${payment.amount}.`);
   }
 
   private recalculateTotals(): void {
-    this.subtotal = this.cartLines.reduce((acc, line) => acc + line.subtotal, 0);
+    this.total = this.cartLines.reduce((acc, line) => acc + line.subtotal, 0);
   }
 }

@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { Table } from 'primeng/table';
@@ -22,13 +22,12 @@ export class ProductSelectorComponent {
   @Output() addProduct = new EventEmitter<Product>();
 
   readonly searchForm = this.fb.nonNullable.group({
-    term: ['', Validators.required],
+    term: [''],
   });
 
   constructor(private readonly fb: FormBuilder) {}
 
   onSubmit(): void {
-    if (this.searchForm.invalid) return;
     const { term } = this.searchForm.getRawValue();
     this.search.emit(term.trim());
   }
