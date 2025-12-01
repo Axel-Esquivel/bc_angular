@@ -36,14 +36,14 @@ export class AuthService {
   login(credentials: LoginRequest): Observable<AuthUser | null> {
     return this.authApi.login(credentials).pipe(
       tap((response) => this.persistAuthPayload(response.result)),
-      map((response) => response.result?.user ?? null)
+      map((response) => this.mapUser(response.result?.user))
     );
   }
 
   register(payload: RegisterRequest): Observable<AuthUser | null> {
     return this.authApi.register(payload).pipe(
       tap((response) => this.persistAuthPayload(response.result)),
-      map((response) => response.result?.user ?? null)
+      map((response) => this.mapUser(response.result?.user))
     );
   }
 
@@ -59,8 +59,8 @@ export class AuthService {
     }
 
     return this.authApi.me().pipe(
-      tap((response) => this.currentUserSubject.next(response.result ?? null)),
-      map((response) => response.result ?? null),
+      map((response) => this.mapUser(response.result?.user)),
+      tap((user) => this.currentUserSubject.next(user)),
       catchError(() => {
         this.logout();
         return of(null);
@@ -126,7 +126,8 @@ export class AuthService {
 
     this.tokenStorage.setWorkspaceId((response as LoginResult | RegisterResult).workspaceId ?? null);
     this.tokenStorage.setDeviceId((response as LoginResult).deviceId ?? null);
-    this.currentUserSubject.next((response as LoginResult | RegisterResult).user ?? null);
+    const user = 'user' in response ? response.user : null;
+    this.currentUserSubject.next(this.mapUser(user));
   }
 
   private extractTokens(payload?: LoginResult | RegisterResult | null): AuthTokens | null {
@@ -140,5 +141,13 @@ export class AuthService {
     }
 
     return { accessToken, refreshToken: (payload as LoginResult).refreshToken ?? null };
+  }
+
+  private mapUser(user?: AuthUser | null): AuthUser | null {
+    if (!user) {
+      return null;
+    }
+
+    return { ...user, displayName: user.displayName ?? user.username ?? user.email };
   }
 }

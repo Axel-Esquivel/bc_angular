@@ -1,7 +1,10 @@
 export interface AuthUser {
   id: string;
-  username?: string;
   email: string;
+  username: string;
+  firstName?: string;
+  lastName?: string;
+  displayName?: string;
   roles?: string[];
 }
 
@@ -36,6 +39,10 @@ export interface RegisterResult {
   workspaceId?: string;
   accessToken?: string;
   refreshToken?: string | null;
+}
+
+export interface MeResult {
+  user: AuthUser;
 }
 
 export interface RefreshRequest {

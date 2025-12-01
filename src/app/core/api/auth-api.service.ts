@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 
 import { APP_CONFIG_TOKEN, AppConfig } from '../config/app-config';
 import { ApiResponse } from '../../shared/models/api-response.model';
-import { AuthUser, LoginRequest, LoginResult, RegisterRequest, RegisterResult } from '../../shared/models/auth.model';
+import { LoginRequest, LoginResult, MeResult, RegisterRequest, RegisterResult } from '../../shared/models/auth.model';
 
 @Injectable({ providedIn: 'root' })
 export class AuthApiService {
@@ -26,7 +26,7 @@ export class AuthApiService {
     return this.http.post<ApiResponse<LoginResult>>(`${this.baseUrl}/refresh`, { refreshToken });
   }
 
-  me(): Observable<ApiResponse<AuthUser>> {
-    return this.http.get<ApiResponse<AuthUser>>(`${this.baseUrl}/me`);
+  me(): Observable<ApiResponse<MeResult>> {
+    return this.http.get<ApiResponse<MeResult>>(`${this.baseUrl}/me`);
   }
 }

@@ -19,7 +19,9 @@
         (onChange)="onLanguageChange($event)"
       ></p-select>
       <div class="user-info">
-        <span class="user-name" *ngIf="(currentUser$ | async) as user; else guest">{{ user?.name || user?.email }}</span>
+        <span class="user-name" *ngIf="(currentUser$ | async) as user; else guest"
+          >{{ user?.displayName || user?.username || user?.email }}</span
+        >
         <ng-template #guest>
           <span class="user-name">Invitado</span>
         </ng-template>
