@@ -1,6 +1,6 @@
 export interface AuthUser {
   id: string;
-  name?: string;
+  username?: string;
   email: string;
   roles?: string[];
 }
@@ -10,20 +10,32 @@ export interface AuthTokens {
   refreshToken?: string | null;
 }
 
-export interface AuthPayload {
-  user?: AuthUser | null;
-  tokens?: AuthTokens | null;
-}
-
 export interface LoginRequest {
-  email: string;
+  identifier: string;
   password: string;
+  workspaceId?: string;
+  deviceId?: string;
 }
 
 export interface RegisterRequest {
-  name: string;
   email: string;
+  username: string;
   password: string;
+  workspaceId?: string;
+}
+
+export interface LoginResult extends AuthTokens {
+  user: AuthUser;
+  workspaceId?: string;
+  deviceId?: string;
+  refreshToken: string;
+}
+
+export interface RegisterResult {
+  user: AuthUser;
+  workspaceId?: string;
+  accessToken?: string;
+  refreshToken?: string | null;
 }
 
 export interface RefreshRequest {

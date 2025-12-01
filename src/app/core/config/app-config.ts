@@ -9,11 +9,11 @@ export interface AppConfig {
   availableThemes: string[];
 }
 
-export const APP_CONFIG = new InjectionToken<AppConfig>('APP_CONFIG');
+export const APP_CONFIG_TOKEN = new InjectionToken<AppConfig>('APP_CONFIG');
 
-export const APP_CONFIG_VALUE: AppConfig = {
+export const APP_CONFIG: AppConfig = {
   apiBaseUrl: '/api',
-  socketUrl: 'http://localhost:3000',
+  socketUrl: '/socket.io',
   defaultLanguage: 'es',
   supportedLanguages: ['es', 'en'],
   defaultTheme: 'lara-light-blue',

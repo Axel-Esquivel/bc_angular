@@ -2,7 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { Observable, catchError, of } from 'rxjs';
 
-import { APP_CONFIG, AppConfig } from '../config/app-config';
+import { APP_CONFIG_TOKEN, AppConfig } from '../config/app-config';
 import { ApiResponse } from '../../shared/models/api-response.model';
 import { DailySalesReport, InventoryReportItem, ReportFilterParams } from '../../shared/models/report.model';
 
@@ -10,7 +10,7 @@ import { DailySalesReport, InventoryReportItem, ReportFilterParams } from '../..
 export class ReportsApiService {
   private readonly baseUrl: string;
 
-  constructor(@Inject(APP_CONFIG) private readonly config: AppConfig, private readonly http: HttpClient) {
+  constructor(@Inject(APP_CONFIG_TOKEN) private readonly config: AppConfig, private readonly http: HttpClient) {
     this.baseUrl = `${this.config.apiBaseUrl}/reports`;
   }
 

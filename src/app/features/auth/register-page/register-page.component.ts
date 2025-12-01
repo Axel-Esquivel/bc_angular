@@ -26,9 +26,10 @@ export class RegisterPageComponent {
   isSubmitting = false;
 
   readonly form = this.fb.nonNullable.group({
-    name: ['', Validators.required],
     email: ['', [Validators.required, Validators.email]],
+    username: ['', Validators.required],
     password: ['', [Validators.required, Validators.minLength(6)]],
+    workspaceId: [''],
   });
 
   submit(): void {
@@ -39,7 +40,13 @@ export class RegisterPageComponent {
 
     this.errorMessage = '';
     this.isSubmitting = true;
-    const payload: RegisterRequest = this.form.getRawValue();
+    const formValue = this.form.getRawValue();
+    const payload: RegisterRequest = {
+      email: formValue.email,
+      username: formValue.username,
+      password: formValue.password,
+      workspaceId: formValue.workspaceId || undefined,
+    };
 
     this.authService.register(payload).subscribe({
       next: () => this.router.navigate(['/dashboard']),

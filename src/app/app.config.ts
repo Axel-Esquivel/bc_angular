@@ -6,7 +6,7 @@ import { HTTP_INTERCEPTORS } from '@angular/common/http';
 import Aura from '@primeuix/themes/aura';
 import { providePrimeNG } from 'primeng/config';
 
-import { APP_CONFIG, APP_CONFIG_VALUE } from './core/config/app-config';
+import { APP_CONFIG, APP_CONFIG_TOKEN } from './core/config/app-config';
 import { routes } from './app.routes';
 import { AuthInterceptor } from './core/auth/auth.interceptor';
 
@@ -22,7 +22,7 @@ export const appConfig: ApplicationConfig = {
         options: { darkModeSelector: 'html.p-dark' },
       },
     }),
-    { provide: APP_CONFIG, useValue: APP_CONFIG_VALUE },
+    { provide: APP_CONFIG_TOKEN, useValue: APP_CONFIG },
     { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },
   ],
 };

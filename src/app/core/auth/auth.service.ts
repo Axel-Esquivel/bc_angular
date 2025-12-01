@@ -13,17 +13,17 @@ import {
   throwError,
 } from 'rxjs';
 
-import { AuthApiService } from '../api/auth-api.service';
-import { TokenStorageService } from './token-storage.service';
 import { ApiResponse } from '../../shared/models/api-response.model';
 import {
-  AuthPayload,
   AuthTokens,
   AuthUser,
   LoginRequest,
-  RefreshRequest,
+  LoginResult,
   RegisterRequest,
+  RegisterResult,
 } from '../../shared/models/auth.model';
+import { AuthApiService } from '../api/auth-api.service';
+import { TokenStorageService } from './token-storage.service';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -35,14 +35,14 @@ export class AuthService {
 
   login(credentials: LoginRequest): Observable<AuthUser | null> {
     return this.authApi.login(credentials).pipe(
-      tap((response) => this.persistAuthPayload(response)),
+      tap((response) => this.persistAuthPayload(response.result)),
       map((response) => response.result?.user ?? null)
     );
   }
 
   register(payload: RegisterRequest): Observable<AuthUser | null> {
     return this.authApi.register(payload).pipe(
-      tap((response) => this.persistAuthPayload(response)),
+      tap((response) => this.persistAuthPayload(response.result)),
       map((response) => response.result?.user ?? null)
     );
   }
@@ -59,8 +59,8 @@ export class AuthService {
     }
 
     return this.authApi.me().pipe(
-      tap((response) => this.currentUserSubject.next(response.result?.user ?? null)),
-      map((response) => response.result?.user ?? null),
+      tap((response) => this.currentUserSubject.next(response.result ?? null)),
+      map((response) => response.result ?? null),
       catchError(() => {
         this.logout();
         return of(null);
@@ -80,7 +80,7 @@ export class AuthService {
     return !!this.tokenStorage.getAccessToken();
   }
 
-  refreshSession(): Observable<AuthTokens | null> {
+  refreshToken(): Observable<AuthTokens | null> {
     const refreshToken = this.tokenStorage.getRefreshToken();
     if (!refreshToken) {
       return of(null);
@@ -91,15 +91,10 @@ export class AuthService {
     }
 
     this.isRefreshing = true;
-    const refreshDto: RefreshRequest = { refreshToken };
-    return this.authApi.refresh(refreshDto).pipe(
+    return this.authApi.refresh(refreshToken).pipe(
+      tap((response) => this.persistAuthPayload(response.result)),
       map((response) => this.extractTokens(response.result)),
-      tap((tokens) => {
-        if (tokens) {
-          this.tokenStorage.setTokens(tokens);
-        }
-        this.refreshSubject.next(tokens);
-      }),
+      tap((tokens) => this.refreshSubject.next(tokens)),
       finalize(() => {
         this.isRefreshing = false;
       }),
@@ -111,31 +106,39 @@ export class AuthService {
     );
   }
 
-  private persistAuthPayload(response: ApiResponse<AuthPayload>): void {
-    const tokens = this.extractTokens(response.result);
+  getAccessToken(): string | null {
+    return this.tokenStorage.getAccessToken();
+  }
+
+  getCurrentWorkspaceId(): string | null {
+    return this.tokenStorage.getWorkspaceId();
+  }
+
+  private persistAuthPayload(response: ApiResponse<LoginResult | RegisterResult>['result']): void {
+    if (!response) {
+      return;
+    }
+
+    const tokens = this.extractTokens(response);
     if (tokens) {
       this.tokenStorage.setTokens(tokens);
     }
 
-    const user = response.result?.user ?? null;
-    this.currentUserSubject.next(user);
+    this.tokenStorage.setWorkspaceId((response as LoginResult | RegisterResult).workspaceId ?? null);
+    this.tokenStorage.setDeviceId((response as LoginResult).deviceId ?? null);
+    this.currentUserSubject.next((response as LoginResult | RegisterResult).user ?? null);
   }
 
-  private extractTokens(payload?: AuthPayload | null): AuthTokens | null {
-    if (!payload) {
+  private extractTokens(payload?: LoginResult | RegisterResult | null): AuthTokens | null {
+    if (!payload || !('accessToken' in payload)) {
       return null;
     }
 
-    if (payload.tokens) {
-      return payload.tokens;
-    }
-
-    const accessToken = (payload as any).accessToken ?? (payload as any).token;
+    const accessToken = (payload as LoginResult).accessToken;
     if (!accessToken) {
       return null;
     }
 
-    const refreshToken = (payload as any).refreshToken ?? null;
-    return { accessToken, refreshToken };
+    return { accessToken, refreshToken: (payload as LoginResult).refreshToken ?? null };
   }
 }

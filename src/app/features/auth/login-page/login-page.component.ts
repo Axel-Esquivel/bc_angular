@@ -26,8 +26,10 @@ export class LoginPageComponent {
   isSubmitting = false;
 
   readonly form = this.fb.nonNullable.group({
-    email: ['', [Validators.required, Validators.email]],
+    identifier: ['', [Validators.required]],
     password: ['', Validators.required],
+    workspaceId: [''],
+    deviceId: [''],
   });
 
   submit(): void {
@@ -38,9 +40,15 @@ export class LoginPageComponent {
 
     this.errorMessage = '';
     this.isSubmitting = true;
-    const credentials: LoginRequest = this.form.getRawValue();
+    const credentials = this.form.getRawValue();
+    const payload: LoginRequest = {
+      identifier: credentials.identifier,
+      password: credentials.password,
+      workspaceId: credentials.workspaceId || undefined,
+      deviceId: credentials.deviceId || undefined,
+    };
 
-    this.authService.login(credentials).subscribe({
+    this.authService.login(payload).subscribe({
       next: () => this.router.navigate(['/dashboard']),
       error: (error) => {
         this.errorMessage = error?.error?.message ?? 'No se pudo iniciar sesión.';

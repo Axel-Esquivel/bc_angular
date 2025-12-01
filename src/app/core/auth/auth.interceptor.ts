@@ -8,14 +8,14 @@ import {
 import { Inject, Injectable } from '@angular/core';
 import { Observable, catchError, switchMap, throwError } from 'rxjs';
 
-import { APP_CONFIG, AppConfig } from '../config/app-config';
+import { APP_CONFIG_TOKEN, AppConfig } from '../config/app-config';
 import { TokenStorageService } from './token-storage.service';
 import { AuthService } from './auth.service';
 
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
   constructor(
-    @Inject(APP_CONFIG) private readonly config: AppConfig,
+    @Inject(APP_CONFIG_TOKEN) private readonly config: AppConfig,
     private readonly tokenStorage: TokenStorageService,
     private readonly authService: AuthService
   ) {}
@@ -40,7 +40,7 @@ export class AuthInterceptor implements HttpInterceptor {
       return throwError(() => error);
     }
 
-    return this.authService.refreshSession().pipe(
+    return this.authService.refreshToken().pipe(
       switchMap((tokens) => {
         if (!tokens?.accessToken) {
           this.authService.logout();
