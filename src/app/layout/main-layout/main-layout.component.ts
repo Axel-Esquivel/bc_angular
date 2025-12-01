@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { SelectChangeEvent, SelectModule } from 'primeng/select';
 import { ToolbarModule } from 'primeng/toolbar';
 import { ButtonModule } from 'primeng/button';
@@ -23,6 +23,7 @@ export class MainLayoutComponent {
   private readonly themeService = inject(ThemeService);
   private readonly translationService = inject(TranslationService);
   private readonly moduleMenuService = inject(ModuleMenuService);
+  private readonly router = inject(Router);
 
   readonly languages = [
     { label: 'Español', value: 'es' },
@@ -52,5 +53,6 @@ export class MainLayoutComponent {
 
   logout(): void {
     this.authService.logout();
+    this.router.navigate(['/login']);
   }
 }

@@ -15,7 +15,7 @@
 
       <div class="error" *ngIf="errorMessage">{{ errorMessage }}</div>
 
-      <p-button type="submit" label="Entrar" [disabled]="form.invalid"></p-button>
+      <p-button type="submit" label="Entrar" [disabled]="form.invalid || isSubmitting"></p-button>
     </form>
   </p-card>
 </div>

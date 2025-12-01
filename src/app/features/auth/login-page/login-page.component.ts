@@ -8,6 +8,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { PasswordModule } from 'primeng/password';
 
 import { AuthService } from '../../../core/auth/auth.service';
+import { LoginRequest } from '../../../shared/models/auth.model';
 
 @Component({
   selector: 'app-login-page',
@@ -22,6 +23,7 @@ export class LoginPageComponent {
   private readonly router = inject(Router);
 
   errorMessage = '';
+  isSubmitting = false;
 
   readonly form = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],
@@ -29,17 +31,22 @@ export class LoginPageComponent {
   });
 
   submit(): void {
-    if (this.form.invalid) {
+    if (this.form.invalid || this.isSubmitting) {
       this.form.markAllAsTouched();
       return;
     }
 
     this.errorMessage = '';
-    this.authService.login(this.form.getRawValue()).subscribe({
+    this.isSubmitting = true;
+    const credentials: LoginRequest = this.form.getRawValue();
+
+    this.authService.login(credentials).subscribe({
       next: () => this.router.navigate(['/dashboard']),
       error: (error) => {
         this.errorMessage = error?.error?.message ?? 'No se pudo iniciar sesión.';
+        this.isSubmitting = false;
       },
+      complete: () => (this.isSubmitting = false),
     });
   }
 }

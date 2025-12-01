@@ -1,18 +1,39 @@
 import { Injectable } from '@angular/core';
 
-const TOKEN_KEY = 'bc_token';
+import { AuthTokens } from '../../shared/models/auth.model';
+
+const ACCESS_TOKEN_KEY = 'bc_access_token';
+const REFRESH_TOKEN_KEY = 'bc_refresh_token';
 
 @Injectable({ providedIn: 'root' })
 export class TokenStorageService {
-  setToken(token: string): void {
-    localStorage.setItem(TOKEN_KEY, token);
+  setTokens(tokens: AuthTokens): void {
+    localStorage.setItem(ACCESS_TOKEN_KEY, tokens.accessToken);
+    if (tokens.refreshToken) {
+      localStorage.setItem(REFRESH_TOKEN_KEY, tokens.refreshToken);
+    }
   }
 
-  getToken(): string | null {
-    return localStorage.getItem(TOKEN_KEY);
+  getTokens(): AuthTokens | null {
+    const accessToken = localStorage.getItem(ACCESS_TOKEN_KEY);
+    if (!accessToken) {
+      return null;
+    }
+
+    const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
+    return { accessToken, refreshToken };
   }
 
-  clearToken(): void {
-    localStorage.removeItem(TOKEN_KEY);
+  getAccessToken(): string | null {
+    return this.getTokens()?.accessToken ?? null;
+  }
+
+  getRefreshToken(): string | null {
+    return this.getTokens()?.refreshToken ?? null;
+  }
+
+  clearTokens(): void {
+    localStorage.removeItem(ACCESS_TOKEN_KEY);
+    localStorage.removeItem(REFRESH_TOKEN_KEY);
   }
 }
