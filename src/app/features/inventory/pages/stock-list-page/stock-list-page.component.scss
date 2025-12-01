@@ -4,3 +4,16 @@
   justify-content: space-between;
   margin-bottom: 1rem;
 }
+
+.card-section + .card-section {
+  margin-top: 1rem;
+}
+
+.filters-wrapper {
+  display: grid;
+  grid-template-columns: 1fr;
+}
+
+.table-wrapper {
+  overflow: auto;
+}
