@@ -1,12 +1,12 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, ViewChild, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
-import { ToolbarModule } from 'primeng/toolbar';
-import { SelectModule } from 'primeng/select';
-import { InputTextModule } from 'primeng/inputtext';
-import { Table, TableModule } from 'primeng/table';
-import { CalendarModule } from 'primeng/calendar';
-import { ButtonModule } from 'primeng/button';
+import { Button } from 'primeng/button';
+import { Calendar } from 'primeng/calendar';
+import { InputText } from 'primeng/inputtext';
+import { Select } from 'primeng/select';
+import { Table } from 'primeng/table';
+import { Toolbar } from 'primeng/toolbar';
 
 import { ReportsApiService } from '../../../../core/api/reports-api.service';
 import { DailySalesReport, InventoryReportItem } from '../../../../shared/models/report.model';
@@ -23,16 +23,7 @@ type ReportRow = DailySalesReport | InventoryReportItem | Record<string, unknown
 @Component({
   selector: 'app-reports-dashboard-page',
   standalone: true,
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    ToolbarModule,
-    SelectModule,
-    InputTextModule,
-    TableModule,
-    CalendarModule,
-    ButtonModule,
-  ],
+  imports: [CommonModule, ReactiveFormsModule, Toolbar, Select, InputText, Table, Calendar, Button],
   templateUrl: './reports-dashboard-page.component.html',
   styleUrl: './reports-dashboard-page.component.scss',
 })

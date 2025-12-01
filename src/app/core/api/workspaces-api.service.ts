@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, catchError, of } from 'rxjs';
 
 import { APP_CONFIG, AppConfig } from '../config/app-config';
 import { ApiResponse } from '../../shared/models/api-response.model';
@@ -23,7 +23,23 @@ export class WorkspacesApiService {
   }
 
   listMyWorkspaces(): Observable<ApiResponse<Workspace[]>> {
-    // TODO: implementar en backend (WorkspacesController)
-    return this.http.get<ApiResponse<Workspace[]>>(this.baseUrl);
+    return this.http.get<ApiResponse<Workspace[]>>(this.baseUrl).pipe(
+      catchError(() => {
+        const mockResponse: ApiResponse<Workspace[]> = {
+          success: true,
+          message:
+            'Datos simulados mientras el endpoint GET /api/workspaces no está disponible en el backend (ver docs/04_API_BACKEND_MAPPING.md).',
+          result: this.mockWorkspaces,
+        };
+        return of(mockResponse);
+      })
+    );
+  }
+
+  private get mockWorkspaces(): Workspace[] {
+    return [
+      { id: 'demo-1', name: 'Workspace demo', description: 'Datos locales hasta que exista GET /workspaces' },
+      { id: 'demo-2', name: 'Tienda Central', description: 'Ejemplo de multi-sucursal' },
+    ];
   }
 }
