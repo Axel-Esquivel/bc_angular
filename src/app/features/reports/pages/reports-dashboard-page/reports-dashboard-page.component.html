@@ -21,11 +21,11 @@
     </div>
     <div class="filter-group">
       <label for="startDate">Desde</label>
-      <p-calendar inputId="startDate" formControlName="startDate" dateFormat="yy-mm-dd" [showIcon]="true"></p-calendar>
+      <p-datepicker inputId="startDate" formControlName="startDate" dateFormat="yy-mm-dd" [showIcon]="true"></p-datepicker>
     </div>
     <div class="filter-group">
       <label for="endDate">Hasta</label>
-      <p-calendar inputId="endDate" formControlName="endDate" dateFormat="yy-mm-dd" [showIcon]="true"></p-calendar>
+      <p-datepicker inputId="endDate" formControlName="endDate" dateFormat="yy-mm-dd" [showIcon]="true"></p-datepicker>
     </div>
     <div class="filter-group">
       <label for="warehouse">Almacén</label>
@@ -55,7 +55,7 @@
   </div>
 </div>
 
-<p-table #dataTable [value]="rows" [loading]="loading" [globalFilterFields]="columns.map((c) => c.field)">
+<p-table #dataTable [value]="rows" [loading]="loading" [globalFilterFields]="globalFilterFields">
   <ng-template pTemplate="header">
     <tr>
       <th *ngFor="let column of columns">{{ column.header }}</th>

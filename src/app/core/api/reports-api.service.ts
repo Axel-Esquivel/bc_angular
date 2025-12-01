@@ -51,7 +51,7 @@ export class ReportsApiService {
     const today = new Date();
     const format = (d: Date) => d.toISOString().slice(0, 10);
     return {
-      success: true,
+      status: 'success',
       message:
         'Datos simulados mientras se confirman los endpoints de reportes en el backend (ver docs/04_API_BACKEND_MAPPING.md).',
       result: [
@@ -63,12 +63,13 @@ export class ReportsApiService {
           averageTicket: 65.33,
         },
       ],
+      error: null,
     };
   }
 
   private buildMockInventoryResponse(): ApiResponse<InventoryReportItem[]> {
     return {
-      success: true,
+      status: 'success',
       message:
         'Datos simulados mientras se confirman los endpoints de reportes en el backend (ver docs/04_API_BACKEND_MAPPING.md).',
       result: [
@@ -91,6 +92,7 @@ export class ReportsApiService {
           availableStock: 40,
         },
       ],
+      error: null,
     };
   }
 }

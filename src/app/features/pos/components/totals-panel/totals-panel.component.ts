@@ -1,16 +1,16 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Button } from 'primeng/button';
-import { InputNumber } from 'primeng/inputnumber';
-import { Select } from 'primeng/select';
+import { ButtonModule } from 'primeng/button';
+import { InputNumberModule } from 'primeng/inputnumber';
+import { SelectModule } from 'primeng/select';
 
 import { PosPayment } from '../../../../shared/models/pos.model';
 
 @Component({
   selector: 'bc-pos-totals',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, Button, InputNumber, Select],
+  imports: [CommonModule, ReactiveFormsModule, ButtonModule, InputNumberModule, SelectModule],
   templateUrl: './totals-panel.component.html',
   styleUrl: './totals-panel.component.scss',
 })
@@ -26,14 +26,14 @@ export class TotalsPanelComponent {
     { label: 'Transferencia', value: 'transfer' },
   ];
 
+  private readonly fb = inject(FormBuilder);
+
   readonly paymentForm = this.fb.nonNullable.group({
     method: ['cash', Validators.required],
     amount: [0, [Validators.required, Validators.min(0)]],
   });
 
   insufficientAmount = false;
-
-  constructor(private readonly fb: FormBuilder) {}
 
   get changeDue(): number {
     const amount = this.paymentForm.get('amount')?.value ?? 0;

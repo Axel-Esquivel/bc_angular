@@ -1,13 +1,13 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Button } from 'primeng/button';
-import { Card } from 'primeng/card';
-import { InputNumber } from 'primeng/inputnumber';
-import { InputSwitch } from 'primeng/inputswitch';
-import { InputText } from 'primeng/inputtext';
-import { InputTextarea } from 'primeng/inputtextarea';
-import { Select } from 'primeng/select';
+import { ButtonModule } from 'primeng/button';
+import { CardModule } from 'primeng/card';
+import { InputNumberModule } from 'primeng/inputnumber';
+import { ToggleSwitchModule } from 'primeng/toggleswitch';
+import { InputTextModule } from 'primeng/inputtext';
+import { TextareaModule } from 'primeng/textarea';
+import { SelectModule } from 'primeng/select';
 
 import { Product } from '../../../../shared/models/product.model';
 
@@ -17,13 +17,13 @@ import { Product } from '../../../../shared/models/product.model';
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    Card,
-    InputText,
-    InputTextarea,
-    InputNumber,
-    InputSwitch,
-    Select,
-    Button,
+    CardModule,
+    InputTextModule,
+    TextareaModule,
+    InputNumberModule,
+    ToggleSwitchModule,
+    SelectModule,
+    ButtonModule,
   ],
   templateUrl: './product-form.component.html',
   styleUrl: './product-form.component.scss',
@@ -41,6 +41,8 @@ export class ProductFormComponent implements OnChanges {
     { label: 'Electrónica', value: 'electronics' },
   ];
 
+  private readonly fb = inject(FormBuilder);
+
   readonly form = this.fb.nonNullable.group({
     name: ['', Validators.required],
     sku: [''],
@@ -49,8 +51,6 @@ export class ProductFormComponent implements OnChanges {
     description: [''],
     isActive: [true],
   });
-
-  constructor(private readonly fb: FormBuilder) {}
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['product']) {

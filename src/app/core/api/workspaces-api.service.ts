@@ -26,10 +26,11 @@ export class WorkspacesApiService {
     return this.http.get<ApiResponse<Workspace[]>>(this.baseUrl).pipe(
       catchError(() => {
         const mockResponse: ApiResponse<Workspace[]> = {
-          success: true,
+          status: 'success',
           message:
             'Datos simulados mientras el endpoint GET /api/workspaces no está disponible en el backend (ver docs/04_API_BACKEND_MAPPING.md).',
           result: this.mockWorkspaces,
+          error: null,
         };
         return of(mockResponse);
       })

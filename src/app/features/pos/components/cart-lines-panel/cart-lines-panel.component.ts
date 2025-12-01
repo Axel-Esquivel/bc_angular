@@ -1,16 +1,16 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Button } from 'primeng/button';
-import { InputNumber } from 'primeng/inputnumber';
-import { Table } from 'primeng/table';
+import { ButtonModule } from 'primeng/button';
+import { InputNumberModule } from 'primeng/inputnumber';
+import { TableModule } from 'primeng/table';
 
 import { PosCartLine } from '../../../../shared/models/pos.model';
 
 @Component({
   selector: 'bc-pos-cart-lines',
   standalone: true,
-  imports: [CommonModule, FormsModule, Button, InputNumber, Table],
+  imports: [CommonModule, FormsModule, ButtonModule, InputNumberModule, TableModule],
   templateUrl: './cart-lines-panel.component.html',
   styleUrl: './cart-lines-panel.component.scss',
 })
