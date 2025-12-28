@@ -19,7 +19,8 @@ export const appConfig: ApplicationConfig = {
     providePrimeNG({
       theme: {
         preset: Aura,
-        options: { darkModeSelector: 'html.bc-dark' },
+        // PrimeNG dark mode toggles when .bc-dark exists on <html>.
+        options: { darkModeSelector: '.bc-dark' },
       },
     }),
     { provide: APP_CONFIG_TOKEN, useValue: APP_CONFIG },
