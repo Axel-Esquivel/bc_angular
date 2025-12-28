@@ -11,6 +11,7 @@
         placeholder="Tema"
         (onChange)="onThemeChange($event)"
       ></p-select>
+      <span class="theme-indicator">Tema: {{ (theme$ | async) ?? 'light' }}</span>
       <p-select
         [options]="languages"
         optionLabel="label"

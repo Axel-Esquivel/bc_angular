@@ -7,7 +7,7 @@ import { ButtonModule } from 'primeng/button';
 import { PanelMenuModule } from 'primeng/panelmenu';
 
 import { AuthService } from '../../core/auth/auth.service';
-import { ThemeService } from '../../core/theme/theme.service';
+import { ThemeService, ThemeMode } from '../../core/theme/theme.service';
 import { TranslationService } from '../../core/i18n/translation.service';
 import { ModuleMenuService } from '../../core/layout/module-menu.service';
 
@@ -30,17 +30,19 @@ export class MainLayoutComponent {
     { label: 'English', value: 'en' },
   ];
 
-  readonly themes = [
-    { label: 'Claro', value: 'lara-light-blue' },
-    { label: 'Oscuro', value: 'lara-dark-blue' },
+  readonly themes: { label: string; value: ThemeMode }[] = [
+    { label: 'Claro', value: 'light' },
+    { label: 'Oscuro', value: 'dark' },
   ];
+
+  readonly theme$ = this.themeService.theme$;
 
   readonly menuItems$ = this.moduleMenuService.getMenuItems();
 
   readonly currentUser$ = this.authService.getCurrentUser();
 
   onThemeChange(event: SelectChangeEvent): void {
-    if (event.value) {
+    if (event.value === 'light' || event.value === 'dark') {
       this.themeService.setTheme(event.value);
     }
   }

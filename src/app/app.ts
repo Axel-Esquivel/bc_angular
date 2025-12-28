@@ -1,8 +1,8 @@
-import { Component, signal } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 
-import { ThemeService } from './core/services/theme.service';
+import { ThemeService } from './core/theme/theme.service';
 
 @Component({
   selector: 'app-root',
@@ -10,12 +10,16 @@ import { ThemeService } from './core/services/theme.service';
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })
-export class App {
+export class App implements OnInit {
   readonly title = signal('business-control');
 
   constructor(private readonly theme: ThemeService) {}
 
+  ngOnInit(): void {
+    this.theme.initTheme();
+  }
+
   toggleTheme(): void {
-    this.theme.toggle();
+    this.theme.toggleTheme();
   }
 }
