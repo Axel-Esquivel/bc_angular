@@ -1,21 +1,94 @@
-<section class="workspace-select">
-  <header class="workspace-select__header">
+<p-toast></p-toast>
+<section class="workspace-page">
+  <header class="workspace-page__header">
     <div>
       <p class="eyebrow">Workspaces</p>
-      <h1>Selecciona o crea un workspace</h1>
-      <p class="subtitle">Cada workspace representa una empresa o entorno de trabajo independiente.</p>
+      <h1>Selecciona tu workspace</h1>
+      <p class="subtitle">Crea uno nuevo o unete con un codigo.</p>
+    </div>
+    <div class="header-actions">
+      <p-button label="Crear" icon="pi pi-plus" (onClick)="openCreateDialog()"></p-button>
+      <p-button label="Unirse" icon="pi pi-link" severity="secondary" (onClick)="openJoinDialog()"></p-button>
     </div>
   </header>
 
-  <div class="workspace-select__grid">
-    <app-workspace-create-card [loading]="creatingWorkspace" (create)="createWorkspace($event)"></app-workspace-create-card>
+  <p-card class="workspace-card" header="Mis workspaces">
+    <p-table [value]="workspaces" [loading]="loadingWorkspaces" responsiveLayout="scroll">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Nombre</th>
+          <th>Codigo</th>
+          <th>Estado</th>
+          <th style="width: 1%"></th>
+        </tr>
+      </ng-template>
 
-    <app-workspace-list
-      [workspaces]="workspaces"
-      [loading]="loadingWorkspaces"
-      [unavailable]="workspacesUnavailable"
-      (refresh)="loadWorkspaces()"
-      (select)="selectWorkspace($event)"
-    ></app-workspace-list>
-  </div>
+      <ng-template pTemplate="body" let-workspace>
+        <tr>
+          <td>{{ workspace.name }}</td>
+          <td>{{ workspace.code || '-' }}</td>
+          <td>
+            <span *ngIf="isDefault(workspace)" class="badge badge--default">Default</span>
+            <span *ngIf="isActive(workspace)" class="badge badge--active">Activo</span>
+          </td>
+          <td class="row-actions">
+            <p-button
+              label="Entrar"
+              size="small"
+              [disabled]="loadingWorkspaces"
+              (onClick)="enterWorkspace(workspace)"
+            ></p-button>
+            <p-button
+              label="Default"
+              size="small"
+              severity="secondary"
+              [loading]="submittingDefault === (workspace.id || workspace._id)"
+              [disabled]="isDefault(workspace)"
+              (onClick)="setDefault(workspace)"
+            ></p-button>
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="4">Aun no tienes workspaces.</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </p-card>
 </section>
+
+<p-dialog header="Crear workspace" [(visible)]="createDialogOpen" [modal]="true" [style]="{ width: '420px' }">
+  <form [formGroup]="createForm" class="dialog-form" (ngSubmit)="createWorkspace()">
+    <div class="form-field">
+      <label for="createName">Nombre</label>
+      <input id="createName" type="text" pInputText formControlName="name" placeholder="Nombre del workspace" />
+      <small class="error" *ngIf="createForm.controls.name.touched && createForm.controls.name.invalid">
+        El nombre es obligatorio.
+      </small>
+    </div>
+
+    <div class="dialog-actions">
+      <p-button type="button" label="Cancelar" severity="secondary" (onClick)="createDialogOpen = false"></p-button>
+      <p-button type="submit" label="Crear" [loading]="submittingCreate"></p-button>
+    </div>
+  </form>
+</p-dialog>
+
+<p-dialog header="Unirse por codigo" [(visible)]="joinDialogOpen" [modal]="true" [style]="{ width: '420px' }">
+  <form [formGroup]="joinForm" class="dialog-form" (ngSubmit)="joinWorkspace()">
+    <div class="form-field">
+      <label for="joinCode">Codigo</label>
+      <input id="joinCode" type="text" pInputText formControlName="code" placeholder="ABCD-1234" />
+      <small class="error" *ngIf="joinForm.controls.code.touched && joinForm.controls.code.invalid">
+        Ingresa un codigo valido.
+      </small>
+    </div>
+
+    <div class="dialog-actions">
+      <p-button type="button" label="Cancelar" severity="secondary" (onClick)="joinDialogOpen = false"></p-button>
+      <p-button type="submit" label="Unirse" [loading]="submittingJoin"></p-button>
+    </div>
+  </form>
+</p-dialog>

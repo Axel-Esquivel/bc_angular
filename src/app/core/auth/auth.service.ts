@@ -24,6 +24,7 @@ import {
 } from '../../shared/models/auth.model';
 import { AuthApiService } from '../api/auth-api.service';
 import { TokenStorageService } from './token-storage.service';
+import { WorkspaceStateService } from '../workspace/workspace-state.service';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -31,7 +32,15 @@ export class AuthService {
   private readonly refreshSubject = new BehaviorSubject<AuthTokens | null>(null);
   private isRefreshing = false;
 
-  constructor(private readonly authApi: AuthApiService, private readonly tokenStorage: TokenStorageService) {}
+  constructor(
+    private readonly authApi: AuthApiService,
+    private readonly tokenStorage: TokenStorageService,
+    private readonly workspaceState: WorkspaceStateService
+  ) {
+    const storedUser = this.tokenStorage.getUser();
+    this.currentUserSubject.next(storedUser);
+    this.workspaceState.syncFromUser(storedUser);
+  }
 
   login(credentials: LoginRequest): Observable<AuthUser | null> {
     return this.authApi.login(credentials).pipe(
@@ -50,6 +59,7 @@ export class AuthService {
   logout(): void {
     this.tokenStorage.clearTokens();
     this.currentUserSubject.next(null);
+    this.workspaceState.clear();
   }
 
   loadMe(): Observable<AuthUser | null> {
@@ -60,7 +70,11 @@ export class AuthService {
 
     return this.authApi.me().pipe(
       map((response) => this.mapUser(response.result?.user)),
-      tap((user) => this.currentUserSubject.next(user)),
+      tap((user) => {
+        this.tokenStorage.setUser(user);
+        this.currentUserSubject.next(user);
+        this.workspaceState.syncFromUser(user);
+      }),
       catchError(() => {
         this.logout();
         return of(null);
@@ -126,8 +140,12 @@ export class AuthService {
 
     this.tokenStorage.setWorkspaceId((response as LoginResult | RegisterResult).workspaceId ?? null);
     this.tokenStorage.setDeviceId((response as LoginResult).deviceId ?? null);
-    const user = 'user' in response ? response.user : null;
-    this.currentUserSubject.next(this.mapUser(user));
+    if ('user' in response && response.user) {
+      const mappedUser = this.mapUser(response.user);
+      this.tokenStorage.setUser(mappedUser);
+      this.currentUserSubject.next(mappedUser);
+      this.workspaceState.syncFromUser(mappedUser);
+    }
   }
 
   private extractTokens(payload?: LoginResult | RegisterResult | null): AuthTokens | null {
@@ -148,6 +166,6 @@ export class AuthService {
       return null;
     }
 
-    return { ...user, displayName: user.displayName ?? user.username ?? user.email };
+    return { ...user, displayName: user.displayName ?? user.name ?? user.username ?? user.email };
   }
 }

@@ -1,0 +1,28 @@
+<p-toast></p-toast>
+
+<section class="launcher">
+  <p-card header="Apps disponibles">
+    <div class="launcher-grid" *ngIf="visibleModules.length > 0; else emptyState">
+      <button
+        class="launcher-card"
+        *ngFor="let module of visibleModules"
+        (click)="openModule(module)"
+        [class.launcher-card--disabled]="!isEnabled(module)"
+      >
+        <div class="launcher-card__title">
+          <span>{{ module.name }}</span>
+          <p-tag *ngIf="isEnabled(module)" severity="success" value="Activo"></p-tag>
+          <p-tag *ngIf="!isEnabled(module)" severity="secondary" value="Inactivo"></p-tag>
+        </div>
+        <p class="launcher-card__desc">{{ module.description || 'Sin descripcion' }}</p>
+        <span class="launcher-card__version">v{{ module.version }}</span>
+      </button>
+    </div>
+
+    <ng-template #emptyState>
+      <div class="empty-state">
+        <p>No hay modulos habilitados.</p>
+      </div>
+    </ng-template>
+  </p-card>
+</section>

@@ -1,0 +1,60 @@
+.workspace-modules {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.header-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.modules-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1rem;
+}
+
+.module-card {
+  height: 100%;
+}
+
+.card-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.version {
+  font-size: 0.8rem;
+  color: #6c757d;
+}
+
+.card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.state-label {
+  font-weight: 600;
+}
+
+.processing {
+  font-size: 0.85rem;
+  color: #6c757d;
+}
+
+.empty-state {
+  padding: 1rem;
+  text-align: center;
+  color: #6c757d;
+}

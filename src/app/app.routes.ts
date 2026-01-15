@@ -6,10 +6,13 @@ import { InitialSetupPageComponent } from './features/setup/initial-setup-page/i
 import { MainLayoutComponent } from './layout/main-layout/main-layout.component';
 import { AuthGuard } from './core/auth/auth.guard';
 import { SetupGuard } from './core/setup/setup.guard';
+import { WorkspaceShellComponent } from './features/workspaces/pages/workspace-shell/workspace-shell.component';
 
 export const routes: Routes = [
-  { path: 'login', component: LoginPageComponent, canActivate: [SetupGuard], data: { setupMode: 'requireInstalled' } },
-  { path: 'register', component: RegisterPageComponent, canActivate: [SetupGuard], data: { setupMode: 'requireInstalled' } },
+  { path: 'login', redirectTo: 'auth/login', pathMatch: 'full' },
+  { path: 'register', redirectTo: 'auth/register', pathMatch: 'full' },
+  { path: 'auth/login', component: LoginPageComponent, canActivate: [SetupGuard], data: { setupMode: 'requireInstalled' } },
+  { path: 'auth/register', component: RegisterPageComponent, canActivate: [SetupGuard], data: { setupMode: 'requireInstalled' } },
   {
     path: 'setup/initial',
     component: InitialSetupPageComponent,
@@ -26,11 +29,45 @@ export const routes: Routes = [
     data: { setupMode: 'requireSetup' },
   },
   {
+    path: 'workspaces',
+    redirectTo: 'workspaces/select',
+    pathMatch: 'full',
+  },
+  {
     path: 'workspaces/select',
     loadComponent: () =>
       import('./features/workspaces/pages/workspace-select-page/workspace-select-page.component').then(
         (m) => m.WorkspaceSelectPageComponent
       ),
+    canActivate: [SetupGuard, AuthGuard],
+    data: { setupMode: 'requireInstalled' },
+  },
+  {
+    path: 'w/:workspaceId',
+    component: WorkspaceShellComponent,
+    canActivate: [SetupGuard, AuthGuard],
+    data: { setupMode: 'requireInstalled' },
+    children: [
+      {
+        path: '',
+        loadComponent: () =>
+          import('./features/workspaces/pages/workspace-launcher/workspace-launcher.component').then(
+            (m) => m.WorkspaceLauncherComponent
+          ),
+      },
+      {
+        path: 'dashboard',
+        loadComponent: () =>
+          import('./features/dashboard/dashboard-page.component').then((m) => m.DashboardPageComponent),
+      },
+      {
+        path: 'settings/modules',
+        loadComponent: () =>
+          import('./features/workspaces/pages/workspace-modules-page/workspace-modules-page.component').then(
+            (m) => m.WorkspaceModulesPageComponent
+          ),
+      },
+    ],
   },
   {
     path: '',

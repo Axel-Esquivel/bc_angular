@@ -1,0 +1,22 @@
+<section class="workspace-shell">
+  <header class="shell-header">
+    <div>
+      <p class="eyebrow">Workspace</p>
+      <h1>{{ workspaceId }}</h1>
+      <div class="shell-meta">
+        <p-tag *ngIf="userRole" [value]="userRole === 'admin' ? 'Admin' : 'Member'"></p-tag>
+      </div>
+    </div>
+    <div class="shell-actions">
+      <p-button label="Cambiar workspace" severity="secondary" (onClick)="goToWorkspaces()"></p-button>
+      <p-button
+        *ngIf="canManageModules()"
+        label="Administrar modulos"
+        icon="pi pi-cog"
+        [routerLink]="['/w', workspaceId, 'settings', 'modules']"
+      ></p-button>
+    </div>
+  </header>
+
+  <router-outlet></router-outlet>
+</section>

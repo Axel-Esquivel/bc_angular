@@ -21,3 +21,24 @@
   flex-direction: column;
   gap: 0.25rem;
 }
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.link {
+  color: var(--primary-color);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.link:hover {
+  text-decoration: underline;
+}
+
+.error {
+  color: var(--red-500);
+  font-size: 0.85rem;
+}

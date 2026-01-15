@@ -2,6 +2,8 @@ export interface AuthUser {
   id: string;
   email: string;
   username: string;
+  name?: string;
+  defaultWorkspaceId?: string;
   firstName?: string;
   lastName?: string;
   displayName?: string;
@@ -22,6 +24,7 @@ export interface LoginRequest {
 
 export interface RegisterRequest {
   email: string;
+  name: string;
   username: string;
   password: string;
   workspaceId?: string;

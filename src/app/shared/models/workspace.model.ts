@@ -3,6 +3,8 @@ export interface Workspace {
   id?: string;
   name: string;
   description?: string;
+  code?: string;
+  ownerUserId?: string;
   ownerId?: string;
   createdAt?: string;
   updatedAt?: string;

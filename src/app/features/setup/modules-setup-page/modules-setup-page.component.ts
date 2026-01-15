@@ -73,7 +73,7 @@ export class ModulesSetupPageComponent implements OnInit {
   }
 
   continueToLogin(): void {
-    void this.router.navigate(['/login']);
+    void this.router.navigate(['/auth/login']);
   }
 
   isProcessing(name: string): boolean {

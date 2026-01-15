@@ -1,0 +1,52 @@
+.launcher-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.launcher-card {
+  text-align: left;
+  border: 1px solid var(--surface-border);
+  border-radius: 12px;
+  padding: 1rem;
+  background: var(--surface-card);
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.launcher-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+}
+
+.launcher-card--disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.launcher-card__title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-weight: 600;
+}
+
+.launcher-card__desc {
+  margin: 0.5rem 0 0;
+  color: #6c757d;
+  min-height: 2.5rem;
+}
+
+.launcher-card__version {
+  display: block;
+  margin-top: 0.75rem;
+  font-size: 0.8rem;
+  color: #6c757d;
+}
+
+.empty-state {
+  padding: 1rem;
+  text-align: center;
+  color: #6c757d;
+}

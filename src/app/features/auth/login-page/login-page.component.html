@@ -1,5 +1,6 @@
+<p-toast></p-toast>
 <div class="login-container">
-  <p-card header="Iniciar sesión" class="login-card">
+  <p-card header="Iniciar sesion" class="login-card">
     <form [formGroup]="form" (ngSubmit)="submit()" class="login-form">
       <div class="form-field">
         <label for="identifier">Correo o usuario</label>
@@ -16,9 +17,11 @@
       </div>
 
       <div class="form-field">
-        <label for="password">Contraseña</label>
+        <label for="password">Contrasena</label>
         <input id="password" type="password" pPassword formControlName="password" toggleMask="true" />
-        <small class="error" *ngIf="form.controls.password.invalid && form.controls.password.touched">La contraseña es requerida.</small>
+        <small class="error" *ngIf="form.controls.password.invalid && form.controls.password.touched">
+          La contrasena es requerida.
+        </small>
       </div>
 
       <div class="form-field">
@@ -31,9 +34,10 @@
         <input id="deviceId" type="text" pInputText formControlName="deviceId" placeholder="device-id" />
       </div>
 
-      <div class="error" *ngIf="errorMessage">{{ errorMessage }}</div>
-
-      <p-button type="submit" label="Entrar" [disabled]="form.invalid || isSubmitting"></p-button>
+      <div class="actions">
+        <p-button type="submit" label="Entrar" [disabled]="form.invalid || isSubmitting"></p-button>
+        <a routerLink="/auth/register" class="link">Crear cuenta</a>
+      </div>
     </form>
   </p-card>
 </div>
