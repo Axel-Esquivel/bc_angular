@@ -1,2 +1,23 @@
-<p-button label="Tema" icon="pi pi-moon" (onClick)="toggleTheme()"></p-button>
+<header class="topbar app-navbar">
+  <a class="app-title" routerLink="/workspaces">Business Control</a>
+  <div class="topbar-right">
+    <p-button
+      styleClass="app-navbar-btn"
+      [icon]="(theme$ | async) === 'dark' ? 'pi pi-sun' : 'pi pi-moon'"
+      severity="secondary"
+      [text]="true"
+      [rounded]="true"
+      (onClick)="toggleTheme()"
+    ></p-button>
+    <p-button
+      styleClass="app-navbar-btn"
+      *ngIf="isAuthenticated$ | async"
+      icon="pi pi-sign-out"
+      severity="secondary"
+      [text]="true"
+      [rounded]="true"
+      (onClick)="logout()"
+    ></p-button>
+  </div>
+</header>
 <router-outlet />

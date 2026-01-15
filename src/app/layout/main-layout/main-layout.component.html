@@ -1,36 +1,4 @@
 <div class="layout">
-  <p-toolbar class="topbar">
-    <div class="p-toolbar-group-start">
-      <h1 class="app-title">Business Control</h1>
-    </div>
-    <div class="p-toolbar-group-end topbar-actions">
-      <p-select
-        [options]="themes"
-        optionLabel="label"
-        optionValue="value"
-        placeholder="Tema"
-        (onChange)="onThemeChange($event)"
-      ></p-select>
-      <span class="theme-indicator">Tema: {{ (theme$ | async) ?? 'light' }}</span>
-      <p-select
-        [options]="languages"
-        optionLabel="label"
-        optionValue="value"
-        placeholder="Idioma"
-        (onChange)="onLanguageChange($event)"
-      ></p-select>
-      <div class="user-info">
-        <span class="user-name" *ngIf="(currentUser$ | async) as user; else guest"
-          >{{ user?.displayName || user?.email }}</span
-        >
-        <ng-template #guest>
-          <span class="user-name">Invitado</span>
-        </ng-template>
-        <p-button label="Salir" severity="secondary" (onClick)="logout()"></p-button>
-      </div>
-    </div>
-  </p-toolbar>
-
   <div class="content">
     <aside class="sidebar">
       <p-panelMenu [model]="(menuItems$ | async) ?? []" styleClass="menu"></p-panelMenu>
