@@ -166,6 +166,7 @@ export class AuthService {
       return null;
     }
 
-    return { ...user, displayName: user.displayName ?? user.name ?? user.username ?? user.email };
+    const fullName = `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim();
+    return { ...user, displayName: user.displayName ?? (fullName || user.email) };
   }
 }

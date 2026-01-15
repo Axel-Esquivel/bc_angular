@@ -3,16 +3,16 @@
   <p-card header="Iniciar sesion" class="login-card">
     <form [formGroup]="form" (ngSubmit)="submit()" class="login-form">
       <div class="form-field">
-        <label for="identifier">Correo o usuario</label>
+        <label for="email">Correo</label>
         <input
-          id="identifier"
-          type="text"
+          id="email"
+          type="email"
           pInputText
-          formControlName="identifier"
-          placeholder="correo@empresa.com o usuario"
+          formControlName="email"
+          placeholder="correo@empresa.com"
         />
-        <small class="error" *ngIf="form.controls.identifier.invalid && form.controls.identifier.touched">
-          Ingresa tu correo o usuario.
+        <small class="error" *ngIf="form.controls.email.invalid && form.controls.email.touched">
+          Ingresa tu correo.
         </small>
       </div>
 
@@ -20,18 +20,8 @@
         <label for="password">Contrasena</label>
         <input id="password" type="password" pPassword formControlName="password" toggleMask="true" />
         <small class="error" *ngIf="form.controls.password.invalid && form.controls.password.touched">
-          La contrasena es requerida.
+          La contrasena debe tener al menos 8 caracteres.
         </small>
-      </div>
-
-      <div class="form-field">
-        <label for="workspaceId">Workspace (opcional)</label>
-        <input id="workspaceId" type="text" pInputText formControlName="workspaceId" placeholder="workspace-id" />
-      </div>
-
-      <div class="form-field">
-        <label for="deviceId">Device ID (opcional)</label>
-        <input id="deviceId" type="text" pInputText formControlName="deviceId" placeholder="device-id" />
       </div>
 
       <div class="actions">

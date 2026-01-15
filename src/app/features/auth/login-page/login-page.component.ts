@@ -29,10 +29,8 @@ export class LoginPageComponent {
   isSubmitting = false;
 
   readonly form = this.fb.nonNullable.group({
-    identifier: ['', [Validators.required]],
-    password: ['', Validators.required],
-    workspaceId: [''],
-    deviceId: [''],
+    email: ['', [Validators.required, Validators.email]],
+    password: ['', [Validators.required, Validators.minLength(8)]],
   });
 
   submit(): void {
@@ -44,10 +42,8 @@ export class LoginPageComponent {
     this.isSubmitting = true;
     const credentials = this.form.getRawValue();
     const payload: LoginRequest = {
-      identifier: credentials.identifier,
+      email: credentials.email,
       password: credentials.password,
-      workspaceId: credentials.workspaceId || undefined,
-      deviceId: credentials.deviceId || undefined,
     };
 
     this.authService.login(payload).subscribe({

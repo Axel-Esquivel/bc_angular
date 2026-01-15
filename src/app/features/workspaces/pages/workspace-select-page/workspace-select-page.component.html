@@ -3,7 +3,7 @@
   <header class="workspace-page__header">
     <div>
       <p class="eyebrow">Workspaces</p>
-      <h1>Selecciona tu workspace</h1>
+      <h1>{{ isLaunchMode ? 'Crea o unete a un workspace' : 'Selecciona tu workspace' }}</h1>
       <p class="subtitle">Crea uno nuevo o unete con un codigo.</p>
     </div>
     <div class="header-actions">
@@ -12,7 +12,15 @@
     </div>
   </header>
 
-  <p-card class="workspace-card" header="Mis workspaces">
+  <p-card *ngIf="isLaunchMode" class="workspace-card" header="Crear o unirse">
+    <p>Empieza creando un workspace o unete con un codigo de invitacion.</p>
+    <div class="header-actions">
+      <p-button label="Crear" icon="pi pi-plus" (onClick)="openCreateDialog()"></p-button>
+      <p-button label="Unirse" icon="pi pi-link" severity="secondary" (onClick)="openJoinDialog()"></p-button>
+    </div>
+  </p-card>
+
+  <p-card *ngIf="!isLaunchMode" class="workspace-card" header="Mis workspaces">
     <p-table [value]="workspaces" [loading]="loadingWorkspaces" responsiveLayout="scroll">
       <ng-template pTemplate="header">
         <tr>

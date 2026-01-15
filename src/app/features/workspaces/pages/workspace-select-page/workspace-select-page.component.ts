@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { Button } from 'primeng/button';
 import { Card } from 'primeng/card';
@@ -10,7 +10,6 @@ import { InputText } from 'primeng/inputtext';
 import { TableModule } from 'primeng/table';
 import { Toast } from 'primeng/toast';
 
-import { UsersApiService } from '../../../../core/api/users-api.service';
 import { WorkspacesApiService } from '../../../../core/api/workspaces-api.service';
 import { TokenStorageService } from '../../../../core/auth/token-storage.service';
 import { WorkspaceStateService } from '../../../../core/workspace/workspace-state.service';
@@ -35,15 +34,16 @@ import { Workspace } from '../../../../shared/models/workspace.model';
 })
 export class WorkspaceSelectPageComponent implements OnInit {
   private readonly workspacesApi = inject(WorkspacesApiService);
-  private readonly usersApi = inject(UsersApiService);
   private readonly workspaceState = inject(WorkspaceStateService);
   private readonly tokenStorage = inject(TokenStorageService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private readonly messageService = inject(MessageService);
   private readonly fb = inject(FormBuilder);
 
   workspaces: Workspace[] = [];
   loadingWorkspaces = false;
+  mode: 'launch' | 'select' = 'select';
 
   createDialogOpen = false;
   joinDialogOpen = false;
@@ -60,6 +60,8 @@ export class WorkspaceSelectPageComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    const mode = this.route.snapshot.data['mode'];
+    this.mode = mode === 'launch' ? 'launch' : 'select';
     this.loadWorkspaces();
   }
 
@@ -71,12 +73,20 @@ export class WorkspaceSelectPageComponent implements OnInit {
     return this.workspaceState.getDefaultWorkspaceId();
   }
 
+  get isLaunchMode(): boolean {
+    return this.mode === 'launch';
+  }
+
   loadWorkspaces(): void {
     this.loadingWorkspaces = true;
 
-    this.workspacesApi.listMyWorkspaces().subscribe({
+    this.workspacesApi.listMine().subscribe({
       next: (response) => {
-        this.workspaces = response.result ?? [];
+        const payload = response.result;
+        this.workspaces = payload?.workspaces ?? [];
+        if (payload?.defaultWorkspaceId) {
+          this.workspaceState.setDefaultWorkspaceId(payload.defaultWorkspaceId);
+        }
         this.loadingWorkspaces = false;
       },
       error: () => {
@@ -107,11 +117,15 @@ export class WorkspaceSelectPageComponent implements OnInit {
     this.submittingCreate = true;
     const payload = this.createForm.getRawValue();
 
-    this.workspacesApi.createWorkspace({ name: payload.name }).subscribe({
+    this.workspacesApi.create({ name: payload.name }).subscribe({
       next: ({ result }) => {
         if (result) {
-          this.workspaces = [result, ...this.workspaces.filter((w) => this.getWorkspaceId(w) !== this.getWorkspaceId(result))];
-          this.workspaceState.setActiveWorkspaceId(this.getWorkspaceId(result));
+          const createdId = this.getWorkspaceId(result);
+          this.workspaces = [result, ...this.workspaces.filter((w) => this.getWorkspaceId(w) !== createdId)];
+          this.workspaceState.setActiveWorkspaceId(createdId);
+          if (!this.defaultWorkspaceId && createdId) {
+            this.workspaceState.setDefaultWorkspaceId(createdId);
+          }
           this.createDialogOpen = false;
           this.createForm.reset();
           this.enterWorkspace(result);
@@ -139,12 +153,15 @@ export class WorkspaceSelectPageComponent implements OnInit {
     const payload = this.joinForm.getRawValue();
     const code = payload.code.trim().toUpperCase();
 
-    this.workspacesApi.joinWorkspace({ code }).subscribe({
+    this.workspacesApi.join({ code }).subscribe({
       next: ({ result }) => {
         if (result) {
           const id = this.getWorkspaceId(result);
           const exists = this.workspaces.some((workspace) => this.getWorkspaceId(workspace) === id);
           this.workspaces = exists ? this.workspaces : [result, ...this.workspaces];
+          if (!this.defaultWorkspaceId && id) {
+            this.workspaceState.setDefaultWorkspaceId(id);
+          }
           this.joinDialogOpen = false;
           this.joinForm.reset();
         }
@@ -168,7 +185,7 @@ export class WorkspaceSelectPageComponent implements OnInit {
     }
 
     this.submittingDefault = workspaceId;
-    this.usersApi.setDefaultWorkspace(workspaceId).subscribe({
+    this.workspacesApi.setDefault({ workspaceId }).subscribe({
       next: (response) => {
         const user = response.result ?? null;
         if (user) {

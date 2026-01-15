@@ -15,6 +15,6 @@ export class UsersApiService {
   }
 
   setDefaultWorkspace(workspaceId: string): Observable<ApiResponse<AuthUser>> {
-    return this.http.patch<ApiResponse<AuthUser>>(`${this.baseUrl}/default-workspace`, { workspaceId });
+    return this.http.patch<ApiResponse<AuthUser>>(`${this.baseUrl}/me/default-workspace`, { workspaceId });
   }
 }

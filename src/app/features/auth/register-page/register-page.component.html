@@ -3,10 +3,18 @@
   <p-card header="Registro" class="register-card">
     <form [formGroup]="form" (ngSubmit)="submit()" class="register-form">
       <div class="form-field">
-        <label for="name">Nombre</label>
-        <input id="name" type="text" pInputText formControlName="name" placeholder="Nombre completo" />
-        <small class="error" *ngIf="form.controls.name.invalid && form.controls.name.touched">
+        <label for="firstName">Nombre</label>
+        <input id="firstName" type="text" pInputText formControlName="firstName" placeholder="Nombre" />
+        <small class="error" *ngIf="form.controls.firstName.invalid && form.controls.firstName.touched">
           El nombre es obligatorio.
+        </small>
+      </div>
+
+      <div class="form-field">
+        <label for="lastName">Apellido</label>
+        <input id="lastName" type="text" pInputText formControlName="lastName" placeholder="Apellido" />
+        <small class="error" *ngIf="form.controls.lastName.invalid && form.controls.lastName.touched">
+          El apellido es obligatorio.
         </small>
       </div>
 
@@ -19,10 +27,10 @@
       </div>
 
       <div class="form-field">
-        <label for="username">Usuario</label>
-        <input id="username" type="text" pInputText formControlName="username" placeholder="usuario" />
-        <small class="error" *ngIf="form.controls.username.invalid && form.controls.username.touched">
-          El usuario es obligatorio.
+        <label for="phone">Telefono</label>
+        <input id="phone" type="text" pInputText formControlName="phone" placeholder="Telefono" />
+        <small class="error" *ngIf="form.controls.phone.invalid && form.controls.phone.touched">
+          El telefono es obligatorio.
         </small>
       </div>
 
@@ -30,13 +38,8 @@
         <label for="password">Contrasena</label>
         <input id="password" type="password" pPassword formControlName="password" toggleMask="true" />
         <small class="error" *ngIf="form.controls.password.invalid && form.controls.password.touched">
-          La contrasena debe tener al menos 6 caracteres.
+          La contrasena debe tener al menos 8 caracteres.
         </small>
-      </div>
-
-      <div class="form-field">
-        <label for="workspaceId">Workspace (opcional)</label>
-        <input id="workspaceId" type="text" pInputText formControlName="workspaceId" placeholder="workspace-id" />
       </div>
 
       <div class="actions">

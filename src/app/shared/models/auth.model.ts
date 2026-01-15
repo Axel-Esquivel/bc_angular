@@ -1,11 +1,10 @@
 export interface AuthUser {
   id: string;
   email: string;
-  username: string;
-  name?: string;
+  firstName: string;
+  lastName: string;
+  phone: string;
   defaultWorkspaceId?: string;
-  firstName?: string;
-  lastName?: string;
   displayName?: string;
   roles?: string[];
 }
@@ -16,18 +15,16 @@ export interface AuthTokens {
 }
 
 export interface LoginRequest {
-  identifier: string;
+  email: string;
   password: string;
-  workspaceId?: string;
-  deviceId?: string;
 }
 
 export interface RegisterRequest {
   email: string;
-  name: string;
-  username: string;
+  firstName: string;
+  lastName: string;
+  phone: string;
   password: string;
-  workspaceId?: string;
 }
 
 export interface LoginResult extends AuthTokens {

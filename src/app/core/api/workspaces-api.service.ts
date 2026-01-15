@@ -4,8 +4,9 @@ import { Observable } from 'rxjs';
 
 import { APP_CONFIG_TOKEN, AppConfig } from '../config/app-config';
 import { ApiResponse } from '../../shared/models/api-response.model';
-import { Workspace } from '../../shared/models/workspace.model';
+import { Workspace, WorkspaceListResult } from '../../shared/models/workspace.model';
 import { WorkspaceModulesOverview } from '../../shared/models/workspace-modules.model';
+import { AuthUser } from '../../shared/models/auth.model';
 
 @Injectable({ providedIn: 'root' })
 export class WorkspacesApiService {
@@ -15,11 +16,11 @@ export class WorkspacesApiService {
     this.baseUrl = `${this.config.apiBaseUrl}/workspaces`;
   }
 
-  createWorkspace(dto: { name: string }): Observable<ApiResponse<Workspace>> {
+  create(dto: { name: string }): Observable<ApiResponse<Workspace>> {
     return this.http.post<ApiResponse<Workspace>>(this.baseUrl, dto);
   }
 
-  joinWorkspace(dto: { code: string }): Observable<ApiResponse<Workspace>> {
+  join(dto: { code: string }): Observable<ApiResponse<Workspace>> {
     return this.http.post<ApiResponse<Workspace>>(`${this.baseUrl}/join`, dto);
   }
 
@@ -37,7 +38,11 @@ export class WorkspacesApiService {
     );
   }
 
-  listMyWorkspaces(): Observable<ApiResponse<Workspace[]>> {
-    return this.http.get<ApiResponse<Workspace[]>>(this.baseUrl);
+  listMine(): Observable<ApiResponse<WorkspaceListResult>> {
+    return this.http.get<ApiResponse<WorkspaceListResult>>(this.baseUrl);
+  }
+
+  setDefault(dto: { workspaceId: string }): Observable<ApiResponse<AuthUser>> {
+    return this.http.patch<ApiResponse<AuthUser>>(`${this.config.apiBaseUrl}/users/me/default-workspace`, dto);
   }
 }

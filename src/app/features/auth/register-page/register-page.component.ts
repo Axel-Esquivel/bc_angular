@@ -29,11 +29,11 @@ export class RegisterPageComponent {
   isSubmitting = false;
 
   readonly form = this.fb.nonNullable.group({
-    name: ['', [Validators.required, Validators.minLength(2)]],
+    firstName: ['', [Validators.required, Validators.minLength(2)]],
+    lastName: ['', [Validators.required, Validators.minLength(2)]],
     email: ['', [Validators.required, Validators.email]],
-    username: ['', Validators.required],
-    password: ['', [Validators.required, Validators.minLength(6)]],
-    workspaceId: [''],
+    phone: ['', [Validators.required, Validators.minLength(7)]],
+    password: ['', [Validators.required, Validators.minLength(8)]],
   });
 
   submit(): void {
@@ -45,15 +45,15 @@ export class RegisterPageComponent {
     this.isSubmitting = true;
     const formValue = this.form.getRawValue();
     const payload: RegisterRequest = {
-      name: formValue.name,
+      firstName: formValue.firstName,
+      lastName: formValue.lastName,
       email: formValue.email,
-      username: formValue.username,
+      phone: formValue.phone,
       password: formValue.password,
-      workspaceId: formValue.workspaceId || undefined,
     };
 
     this.authService.register(payload).subscribe({
-      next: () => this.router.navigate(['/auth/login']),
+      next: () => this.router.navigate(['/workspaces']),
       error: (error) => {
         const detail = error?.error?.message ?? 'No se pudo completar el registro.';
         this.messageService.add({ severity: 'error', summary: 'Error', detail });

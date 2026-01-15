@@ -6,6 +6,18 @@ export interface Workspace {
   code?: string;
   ownerUserId?: string;
   ownerId?: string;
+  members?: WorkspaceMember[];
+  enabledModules?: { key: string; enabled: boolean; enabledAt?: string; enabledBy?: string }[];
   createdAt?: string;
   updatedAt?: string;
+}
+
+export interface WorkspaceMember {
+  userId: string;
+  role: 'admin' | 'member';
+}
+
+export interface WorkspaceListResult {
+  workspaces: Workspace[];
+  defaultWorkspaceId?: string;
 }

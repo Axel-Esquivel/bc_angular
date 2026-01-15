@@ -21,7 +21,7 @@
       ></p-select>
       <div class="user-info">
         <span class="user-name" *ngIf="(currentUser$ | async) as user; else guest"
-          >{{ user?.displayName || user?.username || user?.email }}</span
+          >{{ user?.displayName || user?.email }}</span
         >
         <ng-template #guest>
           <span class="user-name">Invitado</span>

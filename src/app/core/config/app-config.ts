@@ -1,4 +1,5 @@
 import { InjectionToken } from '@angular/core';
+import { environment } from '../../../environments/environment';
 
 export interface AppConfig {
   apiBaseUrl: string;
@@ -12,8 +13,8 @@ export interface AppConfig {
 export const APP_CONFIG_TOKEN = new InjectionToken<AppConfig>('APP_CONFIG');
 
 export const APP_CONFIG: AppConfig = {
-  apiBaseUrl: '/api',
-  socketUrl: '/socket.io',
+  apiBaseUrl: environment.apiBaseUrl,
+  socketUrl: environment.socketUrl,
   defaultLanguage: 'es',
   supportedLanguages: ['es', 'en'],
   defaultTheme: 'lara-light-blue',
