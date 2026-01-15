@@ -3,6 +3,7 @@ import { CanActivateFn, Router } from '@angular/router';
 import { catchError, map, of, take } from 'rxjs';
 
 import { WorkspacesApiService } from '../api/workspaces-api.service';
+import { LoggerService } from '../logging/logger.service';
 import { WorkspaceStateService } from './workspace-state.service';
 import { Workspace } from '../../shared/models/workspace.model';
 
@@ -12,6 +13,7 @@ const getWorkspaceId = (workspace: Workspace | null | undefined): string | null 
 export const WorkspaceBootstrapGuard: CanActivateFn = () => {
   const workspacesApi = inject(WorkspacesApiService);
   const workspaceState = inject(WorkspaceStateService);
+  const logger = inject(LoggerService);
   const router = inject(Router);
 
   return workspacesApi.listMine().pipe(
@@ -19,12 +21,10 @@ export const WorkspaceBootstrapGuard: CanActivateFn = () => {
     map((response) => {
       const workspaces = response.result?.workspaces ?? [];
       const count = workspaces.length;
-      // eslint-disable-next-line no-console
-      console.log('[ws-boot] count', count);
+      logger.debug('[ws-boot] count', count);
 
       if (count === 0) {
-        // eslint-disable-next-line no-console
-        console.log('[ws-boot] -> /workspaces/onboarding');
+        logger.debug('[ws-boot] -> /workspaces/onboarding');
         return router.parseUrl('/workspaces/onboarding');
       }
 
@@ -37,18 +37,15 @@ export const WorkspaceBootstrapGuard: CanActivateFn = () => {
       if (resolvedDefault) {
         workspaceState.setDefaultWorkspaceId(resolvedDefault);
         workspaceState.setActiveWorkspaceId(resolvedDefault);
-        // eslint-disable-next-line no-console
-        console.log('[ws-boot] -> /workspaces/' + resolvedDefault);
+        logger.debug('[ws-boot] -> /workspaces/' + resolvedDefault);
         return router.parseUrl(`/workspaces/${resolvedDefault}`);
       }
 
-      // eslint-disable-next-line no-console
-      console.log('[ws-boot] -> /workspaces/select');
+      logger.debug('[ws-boot] -> /workspaces/select');
       return router.parseUrl('/workspaces/select');
     }),
     catchError(() => {
-      // eslint-disable-next-line no-console
-      console.log('[ws-boot] -> /workspaces/onboarding');
+      logger.debug('[ws-boot] -> /workspaces/onboarding');
       return of(router.parseUrl('/workspaces/onboarding'));
     }),
   );

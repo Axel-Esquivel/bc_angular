@@ -33,8 +33,6 @@ export class RealtimeSocketService {
     });
 
     this.socket.on('connect', () => {
-      // eslint-disable-next-line no-console
-      console.log('[ws] connected', this.socket?.id);
     });
   }
 

@@ -23,6 +23,7 @@ import {
   RegisterResult,
 } from '../../shared/models/auth.model';
 import { AuthApiService } from '../api/auth-api.service';
+import { LoggerService } from '../logging/logger.service';
 import { TokenStorageService } from './token-storage.service';
 import { WorkspaceStateService } from '../workspace/workspace-state.service';
 
@@ -39,7 +40,8 @@ export class AuthService {
   constructor(
     private readonly authApi: AuthApiService,
     private readonly tokenStorage: TokenStorageService,
-    private readonly workspaceState: WorkspaceStateService
+    private readonly workspaceState: WorkspaceStateService,
+    private readonly logger: LoggerService
   ) {
     const storedUser = this.getCurrentUser();
     this.currentUserSubject.next(storedUser);
@@ -52,8 +54,7 @@ export class AuthService {
       tap((response) => {
         this.persistAuthPayload(response.result);
         const token = this.getToken();
-        // eslint-disable-next-line no-console
-        console.log('[auth] token saved', token ? token.length : 0, this.hasToken());
+        this.logger.debug('[auth] token saved', token ? token.length : 0, this.hasToken());
       }),
       map((response) => this.mapUser(response.result?.user))
     );

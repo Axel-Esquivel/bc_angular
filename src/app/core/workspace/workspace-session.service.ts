@@ -33,7 +33,6 @@ export class WorkspaceSessionService {
     try {
       return JSON.parse(raw) as Workspace;
     } catch (error) {
-      console.warn('Failed to parse workspace from storage', error);
       return null;
     }
   }

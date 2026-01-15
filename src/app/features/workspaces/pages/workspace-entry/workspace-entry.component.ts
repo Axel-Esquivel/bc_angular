@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { take } from 'rxjs';
 
 import { WorkspacesApiService } from '../../../../core/api/workspaces-api.service';
+import { LoggerService } from '../../../../core/logging/logger.service';
 
 @Component({
   selector: 'app-workspace-entry',
@@ -12,6 +13,7 @@ import { WorkspacesApiService } from '../../../../core/api/workspaces-api.servic
 export class WorkspaceEntryComponent implements OnInit {
   private readonly workspacesApi = inject(WorkspacesApiService);
   private readonly router = inject(Router);
+  private readonly logger = inject(LoggerService);
 
   ngOnInit(): void {
     this.workspacesApi
@@ -20,11 +22,9 @@ export class WorkspaceEntryComponent implements OnInit {
       .subscribe((response) => {
         const workspaces = response.result?.workspaces ?? [];
         const count = workspaces.length;
-        // eslint-disable-next-line no-console
-        console.log('[ws-entry] count', count);
+        this.logger.debug('[ws-entry] count', count);
         if (count === 0) {
-          // eslint-disable-next-line no-console
-          console.log('[ws-entry] -> onboarding');
+          this.logger.debug('[ws-entry] -> onboarding');
           this.router.navigateByUrl('/workspaces/onboarding');
         }
       });

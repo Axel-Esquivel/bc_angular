@@ -11,6 +11,7 @@ import { PasswordModule } from 'primeng/password';
 import { Toast } from 'primeng/toast';
 
 import { AuthService } from '../../../core/auth/auth.service';
+import { LoggerService } from '../../../core/logging/logger.service';
 import { LoginRequest } from '../../../shared/models/auth.model';
 
 @Component({
@@ -26,6 +27,7 @@ export class LoginPageComponent {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   private readonly messageService = inject(MessageService);
+  private readonly logger = inject(LoggerService);
 
   isSubmitting = false;
 
@@ -41,8 +43,7 @@ export class LoginPageComponent {
     }
 
     this.isSubmitting = true;
-    // eslint-disable-next-line no-console
-    console.log('[auth] login start');
+    this.logger.debug('[auth] login start');
     const credentials = this.form.getRawValue();
     const payload: LoginRequest = {
       email: credentials.email,
@@ -53,26 +54,20 @@ export class LoginPageComponent {
       .login(payload)
       .pipe(
         tap(() => {
-          // eslint-disable-next-line no-console
-          console.log('[auth] login success');
+          this.logger.debug('[auth] login success');
         }),
         finalize(() => {
-          // eslint-disable-next-line no-console
-          console.log('[auth] login finalize');
+          this.logger.debug('[auth] login finalize');
           this.isSubmitting = false;
         })
       )
       .subscribe({
         next: () => {
-          // eslint-disable-next-line no-console
-          console.log('[auth] token saved?', this.authService.hasToken());
-          // eslint-disable-next-line no-console
-          console.log('[nav] after login -> /workspaces');
+          this.logger.debug('[auth] token saved?', this.authService.hasToken());
+          this.logger.debug('[nav] after login -> /workspaces');
           this.router.navigateByUrl('/workspaces');
         },
         error: (error) => {
-          // eslint-disable-next-line no-console
-          console.warn('[auth] login error', error);
           const detail = error?.error?.message ?? 'No se pudo iniciar sesion.';
           this.messageService.add({ severity: 'error', summary: 'Error', detail });
         },

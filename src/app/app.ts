@@ -27,12 +27,8 @@ export class App implements OnInit {
     this.realtimeSocket.ensureConnected();
     this.healthApi.getStatus().subscribe({
       next: (response) => {
-        // eslint-disable-next-line no-console
-        console.log('[api] health', response.result);
       },
       error: (error) => {
-        // eslint-disable-next-line no-console
-        console.warn('[api] health failed', error);
       },
     });
   }

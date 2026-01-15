@@ -22,8 +22,6 @@ export class HealthApiService {
     return this.http.get<ApiResponse<HealthStatus>>(this.baseUrl).pipe(
       catchError((error) => {
         const status = error?.status ?? 'unknown';
-        // eslint-disable-next-line no-console
-        console.warn('[api] health failed', { url: this.baseUrl, status });
         return throwError(() => error);
       }),
     );
