@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { ButtonModule } from 'primeng/button';
-import { CardModule } from 'primeng/card';
+import { Button } from 'primeng/button';
+import { Card } from 'primeng/card';
 import { TableModule } from 'primeng/table';
 
 import { Workspace } from '../../../../shared/models/workspace.model';
@@ -9,7 +9,7 @@ import { Workspace } from '../../../../shared/models/workspace.model';
 @Component({
   selector: 'app-workspace-list',
   standalone: true,
-  imports: [CommonModule, CardModule, TableModule, ButtonModule],
+  imports: [CommonModule, Card, TableModule, Button],
   templateUrl: './workspace-list.component.html',
   styleUrl: './workspace-list.component.scss',
 })

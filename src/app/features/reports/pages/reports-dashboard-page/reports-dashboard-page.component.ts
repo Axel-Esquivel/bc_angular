@@ -1,12 +1,12 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, ViewChild, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
-import { ButtonModule } from 'primeng/button';
-import { DatePickerModule } from 'primeng/datepicker';
-import { InputTextModule } from 'primeng/inputtext';
-import { SelectModule } from 'primeng/select';
+import { Button } from 'primeng/button';
+import { DatePicker } from 'primeng/datepicker';
+import { InputText } from 'primeng/inputtext';
+import { Select } from 'primeng/select';
 import { TableModule } from 'primeng/table';
-import { ToolbarModule } from 'primeng/toolbar';
+import { Toolbar } from 'primeng/toolbar';
 
 import { ReportsApiService } from '../../../../core/api/reports-api.service';
 import { DailySalesReport, InventoryReportItem } from '../../../../shared/models/report.model';
@@ -23,7 +23,7 @@ type ReportRow = DailySalesReport | InventoryReportItem | Record<string, unknown
 @Component({
   selector: 'app-reports-dashboard-page',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, ToolbarModule, SelectModule, InputTextModule, TableModule, DatePickerModule, ButtonModule],
+  imports: [CommonModule, ReactiveFormsModule, Toolbar, Select, InputText, TableModule, DatePicker, Button],
   templateUrl: './reports-dashboard-page.component.html',
   styleUrl: './reports-dashboard-page.component.scss',
 })

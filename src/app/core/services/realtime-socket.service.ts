@@ -15,14 +15,26 @@ export class RealtimeSocketService {
     this.connect();
   }
 
+  ensureConnected(): void {
+    if (!this.socket) {
+      this.connect();
+    }
+  }
+
   private connect(): void {
     const token = this.auth.getAccessToken();
+    const socketConfig = this.resolveSocketConfig();
 
-    this.socket = io('/realtime', {
-      path: this.config.socketUrl ?? '/socket.io',
+    this.socket = io(socketConfig.url, {
+      path: socketConfig.path,
       transports: ['websocket'],
       withCredentials: true,
       auth: token ? { token: `Bearer ${token}` } : undefined,
+    });
+
+    this.socket.on('connect', () => {
+      // eslint-disable-next-line no-console
+      console.log('[ws] connected', this.socket?.id);
     });
   }
 
@@ -32,5 +44,13 @@ export class RealtimeSocketService {
 
   emit<T>(event: string, data: T): void {
     this.socket?.emit(event, data);
+  }
+
+  private resolveSocketConfig(): { url: string; path: string } {
+    const rawSocketUrl = this.config.socketUrl ?? '';
+    const isAbsolute = /^https?:\/\//i.test(rawSocketUrl);
+    const path = isAbsolute ? '/socket.io' : rawSocketUrl || '/socket.io';
+    const url = isAbsolute ? `${rawSocketUrl.replace(/\/$/, '')}/realtime` : '/realtime';
+    return { url, path };
   }
 }

@@ -1,10 +1,10 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
-import { SelectChangeEvent, SelectModule } from 'primeng/select';
-import { ToolbarModule } from 'primeng/toolbar';
-import { ButtonModule } from 'primeng/button';
-import { PanelMenuModule } from 'primeng/panelmenu';
+import { Select, SelectChangeEvent } from 'primeng/select';
+import { Toolbar } from 'primeng/toolbar';
+import { Button } from 'primeng/button';
+import { PanelMenu } from 'primeng/panelmenu';
 
 import { AuthService } from '../../core/auth/auth.service';
 import { ThemeService, ThemeMode } from '../../core/theme/theme.service';
@@ -14,7 +14,7 @@ import { ModuleMenuService } from '../../core/layout/module-menu.service';
 @Component({
   selector: 'app-main-layout',
   standalone: true,
-  imports: [CommonModule, RouterModule, ToolbarModule, ButtonModule, SelectModule, PanelMenuModule],
+  imports: [CommonModule, RouterModule, Toolbar, Button, Select, PanelMenu],
   templateUrl: './main-layout.component.html',
   styleUrl: './main-layout.component.scss',
 })

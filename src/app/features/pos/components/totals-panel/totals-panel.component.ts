@@ -1,16 +1,16 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ButtonModule } from 'primeng/button';
-import { InputNumberModule } from 'primeng/inputnumber';
-import { SelectModule } from 'primeng/select';
+import { Button } from 'primeng/button';
+import { InputNumber } from 'primeng/inputnumber';
+import { Select } from 'primeng/select';
 
 import { PosPayment } from '../../../../shared/models/pos.model';
 
 @Component({
   selector: 'bc-pos-totals',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, ButtonModule, InputNumberModule, SelectModule],
+  imports: [CommonModule, ReactiveFormsModule, Button, InputNumber, Select],
   templateUrl: './totals-panel.component.html',
   styleUrl: './totals-panel.component.scss',
 })

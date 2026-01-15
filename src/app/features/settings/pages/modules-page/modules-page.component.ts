@@ -1,10 +1,10 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
-import { CardModule } from 'primeng/card';
+import { Card } from 'primeng/card';
 import { TableModule } from 'primeng/table';
-import { ButtonModule } from 'primeng/button';
-import { TagModule } from 'primeng/tag';
-import { ChipModule } from 'primeng/chip';
+import { Button } from 'primeng/button';
+import { Tag } from 'primeng/tag';
+import { Chip } from 'primeng/chip';
 
 import { ModulesApiService } from '../../../../core/api/modules-api.service';
 import { ModuleInfo } from '../../../../shared/models/module.model';
@@ -12,7 +12,7 @@ import { ModuleInfo } from '../../../../shared/models/module.model';
 @Component({
   selector: 'app-modules-page',
   standalone: true,
-  imports: [CommonModule, CardModule, TableModule, ButtonModule, TagModule, ChipModule],
+  imports: [CommonModule, Card, TableModule, Button, Tag, Chip],
   templateUrl: './modules-page.component.html',
   styleUrl: './modules-page.component.scss',
 })

@@ -5,11 +5,26 @@ import { RegisterPageComponent } from './features/auth/register-page/register-pa
 import { InitialSetupPageComponent } from './features/setup/initial-setup-page/initial-setup-page.component';
 import { MainLayoutComponent } from './layout/main-layout/main-layout.component';
 import { AuthGuard } from './core/auth/auth.guard';
+import { SetupGuard } from './core/setup/setup.guard';
 
 export const routes: Routes = [
-  { path: 'login', component: LoginPageComponent },
-  { path: 'register', component: RegisterPageComponent },
-  { path: 'setup/initial', component: InitialSetupPageComponent },
+  { path: 'login', component: LoginPageComponent, canActivate: [SetupGuard], data: { setupMode: 'requireInstalled' } },
+  { path: 'register', component: RegisterPageComponent, canActivate: [SetupGuard], data: { setupMode: 'requireInstalled' } },
+  {
+    path: 'setup/initial',
+    component: InitialSetupPageComponent,
+    canActivate: [SetupGuard],
+    data: { setupMode: 'requireSetup' },
+  },
+  {
+    path: 'setup/modules',
+    loadComponent: () =>
+      import('./features/setup/modules-setup-page/modules-setup-page.component').then(
+        (m) => m.ModulesSetupPageComponent
+      ),
+    canActivate: [SetupGuard],
+    data: { setupMode: 'requireSetup' },
+  },
   {
     path: 'workspaces/select',
     loadComponent: () =>
@@ -20,7 +35,8 @@ export const routes: Routes = [
   {
     path: '',
     component: MainLayoutComponent,
-    canActivate: [AuthGuard],
+    canActivate: [SetupGuard, AuthGuard],
+    data: { setupMode: 'requireInstalled' },
     children: [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
       {

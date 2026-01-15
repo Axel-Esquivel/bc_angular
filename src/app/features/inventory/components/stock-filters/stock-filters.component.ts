@@ -1,9 +1,9 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Output } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { ButtonModule } from 'primeng/button';
-import { InputTextModule } from 'primeng/inputtext';
-import { SelectModule } from 'primeng/select';
+import { Button } from 'primeng/button';
+import { InputText } from 'primeng/inputtext';
+import { Select } from 'primeng/select';
 
 export interface StockFilterValues {
   search?: string;
@@ -14,7 +14,7 @@ export interface StockFilterValues {
 @Component({
   selector: 'bc-stock-filters',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, InputTextModule, SelectModule, ButtonModule],
+  imports: [CommonModule, ReactiveFormsModule, InputText, Select, Button],
   templateUrl: './stock-filters.component.html',
   styleUrl: './stock-filters.component.scss',
 })

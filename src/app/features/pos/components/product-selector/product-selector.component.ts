@@ -1,8 +1,8 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { ButtonModule } from 'primeng/button';
-import { InputTextModule } from 'primeng/inputtext';
+import { Button } from 'primeng/button';
+import { InputText } from 'primeng/inputtext';
 import { TableModule } from 'primeng/table';
 
 import { Product } from '../../../../shared/models/product.model';
@@ -10,7 +10,7 @@ import { Product } from '../../../../shared/models/product.model';
 @Component({
   selector: 'bc-pos-product-selector',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, ButtonModule, InputTextModule, TableModule],
+  imports: [CommonModule, ReactiveFormsModule, Button, InputText, TableModule],
   templateUrl: './product-selector.component.html',
   styleUrl: './product-selector.component.scss',
 })

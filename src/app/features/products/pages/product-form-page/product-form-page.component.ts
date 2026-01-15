@@ -1,8 +1,8 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { CardModule } from 'primeng/card';
-import { MessageModule } from 'primeng/message';
+import { Card } from 'primeng/card';
+import { Message } from 'primeng/message';
 
 import { ProductsApiService } from '../../../../core/api/products-api.service';
 import { Product } from '../../../../shared/models/product.model';
@@ -11,7 +11,7 @@ import { ProductFormComponent } from '../../components/product-form/product-form
 @Component({
   selector: 'app-product-form-page',
   standalone: true,
-  imports: [CommonModule, CardModule, MessageModule, ProductFormComponent],
+  imports: [CommonModule, Card, Message, ProductFormComponent],
   templateUrl: './product-form-page.component.html',
   styleUrl: './product-form-page.component.scss',
 })

@@ -1,13 +1,13 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ButtonModule } from 'primeng/button';
-import { CardModule } from 'primeng/card';
-import { InputNumberModule } from 'primeng/inputnumber';
+import { Button } from 'primeng/button';
+import { Card } from 'primeng/card';
+import { InputNumber } from 'primeng/inputnumber';
 import { ToggleSwitchModule } from 'primeng/toggleswitch';
-import { InputTextModule } from 'primeng/inputtext';
-import { TextareaModule } from 'primeng/textarea';
-import { SelectModule } from 'primeng/select';
+import { InputText } from 'primeng/inputtext';
+import { Textarea } from 'primeng/textarea';
+import { Select } from 'primeng/select';
 
 import { Product } from '../../../../shared/models/product.model';
 
@@ -17,13 +17,13 @@ import { Product } from '../../../../shared/models/product.model';
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    CardModule,
-    InputTextModule,
-    TextareaModule,
-    InputNumberModule,
+    Card,
+    InputText,
+    Textarea,
+    InputNumber,
     ToggleSwitchModule,
-    SelectModule,
-    ButtonModule,
+    Select,
+    Button,
   ],
   templateUrl: './product-form.component.html',
   styleUrl: './product-form.component.scss',

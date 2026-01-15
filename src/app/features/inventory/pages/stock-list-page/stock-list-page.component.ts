@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
-import { CardModule } from 'primeng/card';
+import { Card } from 'primeng/card';
 import { TableModule } from 'primeng/table';
 
 import { InventoryApiService } from '../../../../core/api/inventory-api.service';
@@ -10,7 +10,7 @@ import { StockFiltersComponent, StockFilterValues } from '../../components/stock
 @Component({
   selector: 'app-stock-list-page',
   standalone: true,
-  imports: [CommonModule, CardModule, TableModule, StockFiltersComponent],
+  imports: [CommonModule, Card, TableModule, StockFiltersComponent],
   templateUrl: './stock-list-page.component.html',
   styleUrl: './stock-list-page.component.scss',
 })

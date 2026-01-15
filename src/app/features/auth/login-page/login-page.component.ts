@@ -2,9 +2,9 @@ import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { ButtonModule } from 'primeng/button';
-import { CardModule } from 'primeng/card';
-import { InputTextModule } from 'primeng/inputtext';
+import { Button } from 'primeng/button';
+import { Card } from 'primeng/card';
+import { InputText } from 'primeng/inputtext';
 import { PasswordModule } from 'primeng/password';
 
 import { AuthService } from '../../../core/auth/auth.service';
@@ -13,7 +13,7 @@ import { LoginRequest } from '../../../shared/models/auth.model';
 @Component({
   selector: 'app-login-page',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, CardModule, InputTextModule, PasswordModule, ButtonModule],
+  imports: [CommonModule, ReactiveFormsModule, Card, InputText, PasswordModule, Button],
   templateUrl: './login-page.component.html',
   styleUrl: './login-page.component.scss',
 })

@@ -2,10 +2,10 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { ButtonModule } from 'primeng/button';
-import { CardModule } from 'primeng/card';
-import { InputTextModule } from 'primeng/inputtext';
-import { SelectModule } from 'primeng/select';
+import { Button } from 'primeng/button';
+import { Card } from 'primeng/card';
+import { InputText } from 'primeng/inputtext';
+import { Select } from 'primeng/select';
 import { TableModule } from 'primeng/table';
 
 import { ProductsApiService } from '../../../../core/api/products-api.service';
@@ -14,7 +14,7 @@ import { Product } from '../../../../shared/models/product.model';
 @Component({
   selector: 'app-products-list-page',
   standalone: true,
-  imports: [CommonModule, RouterModule, ReactiveFormsModule, CardModule, ButtonModule, InputTextModule, SelectModule, TableModule],
+  imports: [CommonModule, RouterModule, ReactiveFormsModule, Card, Button, InputText, Select, TableModule],
   templateUrl: './products-list-page.component.html',
   styleUrl: './products-list-page.component.scss',
 })
