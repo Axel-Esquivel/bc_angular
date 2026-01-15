@@ -29,7 +29,7 @@ export class WorkspaceShellComponent implements OnInit, OnDestroy {
     this.route.paramMap.pipe(takeUntil(this.destroy$)).subscribe((params) => {
       const workspaceId = params.get('workspaceId');
       if (!workspaceId) {
-        this.router.navigate(['/workspaces']);
+        this.router.navigate(['/workspaces/select']);
         return;
       }
 
@@ -49,7 +49,7 @@ export class WorkspaceShellComponent implements OnInit, OnDestroy {
   }
 
   goToWorkspaces(): void {
-    this.router.navigate(['/workspaces']);
+    this.router.navigate(['/workspaces/select']);
   }
 
   canManageModules(): boolean {
@@ -64,10 +64,10 @@ export class WorkspaceShellComponent implements OnInit, OnDestroy {
       error: (error) => {
         const status = error?.status;
         if (status === 403 || status === 404) {
-          this.router.navigate(['/workspaces']);
+          this.router.navigate(['/workspaces/select']);
           return;
         }
-        this.router.navigate(['/workspaces']);
+        this.router.navigate(['/workspaces/select']);
       },
     });
   }

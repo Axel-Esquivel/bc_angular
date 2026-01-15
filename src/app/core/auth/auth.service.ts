@@ -28,7 +28,11 @@ import { WorkspaceStateService } from '../workspace/workspace-state.service';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
+  private static readonly TOKEN_KEY = 'bc_token';
+  private static readonly USER_KEY = 'bc_user';
+
   private readonly currentUserSubject = new BehaviorSubject<AuthUser | null>(null);
+  private readonly authStateSubject = new BehaviorSubject<boolean>(false);
   private readonly refreshSubject = new BehaviorSubject<AuthTokens | null>(null);
   private isRefreshing = false;
 
@@ -37,14 +41,20 @@ export class AuthService {
     private readonly tokenStorage: TokenStorageService,
     private readonly workspaceState: WorkspaceStateService
   ) {
-    const storedUser = this.tokenStorage.getUser();
+    const storedUser = this.getCurrentUser();
     this.currentUserSubject.next(storedUser);
     this.workspaceState.syncFromUser(storedUser);
+    this.authStateSubject.next(this.hasToken());
   }
 
   login(credentials: LoginRequest): Observable<AuthUser | null> {
     return this.authApi.login(credentials).pipe(
-      tap((response) => this.persistAuthPayload(response.result)),
+      tap((response) => {
+        this.persistAuthPayload(response.result);
+        const token = this.getToken();
+        // eslint-disable-next-line no-console
+        console.log('[auth] token saved', token ? token.length : 0, this.hasToken());
+      }),
       map((response) => this.mapUser(response.result?.user))
     );
   }
@@ -58,12 +68,14 @@ export class AuthService {
 
   logout(): void {
     this.tokenStorage.clearTokens();
+    this.clearAuthStorage();
     this.currentUserSubject.next(null);
+    this.authStateSubject.next(false);
     this.workspaceState.clear();
   }
 
   loadMe(): Observable<AuthUser | null> {
-    if (!this.isAuthenticated()) {
+    if (!this.hasToken()) {
       this.currentUserSubject.next(null);
       return of(null);
     }
@@ -82,7 +94,7 @@ export class AuthService {
     );
   }
 
-  getCurrentUser(): Observable<AuthUser | null> {
+  getCurrentUser$(): Observable<AuthUser | null> {
     if (!this.currentUserSubject.value && this.isAuthenticated()) {
       return this.loadMe().pipe(switchMap(() => this.currentUserSubject.asObservable()));
     }
@@ -91,7 +103,38 @@ export class AuthService {
   }
 
   isAuthenticated(): boolean {
-    return !!this.tokenStorage.getAccessToken();
+    return this.hasToken();
+  }
+
+  getToken(): string | null {
+    return localStorage.getItem(AuthService.TOKEN_KEY);
+  }
+
+  hasToken(): boolean {
+    return !!this.getToken();
+  }
+
+  getCurrentUser(): AuthUser | null {
+    const cached = this.currentUserSubject.value;
+    if (cached) {
+      return cached;
+    }
+
+    const raw = localStorage.getItem(AuthService.USER_KEY);
+    if (!raw) {
+      return null;
+    }
+
+    try {
+      return JSON.parse(raw) as AuthUser;
+    } catch {
+      localStorage.removeItem(AuthService.USER_KEY);
+      return null;
+    }
+  }
+
+  get isAuthenticated$(): Observable<boolean> {
+    return this.authStateSubject.asObservable();
   }
 
   refreshToken(): Observable<AuthTokens | null> {
@@ -136,12 +179,14 @@ export class AuthService {
     const tokens = this.extractTokens(response);
     if (tokens) {
       this.tokenStorage.setTokens(tokens);
+      this.setToken(tokens.accessToken);
     }
 
     this.tokenStorage.setWorkspaceId((response as LoginResult | RegisterResult).workspaceId ?? null);
     this.tokenStorage.setDeviceId((response as LoginResult).deviceId ?? null);
     if ('user' in response && response.user) {
       const mappedUser = this.mapUser(response.user);
+      this.setUser(mappedUser);
       this.tokenStorage.setUser(mappedUser);
       this.currentUserSubject.next(mappedUser);
       this.workspaceState.syncFromUser(mappedUser);
@@ -168,5 +213,30 @@ export class AuthService {
 
     const fullName = `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim();
     return { ...user, displayName: user.displayName ?? (fullName || user.email) };
+  }
+
+  private setToken(token: string | null): void {
+    if (token) {
+      localStorage.setItem(AuthService.TOKEN_KEY, token);
+      this.authStateSubject.next(true);
+      return;
+    }
+
+    localStorage.removeItem(AuthService.TOKEN_KEY);
+    this.authStateSubject.next(false);
+  }
+
+  private setUser(user: AuthUser | null): void {
+    if (!user) {
+      localStorage.removeItem(AuthService.USER_KEY);
+      return;
+    }
+
+    localStorage.setItem(AuthService.USER_KEY, JSON.stringify(user));
+  }
+
+  private clearAuthStorage(): void {
+    localStorage.removeItem(AuthService.TOKEN_KEY);
+    localStorage.removeItem(AuthService.USER_KEY);
   }
 }

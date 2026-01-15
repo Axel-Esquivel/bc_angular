@@ -9,20 +9,18 @@ import { Inject, Injectable } from '@angular/core';
 import { Observable, catchError, switchMap, throwError } from 'rxjs';
 
 import { APP_CONFIG_TOKEN, AppConfig } from '../config/app-config';
-import { TokenStorageService } from './token-storage.service';
 import { AuthService } from './auth.service';
 
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
   constructor(
     @Inject(APP_CONFIG_TOKEN) private readonly config: AppConfig,
-    private readonly tokenStorage: TokenStorageService,
     private readonly authService: AuthService
   ) {}
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     const isApiRequest = req.url.startsWith(this.config.apiBaseUrl);
-    const accessToken = this.tokenStorage.getAccessToken();
+    const accessToken = this.authService.getToken();
     const authReq = isApiRequest && accessToken ? this.withAuthHeader(req, accessToken) : req;
 
     return next.handle(authReq).pipe(

@@ -22,6 +22,10 @@ export const WorkspaceAccessGuard: CanActivateFn = (route) => {
   return workspacesApi.listMine().pipe(
     map((response) => {
       const workspaces = response.result?.workspaces ?? [];
+      if (workspaces.length === 0) {
+        return router.createUrlTree(['/workspaces/onboarding']);
+      }
+
       const belongs = workspaces.some((workspace) => getWorkspaceId(workspace) === workspaceId);
       if (!belongs) {
         return router.createUrlTree(['/workspaces/select']);
@@ -33,6 +37,6 @@ export const WorkspaceAccessGuard: CanActivateFn = (route) => {
       workspaceState.setActiveWorkspaceId(workspaceId);
       return true;
     }),
-    catchError(() => of(router.createUrlTree(['/workspaces/select']))),
+    catchError(() => of(router.createUrlTree(['/workspaces/onboarding']))),
   );
 };

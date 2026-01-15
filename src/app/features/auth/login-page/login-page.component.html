@@ -1,7 +1,7 @@
 <p-toast></p-toast>
 <div class="login-container">
   <p-card header="Iniciar sesion" class="login-card">
-    <form [formGroup]="form" (ngSubmit)="submit()" class="login-form">
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="login-form">
       <div class="form-field">
         <label for="email">Correo</label>
         <input

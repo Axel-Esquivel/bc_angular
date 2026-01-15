@@ -2,11 +2,11 @@ import { Injectable } from '@angular/core';
 
 import { AuthTokens, AuthUser } from '../../shared/models/auth.model';
 
-const ACCESS_TOKEN_KEY = 'bc_access_token';
+const ACCESS_TOKEN_KEY = 'bc_token';
 const REFRESH_TOKEN_KEY = 'bc_refresh_token';
 const WORKSPACE_ID_KEY = 'bc_workspace_id';
 const DEVICE_ID_KEY = 'bc_device_id';
-const USER_KEY = 'bc_auth_user';
+const USER_KEY = 'bc_user';
 
 @Injectable({ providedIn: 'root' })
 export class TokenStorageService {

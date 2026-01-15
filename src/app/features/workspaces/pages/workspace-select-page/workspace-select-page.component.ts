@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { Button } from 'primeng/button';
 import { Card } from 'primeng/card';
@@ -37,13 +37,11 @@ export class WorkspaceSelectPageComponent implements OnInit {
   private readonly workspaceState = inject(WorkspaceStateService);
   private readonly tokenStorage = inject(TokenStorageService);
   private readonly router = inject(Router);
-  private readonly route = inject(ActivatedRoute);
   private readonly messageService = inject(MessageService);
   private readonly fb = inject(FormBuilder);
 
   workspaces: Workspace[] = [];
   loadingWorkspaces = false;
-  mode: 'launch' | 'select' = 'select';
 
   createDialogOpen = false;
   joinDialogOpen = false;
@@ -60,8 +58,6 @@ export class WorkspaceSelectPageComponent implements OnInit {
   });
 
   ngOnInit(): void {
-    const mode = this.route.snapshot.data['mode'];
-    this.mode = mode === 'launch' ? 'launch' : 'select';
     this.loadWorkspaces();
   }
 
@@ -73,9 +69,6 @@ export class WorkspaceSelectPageComponent implements OnInit {
     return this.workspaceState.getDefaultWorkspaceId();
   }
 
-  get isLaunchMode(): boolean {
-    return this.mode === 'launch';
-  }
 
   loadWorkspaces(): void {
     this.loadingWorkspaces = true;
@@ -212,7 +205,7 @@ export class WorkspaceSelectPageComponent implements OnInit {
     }
 
     this.workspaceState.setActiveWorkspaceId(workspaceId);
-    this.router.navigate(['/w', workspaceId]);
+    this.router.navigate(['/workspaces', workspaceId]);
   }
 
   isDefault(workspace: Workspace): boolean {

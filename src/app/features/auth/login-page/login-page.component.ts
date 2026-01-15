@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { finalize, tap } from 'rxjs';
 import { MessageService } from 'primeng/api';
 import { Button } from 'primeng/button';
 import { Card } from 'primeng/card';
@@ -33,27 +34,50 @@ export class LoginPageComponent {
     password: ['', [Validators.required, Validators.minLength(8)]],
   });
 
-  submit(): void {
+  onSubmit(): void {
     if (this.form.invalid || this.isSubmitting) {
       this.form.markAllAsTouched();
       return;
     }
 
     this.isSubmitting = true;
+    // eslint-disable-next-line no-console
+    console.log('[auth] login start');
     const credentials = this.form.getRawValue();
     const payload: LoginRequest = {
       email: credentials.email,
       password: credentials.password,
     };
 
-    this.authService.login(payload).subscribe({
-      next: () => this.router.navigate(['/workspaces']),
-      error: (error) => {
-        const detail = error?.error?.message ?? 'No se pudo iniciar sesion.';
-        this.messageService.add({ severity: 'error', summary: 'Error', detail });
-        this.isSubmitting = false;
-      },
-      complete: () => (this.isSubmitting = false),
-    });
+    this.authService
+      .login(payload)
+      .pipe(
+        tap(() => {
+          // eslint-disable-next-line no-console
+          console.log('[auth] login success');
+        }),
+        finalize(() => {
+          // eslint-disable-next-line no-console
+          console.log('[auth] login finalize');
+          this.isSubmitting = false;
+        })
+      )
+      .subscribe({
+        next: () => {
+          // eslint-disable-next-line no-console
+          console.log('[auth] token saved?', this.authService.hasToken());
+          // eslint-disable-next-line no-console
+          console.log('[nav] after login -> /workspaces');
+          this.router.navigateByUrl('/workspaces');
+        },
+        error: (error) => {
+          // eslint-disable-next-line no-console
+          console.warn('[auth] login error', error);
+          const detail = error?.error?.message ?? 'No se pudo iniciar sesion.';
+          this.messageService.add({ severity: 'error', summary: 'Error', detail });
+        },
+      });
   }
+
+  // Navigation handled by WorkspaceBootstrapGuard after redirect to /workspaces.
 }

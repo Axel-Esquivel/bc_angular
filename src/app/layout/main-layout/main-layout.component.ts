@@ -39,7 +39,7 @@ export class MainLayoutComponent {
 
   readonly menuItems$ = this.moduleMenuService.getMenuItems();
 
-  readonly currentUser$ = this.authService.getCurrentUser();
+  readonly currentUser$ = this.authService.getCurrentUser$();
 
   onThemeChange(event: SelectChangeEvent): void {
     if (event.value === 'light' || event.value === 'dark') {

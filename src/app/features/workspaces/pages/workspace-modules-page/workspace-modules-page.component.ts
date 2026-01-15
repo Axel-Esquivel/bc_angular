@@ -48,7 +48,7 @@ export class WorkspaceModulesPageComponent implements OnInit, OnDestroy {
       }
       this.userRole = overview.userRole;
       if (overview.userRole !== 'admin') {
-        this.router.navigate(['/w', this.workspaceId ?? '', '']);
+        this.router.navigate(['/workspaces', this.workspaceId ?? '', '']);
         return;
       }
       this.modules = overview.availableModules ?? [];
@@ -63,9 +63,9 @@ export class WorkspaceModulesPageComponent implements OnInit, OnDestroy {
 
   goBack(): void {
     if (this.workspaceId) {
-      this.router.navigate(['/w', this.workspaceId]);
+      this.router.navigate(['/workspaces', this.workspaceId]);
     } else {
-      this.router.navigate(['/workspaces']);
+      this.router.navigate(['/workspaces/select']);
     }
   }
 

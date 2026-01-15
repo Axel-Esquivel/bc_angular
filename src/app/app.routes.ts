@@ -17,19 +17,19 @@ export const routes: Routes = [
   {
     path: 'workspaces',
     canActivate: [AuthGuard, WorkspaceBootstrapGuard],
+    pathMatch: 'full',
     loadComponent: () =>
       import('./features/workspaces/pages/workspace-entry/workspace-entry.component').then(
         (m) => m.WorkspaceEntryComponent
       ),
   },
   {
-    path: 'workspaces/launch',
+    path: 'workspaces/onboarding',
     loadComponent: () =>
-      import('./features/workspaces/pages/workspace-select-page/workspace-select-page.component').then(
-        (m) => m.WorkspaceSelectPageComponent
+      import('./features/workspaces/pages/workspace-onboarding/workspace-onboarding.component').then(
+        (m) => m.WorkspaceOnboardingComponent
       ),
     canActivate: [AuthGuard],
-    data: { mode: 'launch' },
   },
   {
     path: 'workspaces/select',
@@ -38,10 +38,9 @@ export const routes: Routes = [
         (m) => m.WorkspaceSelectPageComponent
       ),
     canActivate: [AuthGuard],
-    data: { mode: 'select' },
   },
   {
-    path: 'w/:workspaceId',
+    path: 'workspaces/:workspaceId',
     component: WorkspaceShellComponent,
     canActivate: [AuthGuard, WorkspaceAccessGuard],
     children: [
