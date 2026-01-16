@@ -1,6 +1,6 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
-import { catchError, map, of } from 'rxjs';
+import { catchError, map, of, take } from 'rxjs';
 
 import { WorkspacesApiService } from '../api/workspaces-api.service';
 import { WorkspaceStateService } from './workspace-state.service';
@@ -13,13 +13,14 @@ export const WorkspaceAccessGuard: CanActivateFn = (route) => {
   const workspacesApi = inject(WorkspacesApiService);
   const workspaceState = inject(WorkspaceStateService);
   const router = inject(Router);
-  const workspaceId = route.paramMap.get('workspaceId');
+  const workspaceId = route.paramMap.get('id') ?? route.paramMap.get('workspaceId');
 
   if (!workspaceId) {
     return router.createUrlTree(['/workspaces/select']);
   }
 
   return workspacesApi.listMine().pipe(
+    take(1),
     map((response) => {
       const workspaces = response.result?.workspaces ?? [];
       if (workspaces.length === 0) {

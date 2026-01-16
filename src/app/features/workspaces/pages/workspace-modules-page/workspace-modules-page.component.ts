@@ -41,14 +41,14 @@ export class WorkspaceModulesPageComponent implements OnInit, OnDestroy {
   userRole: 'admin' | 'member' | null = null;
 
   ngOnInit(): void {
-    this.workspaceId = this.route.parent?.snapshot.paramMap.get('workspaceId') ?? null;
+    this.workspaceId = this.route.parent?.snapshot.paramMap.get('id') ?? null;
     this.workspaceModules.overview$.pipe(takeUntil(this.destroy$)).subscribe((overview) => {
       if (!overview) {
         return;
       }
       this.userRole = overview.userRole;
       if (overview.userRole !== 'admin') {
-        this.router.navigate(['/workspaces', this.workspaceId ?? '', '']);
+        this.router.navigate(['/workspace', this.workspaceId ?? '', 'dashboard']);
         return;
       }
       this.modules = overview.availableModules ?? [];
@@ -63,7 +63,7 @@ export class WorkspaceModulesPageComponent implements OnInit, OnDestroy {
 
   goBack(): void {
     if (this.workspaceId) {
-      this.router.navigate(['/workspaces', this.workspaceId]);
+      this.router.navigate(['/workspace', this.workspaceId, 'dashboard']);
     } else {
       this.router.navigate(['/workspaces/select']);
     }

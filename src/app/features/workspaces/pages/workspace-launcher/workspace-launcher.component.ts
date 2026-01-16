@@ -98,13 +98,13 @@ export class WorkspaceLauncherComponent implements OnInit, OnDestroy {
     }
 
     const routeMap: Record<string, string[]> = {
-      products: ['/products'],
-      inventory: ['/inventory/stock'],
-      pos: ['/pos'],
-      reports: ['/reports'],
-      dashboard: ['/workspaces', this.workspaceId, 'dashboard'],
+      products: ['/workspace', this.workspaceId, 'products'],
+      inventory: ['/workspace', this.workspaceId, 'inventory', 'stock'],
+      pos: ['/workspace', this.workspaceId, 'pos'],
+      reports: ['/workspace', this.workspaceId, 'reports'],
+      dashboard: ['/workspace', this.workspaceId, 'dashboard'],
     };
 
-    return routeMap[moduleKey] ?? ['/workspaces', this.workspaceId, 'dashboard'];
+    return routeMap[moduleKey] ?? ['/workspace', this.workspaceId, 'dashboard'];
   }
 }

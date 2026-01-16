@@ -205,7 +205,7 @@ export class WorkspaceSelectPageComponent implements OnInit {
     }
 
     this.workspaceState.setActiveWorkspaceId(workspaceId);
-    this.router.navigate(['/workspaces', workspaceId]);
+    this.router.navigateByUrl(`/workspace/${workspaceId}/dashboard`);
   }
 
   isDefault(workspace: Workspace): boolean {

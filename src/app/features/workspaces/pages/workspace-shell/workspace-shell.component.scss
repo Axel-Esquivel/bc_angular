@@ -9,27 +9,25 @@
   padding: 2rem;
 }
 
-.shell-header {
+.topbar {
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  gap: 1.5rem;
-  align-items: flex-start;
-  flex-wrap: wrap;
+  padding: 0.75rem 1rem;
 }
 
-.shell-actions {
+.topbar-right {
   display: flex;
-  gap: 0.75rem;
+  align-items: center;
+  gap: 0.5rem;
 }
 
-.shell-meta {
-  margin-top: 0.5rem;
+.app-title {
+  font-weight: 600;
+  text-decoration: none;
+  color: inherit;
 }
 
-.eyebrow {
-  font-size: 0.85rem;
-  text-transform: uppercase;
-  color: #6c757d;
-  letter-spacing: 0.08em;
-  margin: 0 0 0.25rem;
+.workspace-megamenu {
+  border-radius: 0.75rem;
 }

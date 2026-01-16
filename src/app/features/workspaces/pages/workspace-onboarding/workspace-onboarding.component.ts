@@ -126,7 +126,7 @@ export class WorkspaceOnboardingComponent {
     if (!this.workspaceState.getDefaultWorkspaceId()) {
       this.workspaceState.setDefaultWorkspaceId(workspaceId);
     }
-    this.router.navigate(['/workspaces', workspaceId]);
+    this.router.navigateByUrl(`/workspace/${workspaceId}/dashboard`);
   }
 
   private getWorkspaceId(workspace: Workspace | null | undefined): string | null {

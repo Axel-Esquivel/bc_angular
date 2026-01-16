@@ -80,7 +80,7 @@ export class RegisterPageComponent {
         if (resolvedDefault) {
           this.workspaceState.setDefaultWorkspaceId(resolvedDefault);
           this.workspaceState.setActiveWorkspaceId(resolvedDefault);
-          this.router.navigate(['/workspaces', resolvedDefault]);
+          this.router.navigateByUrl(`/workspace/${resolvedDefault}/dashboard`);
           return;
         }
 

@@ -1,22 +1,30 @@
 <section class="workspace-shell">
-  <header class="shell-header">
-    <div>
-      <p class="eyebrow">Workspace</p>
-      <h1>{{ workspaceId }}</h1>
-      <div class="shell-meta">
-        <p-tag *ngIf="userRole" [value]="userRole === 'admin' ? 'Admin' : 'Member'"></p-tag>
-      </div>
-    </div>
-    <div class="shell-actions">
-      <p-button label="Cambiar workspace" severity="secondary" (onClick)="goToWorkspaces()"></p-button>
+  <header class="topbar app-navbar">
+    <a class="app-title" routerLink="/workspaces">Business Control</a>
+    <div class="topbar-right">
       <p-button
-        *ngIf="canManageModules()"
-        label="Administrar modulos"
-        icon="pi pi-cog"
-        [routerLink]="['/workspaces', workspaceId, 'settings', 'modules']"
-      ></p-button>
+        styleClass="app-navbar-btn"
+        severity="secondary"
+        [text]="true"
+        [rounded]="true"
+        (onClick)="toggleTheme()"
+      >
+        <fa-icon [icon]="faMoon"></fa-icon>
+      </p-button>
+      <p-button
+        styleClass="app-navbar-btn"
+        *ngIf="isAuthenticated$ | async"
+        severity="secondary"
+        [text]="true"
+        [rounded]="true"
+        (onClick)="logout()"
+      >
+        <fa-icon [icon]="faLogout"></fa-icon>
+      </p-button>
     </div>
   </header>
+
+  <p-megaMenu [model]="menuItems" [styleClass]="'workspace-megamenu'"></p-megaMenu>
 
   <router-outlet></router-outlet>
 </section>

@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { finalize, tap } from 'rxjs';
+import { finalize, take, tap } from 'rxjs';
 import { MessageService } from 'primeng/api';
 import { Button } from 'primeng/button';
 import { Card } from 'primeng/card';
@@ -11,6 +11,7 @@ import { PasswordModule } from 'primeng/password';
 import { Toast } from 'primeng/toast';
 
 import { AuthService } from '../../../core/auth/auth.service';
+import { WorkspacesApiService } from '../../../core/api/workspaces-api.service';
 import { LoggerService } from '../../../core/logging/logger.service';
 import { LoginRequest } from '../../../shared/models/auth.model';
 
@@ -25,6 +26,7 @@ import { LoginRequest } from '../../../shared/models/auth.model';
 export class LoginPageComponent {
   private readonly fb = inject(FormBuilder);
   private readonly authService = inject(AuthService);
+  private readonly workspacesApi = inject(WorkspacesApiService);
   private readonly router = inject(Router);
   private readonly messageService = inject(MessageService);
   private readonly logger = inject(LoggerService);
@@ -63,9 +65,24 @@ export class LoginPageComponent {
       )
       .subscribe({
         next: () => {
-          this.logger.debug('[auth] token saved?', this.authService.hasToken());
-          this.logger.debug('[nav] after login -> /workspaces');
-          this.router.navigateByUrl('/workspaces');
+          this.workspacesApi
+            .listMine()
+            .pipe(take(1))
+            .subscribe((response) => {
+              const workspaces = response.result?.workspaces ?? [];
+              if (workspaces.length === 0) {
+                this.router.navigateByUrl('/workspaces/onboarding');
+                return;
+              }
+
+              const defaultId = response.result?.defaultWorkspaceId ?? null;
+              if (defaultId) {
+                this.router.navigateByUrl(`/workspace/${defaultId}/dashboard`);
+                return;
+              }
+
+              this.router.navigateByUrl('/workspaces/select');
+            });
         },
         error: (error) => {
           const detail = error?.error?.message ?? 'No se pudo iniciar sesion.';
@@ -74,5 +91,4 @@ export class LoginPageComponent {
       });
   }
 
-  // Navigation handled by WorkspaceBootstrapGuard after redirect to /workspaces.
 }
