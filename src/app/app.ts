@@ -2,6 +2,8 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { Router, RouterLink, RouterOutlet } from '@angular/router';
 import { Button } from 'primeng/button';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { faMoon, faRightFromBracket } from '@fortawesome/free-solid-svg-icons';
 
 import { AuthService } from './core/auth/auth.service';
 import { HealthApiService } from './core/api/health-api.service';
@@ -11,7 +13,7 @@ import { ThemeService } from './core/theme/theme.service';
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, RouterLink, Button],
+  imports: [CommonModule, RouterOutlet, RouterLink, Button, FontAwesomeModule],
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })
@@ -25,6 +27,8 @@ export class App implements OnInit {
 
   readonly theme$ = this.theme.theme$;
   readonly isAuthenticated$ = this.auth.isAuthenticated$;
+  readonly faMoon = faMoon;
+  readonly faLogout = faRightFromBracket;
 
   constructor() {}
 

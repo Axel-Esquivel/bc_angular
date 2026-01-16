@@ -3,21 +3,23 @@
   <div class="topbar-right">
     <p-button
       styleClass="app-navbar-btn"
-      [icon]="(theme$ | async) === 'dark' ? 'pi pi-sun' : 'pi pi-moon'"
       severity="secondary"
       [text]="true"
       [rounded]="true"
       (onClick)="toggleTheme()"
-    ></p-button>
+    >
+      <fa-icon [icon]="faMoon"></fa-icon>
+    </p-button>
     <p-button
       styleClass="app-navbar-btn"
       *ngIf="isAuthenticated$ | async"
-      icon="pi pi-sign-out"
       severity="secondary"
       [text]="true"
       [rounded]="true"
       (onClick)="logout()"
-    ></p-button>
+    >
+      <fa-icon [icon]="faLogout"></fa-icon>
+    </p-button>
   </div>
 </header>
 <router-outlet />
