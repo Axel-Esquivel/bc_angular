@@ -1,9 +1,13 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { combineLatest, distinctUntilChanged, map } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { HealthApiService } from './core/api/health-api.service';
 import { RealtimeSocketService } from './core/services/realtime-socket.service';
 import { ThemeService } from './core/theme/theme.service';
+import { AuthService } from './core/auth/auth.service';
+import { WorkspaceStateService } from './core/workspace/workspace-state.service';
 
 @Component({
   selector: 'app-root',
@@ -14,15 +18,32 @@ import { ThemeService } from './core/theme/theme.service';
 })
 export class App implements OnInit {
   readonly title = signal('business-control');
+  private readonly destroyRef = inject(DestroyRef);
   private readonly theme = inject(ThemeService);
   private readonly healthApi = inject(HealthApiService);
   private readonly realtimeSocket = inject(RealtimeSocketService);
+  private readonly auth = inject(AuthService);
+  private readonly workspaceState = inject(WorkspaceStateService);
 
   constructor() {}
 
   ngOnInit(): void {
     this.theme.initTheme();
-    this.realtimeSocket.ensureConnected();
+    combineLatest([this.auth.isAuthenticated$, this.workspaceState.activeWorkspaceId$])
+      .pipe(
+        map(([isAuthenticated, workspaceId]) => ({
+          shouldConnect: isAuthenticated && !!workspaceId,
+        })),
+        distinctUntilChanged((prev, next) => prev.shouldConnect === next.shouldConnect),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe(({ shouldConnect }) => {
+        if (shouldConnect) {
+          this.realtimeSocket.connect();
+        } else {
+          this.realtimeSocket.disconnect();
+        }
+      });
     this.healthApi.getStatus().subscribe({
       next: (response) => {
       },
