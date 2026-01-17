@@ -32,6 +32,7 @@ export class WorkspaceShellComponent implements OnInit, OnDestroy {
   workspaceId: string | null = null;
   userRole: 'admin' | 'member' | null = null;
   items: MenuItem[] = [];
+  enabledModuleKeys = new Set<string>();
   readonly theme$ = this.theme.theme$;
   readonly isAuthenticated$ = this.auth.isAuthenticated$;
 
@@ -50,6 +51,11 @@ export class WorkspaceShellComponent implements OnInit, OnDestroy {
 
     this.workspaceModules.overview$.pipe(takeUntil(this.destroy$)).subscribe((overview) => {
       this.userRole = overview?.userRole ?? null;
+      const enabled = overview?.enabledModules ?? [];
+      this.enabledModuleKeys = new Set(
+        enabled.filter((module) => module.enabled).map((module) => module.key)
+      );
+      this.items = this.buildMenuItems();
     });
 
     this.router.events
@@ -117,13 +123,47 @@ export class WorkspaceShellComponent implements OnInit, OnDestroy {
   private buildMenuItems(): MenuItem[] {
     const isWorkspaceRoot = this.router.url.startsWith('/workspace/');
     if (isWorkspaceRoot && this.workspaceId) {
-      return [
-        { label: 'Dashboard', routerLink: ['/workspace', this.workspaceId, 'dashboard'] },
-        { label: 'Products', routerLink: ['/workspace', this.workspaceId, 'products'] },
-        { label: 'POS', routerLink: ['/workspace', this.workspaceId, 'pos'] },
-        { label: 'Reports', routerLink: ['/workspace', this.workspaceId, 'reports'] },
-        { label: 'Settings', items: [{ label: 'Modules', routerLink: ['/workspace', this.workspaceId, 'settings/modules'] }] },
+      const setupCompleted = this.workspaceState.getActiveWorkspaceSetupCompleted() !== false;
+      if (!setupCompleted) {
+        return [
+          { label: 'Setup', routerLink: ['/workspace', this.workspaceId, 'setup'] },
+          { label: 'Workspaces', routerLink: ['/workspaces/select'] },
+        ];
+      }
+
+      const items: MenuItem[] = [{ label: 'Dashboard', routerLink: ['/workspace', this.workspaceId, 'dashboard'] }];
+      const moduleMenus: Array<{ key: string; label: string; route: string[] }> = [
+        { key: 'products', label: 'Products', route: ['/workspace', this.workspaceId, 'products'] },
+        { key: 'inventory', label: 'Inventory', route: ['/workspace', this.workspaceId, 'inventory/stock'] },
+        { key: 'pos', label: 'POS', route: ['/workspace', this.workspaceId, 'pos'] },
+        { key: 'reports', label: 'Reports', route: ['/workspace', this.workspaceId, 'reports'] },
       ];
+
+      moduleMenus.forEach((menu) => {
+        if (this.enabledModuleKeys.has(menu.key)) {
+          items.push({ label: menu.label, routerLink: menu.route });
+        }
+      });
+
+      const settingsItems: MenuItem[] = [];
+      moduleMenus.forEach((menu) => {
+        if (this.enabledModuleKeys.has(menu.key)) {
+          settingsItems.push({
+            label: menu.label,
+            routerLink: ['/workspace', this.workspaceId, 'settings', menu.key],
+          });
+        }
+      });
+
+      if (this.userRole === 'admin') {
+        settingsItems.push({ label: 'Modules', routerLink: ['/workspace', this.workspaceId, 'settings/modules'] });
+      }
+
+      if (settingsItems.length > 0) {
+        items.push({ label: 'Settings', items: settingsItems });
+      }
+
+      return items;
     }
 
     return [{ label: 'Workspaces', routerLink: ['/workspaces/select'] }];

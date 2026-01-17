@@ -1,0 +1,115 @@
+<p-toast></p-toast>
+
+<div class="workspace-setup">
+  <p-card>
+    <ng-template pTemplate="header">
+      <h2>Activar módulos</h2>
+    </ng-template>
+    <p class="subtitle">Selecciona los módulos que deseas habilitar en este workspace.</p>
+
+    <div class="modules-grid" *ngIf="modules.length > 0; else emptyState">
+      <button
+        type="button"
+        class="module-card"
+        *ngFor="let module of modules"
+        [class.is-active]="isEnabled(module.id)"
+        (click)="toggleModule(module)"
+      >
+        <i class="module-icon pi pi-box"></i>
+        <div class="module-name">
+          {{ module.name }}
+          <p-badge *ngIf="isInitialized(module.id)" value="Inicializado" severity="success"></p-badge>
+        </div>
+        <div class="module-status">
+          {{ isEnabled(module.id) ? 'Activado' : 'Instalar' }}
+        </div>
+      </button>
+    </div>
+    <ng-template #emptyState>
+      <div class="empty-state">No hay modulos disponibles.</div>
+    </ng-template>
+
+    <div class="actions">
+      <p-button
+        label="Continuar"
+        [disabled]="submitting"
+        (onClick)="continue()"
+      ></p-button>
+    </div>
+  </p-card>
+
+  <p-dialog
+    [(visible)]="dialogOpen"
+    [modal]="true"
+    [closable]="false"
+    [style]="{ width: '520px' }"
+    *ngIf="activeModule && activeWizard"
+  >
+    <ng-template pTemplate="header">
+      <div class="dialog-title">{{ activeModule.name }}</div>
+    </ng-template>
+
+    <div class="dialog-body" *ngIf="activeStep as step">
+      <div class="step-title">
+        <span>{{ step.title }}</span>
+        <small *ngIf="step.description">{{ step.description }}</small>
+      </div>
+
+      <div class="wizard-fields">
+        <ng-container *ngFor="let field of step.fields">
+          <div *ngIf="field.type === 'divider'" class="wizard-divider"></div>
+          <div *ngIf="field.type === 'note'" class="wizard-note">{{ field.label }}</div>
+
+          <label *ngIf="field.type !== 'divider' && field.type !== 'note'" class="wizard-label">
+            {{ field.label }}
+          </label>
+
+          <p-inputText
+            *ngIf="field.type === 'text'"
+            [(ngModel)]="wizardData[field.key]"
+          ></p-inputText>
+
+          <p-inputNumber
+            *ngIf="field.type === 'number'"
+            [(ngModel)]="wizardData[field.key]"
+          ></p-inputNumber>
+
+          <p-toggleswitch
+            *ngIf="field.type === 'boolean'"
+            [(ngModel)]="wizardData[field.key]"
+          ></p-toggleswitch>
+
+          <p-select
+            *ngIf="field.type === 'select'"
+            [options]="field.options || []"
+            optionLabel="label"
+            optionValue="value"
+            [(ngModel)]="wizardData[field.key]"
+          ></p-select>
+
+          <p-multiSelect
+            *ngIf="field.type === 'multiselect'"
+            [options]="field.options || []"
+            optionLabel="label"
+            optionValue="value"
+            [(ngModel)]="wizardData[field.key]"
+          ></p-multiSelect>
+
+          <p-textarea
+            *ngIf="field.type === 'textarea'"
+            [(ngModel)]="wizardData[field.key]"
+          ></p-textarea>
+        </ng-container>
+      </div>
+    </div>
+
+    <ng-template pTemplate="footer">
+      <div class="dialog-actions">
+        <p-button label="Cancelar" severity="secondary" (onClick)="cancelWizard()"></p-button>
+        <p-button label="Atras" severity="secondary" [disabled]="!canGoBack()" (onClick)="prevStep()"></p-button>
+        <p-button *ngIf="canGoNext()" label="Siguiente" (onClick)="nextStep()"></p-button>
+        <p-button *ngIf="!canGoNext()" label="Guardar" (onClick)="finishWizard()"></p-button>
+      </div>
+    </ng-template>
+  </p-dialog>
+</div>

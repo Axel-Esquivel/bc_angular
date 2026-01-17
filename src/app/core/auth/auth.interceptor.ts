@@ -19,7 +19,10 @@ export class AuthInterceptor implements HttpInterceptor {
   ) {}
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    const isApiRequest = req.url.startsWith(this.config.apiBaseUrl);
+    const isApiRequest =
+      req.url.startsWith(this.config.apiBaseUrl) ||
+      req.url.startsWith('/api') ||
+      req.url.includes('/api/');
     const accessToken = this.authService.getToken();
     const authReq = isApiRequest && accessToken ? this.withAuthHeader(req, accessToken) : req;
 

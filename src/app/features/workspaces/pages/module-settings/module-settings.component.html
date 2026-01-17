@@ -1,0 +1,126 @@
+<p-toast></p-toast>
+
+<section class="module-settings">
+  <div class="header">
+    <div class="titles">
+      <h2>{{ moduleDefinition?.name || 'Settings' }}</h2>
+      <span *ngIf="moduleDefinition?.version">v{{ moduleDefinition?.version }}</span>
+    </div>
+    <div class="actions">
+      <p-button label="Volver" severity="secondary" (onClick)="back()"></p-button>
+      <p-button label="Guardar" [disabled]="saving" (onClick)="save()"></p-button>
+    </div>
+  </div>
+
+  <div *ngIf="sections.length === 0" class="empty-state">
+    No hay configuraciones disponibles para este modulo.
+  </div>
+
+  <div *ngFor="let section of sections" class="section-card">
+    <p-card>
+      <ng-template pTemplate="header">
+        <div class="section-header">
+          <div>
+            <h3>{{ section.title }}</h3>
+            <small *ngIf="section.description">{{ section.description }}</small>
+          </div>
+        </div>
+      </ng-template>
+
+      <div class="section-body">
+        <div class="fields" *ngIf="section.fields?.length">
+          <ng-container *ngFor="let field of section.fields">
+            <div *ngIf="field.type === 'divider'" class="divider"></div>
+            <div *ngIf="field.type === 'note'" class="note">{{ field.label }}</div>
+
+            <label *ngIf="field.type !== 'divider' && field.type !== 'note'">{{ field.label }}</label>
+
+            <p-inputText
+              *ngIf="field.type === 'text'"
+              [(ngModel)]="settingsData[field.key]"
+            ></p-inputText>
+
+            <p-inputNumber
+              *ngIf="field.type === 'number'"
+              [(ngModel)]="settingsData[field.key]"
+            ></p-inputNumber>
+
+            <p-toggleswitch
+              *ngIf="field.type === 'boolean'"
+              [(ngModel)]="settingsData[field.key]"
+            ></p-toggleswitch>
+
+            <p-select
+              *ngIf="field.type === 'select'"
+              [options]="field.options || []"
+              optionLabel="label"
+              optionValue="value"
+              [(ngModel)]="settingsData[field.key]"
+            ></p-select>
+
+            <p-multiSelect
+              *ngIf="field.type === 'multiselect'"
+              [options]="field.options || []"
+              optionLabel="label"
+              optionValue="value"
+              [(ngModel)]="settingsData[field.key]"
+            ></p-multiSelect>
+
+            <p-textarea
+              *ngIf="field.type === 'textarea'"
+              [(ngModel)]="settingsData[field.key]"
+            ></p-textarea>
+          </ng-container>
+        </div>
+
+        <div *ngFor="let group of section.groups || []" class="group">
+          <div class="group-title">{{ group.title }}</div>
+          <div class="fields">
+            <ng-container *ngFor="let field of group.fields">
+              <div *ngIf="field.type === 'divider'" class="divider"></div>
+              <div *ngIf="field.type === 'note'" class="note">{{ field.label }}</div>
+
+              <label *ngIf="field.type !== 'divider' && field.type !== 'note'">{{ field.label }}</label>
+
+              <p-inputText
+                *ngIf="field.type === 'text'"
+                [(ngModel)]="settingsData[field.key]"
+              ></p-inputText>
+
+              <p-inputNumber
+                *ngIf="field.type === 'number'"
+                [(ngModel)]="settingsData[field.key]"
+              ></p-inputNumber>
+
+              <p-toggleswitch
+                *ngIf="field.type === 'boolean'"
+                [(ngModel)]="settingsData[field.key]"
+              ></p-toggleswitch>
+
+              <p-select
+                *ngIf="field.type === 'select'"
+                [options]="field.options || []"
+                optionLabel="label"
+                optionValue="value"
+                [(ngModel)]="settingsData[field.key]"
+              ></p-select>
+
+              <p-multiSelect
+                *ngIf="field.type === 'multiselect'"
+                [options]="field.options || []"
+                optionLabel="label"
+                optionValue="value"
+                [(ngModel)]="settingsData[field.key]"
+              ></p-multiSelect>
+
+              <p-textarea
+                *ngIf="field.type === 'textarea'"
+                [(ngModel)]="settingsData[field.key]"
+              ></p-textarea>
+            </ng-container>
+          </div>
+        </div>
+      </div>
+    </p-card>
+  </div>
+</section>

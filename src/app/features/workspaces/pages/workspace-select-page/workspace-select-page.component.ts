@@ -121,7 +121,9 @@ export class WorkspaceSelectPageComponent implements OnInit {
           }
           this.createDialogOpen = false;
           this.createForm.reset();
-          this.enterWorkspace(result);
+          if (createdId) {
+            this.router.navigateByUrl(`/workspace/${createdId}/setup`);
+          }
         }
         this.submittingCreate = false;
       },

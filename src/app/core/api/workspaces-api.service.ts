@@ -42,6 +42,23 @@ export class WorkspacesApiService {
     return this.http.get<ApiResponse<WorkspaceListResult>>(this.baseUrl);
   }
 
+  completeSetup(workspaceId: string): Observable<ApiResponse<Workspace>> {
+    return this.http.patch<ApiResponse<Workspace>>(`${this.baseUrl}/${workspaceId}/setup-complete`, {});
+  }
+
+  updateModuleSettings(workspaceId: string, moduleId: string, settings: Record<string, any>): Observable<ApiResponse<Record<string, any>>> {
+    return this.http.patch<ApiResponse<Record<string, any>>>(
+      `${this.baseUrl}/${workspaceId}/module-settings/${moduleId}`,
+      settings
+    );
+  }
+
+  getModuleSettings(workspaceId: string, moduleId: string): Observable<ApiResponse<Record<string, any>>> {
+    return this.http.get<ApiResponse<Record<string, any>>>(
+      `${this.baseUrl}/${workspaceId}/module-settings/${moduleId}`
+    );
+  }
+
   setDefault(dto: { workspaceId: string }): Observable<ApiResponse<AuthUser>> {
     return this.http.patch<ApiResponse<AuthUser>>(`${this.config.apiBaseUrl}/users/me/default-workspace`, dto);
   }

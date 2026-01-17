@@ -69,7 +69,7 @@ export class WorkspaceOnboardingComponent {
     this.workspacesApi.create({ name: payload.name }).subscribe({
       next: ({ result }) => {
         if (result) {
-          this.finishOnboarding(result);
+          this.finishOnboardingSetup(result);
         }
         this.submittingCreate = false;
         this.createDialogOpen = false;
@@ -127,6 +127,19 @@ export class WorkspaceOnboardingComponent {
       this.workspaceState.setDefaultWorkspaceId(workspaceId);
     }
     this.router.navigateByUrl(`/workspace/${workspaceId}/dashboard`);
+  }
+
+  private finishOnboardingSetup(workspace: Workspace): void {
+    const workspaceId = this.getWorkspaceId(workspace);
+    if (!workspaceId) {
+      return;
+    }
+
+    this.workspaceState.setActiveWorkspaceId(workspaceId);
+    if (!this.workspaceState.getDefaultWorkspaceId()) {
+      this.workspaceState.setDefaultWorkspaceId(workspaceId);
+    }
+    this.router.navigateByUrl(`/workspace/${workspaceId}/setup`);
   }
 
   private getWorkspaceId(workspace: Workspace | null | undefined): string | null {

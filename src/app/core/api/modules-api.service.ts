@@ -6,6 +6,17 @@ import { APP_CONFIG_TOKEN, AppConfig } from '../config/app-config';
 import { ApiResponse } from '../../shared/models/api-response.model';
 import { ModuleInfo } from '../../shared/models/module.model';
 
+export interface ModuleDefinition {
+  id: string;
+  name: string;
+  version: string;
+  dependencies?: string[];
+  setupWizard?: unknown;
+  settingsSchema?: unknown;
+  isSystem?: boolean;
+  isInstallable?: boolean;
+}
+
 @Injectable({ providedIn: 'root' })
 export class ModulesApiService {
   private readonly baseUrl: string;
@@ -24,5 +35,11 @@ export class ModulesApiService {
 
   uninstallModule(name: string): Observable<ApiResponse<ModuleInfo>> {
     return this.http.post<ApiResponse<ModuleInfo>>(`${this.baseUrl}/uninstall`, { name });
+  }
+
+  getDefinitions(workspaceId: string): Observable<ApiResponse<ModuleDefinition[]>> {
+    return this.http.get<ApiResponse<ModuleDefinition[]>>(
+      `${this.baseUrl}/definitions?workspaceId=${encodeURIComponent(workspaceId)}`
+    );
   }
 }

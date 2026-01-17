@@ -1,0 +1,82 @@
+.module-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 1.5rem;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.titles {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+}
+
+.titles h2 {
+  margin: 0;
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.section-card {
+  display: block;
+}
+
+.section-header h3 {
+  margin: 0;
+}
+
+.section-header small {
+  color: var(--text-color-secondary);
+}
+
+.section-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.group-title {
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+
+.fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem 1.5rem;
+}
+
+.fields label {
+  font-size: 0.9rem;
+  color: var(--text-color-secondary);
+}
+
+.divider {
+  height: 1px;
+  background: var(--surface-border);
+  grid-column: 1 / -1;
+}
+
+.note {
+  grid-column: 1 / -1;
+  padding: 0.5rem 0.75rem;
+  background: var(--surface-100);
+  border-radius: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--text-color-secondary);
+}
+
+.empty-state {
+  color: var(--text-color-secondary);
+}

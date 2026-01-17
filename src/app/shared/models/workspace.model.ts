@@ -8,6 +8,7 @@ export interface Workspace {
   ownerId?: string;
   members?: WorkspaceMember[];
   enabledModules?: { key: string; enabled: boolean; enabledAt?: string; enabledBy?: string }[];
+  setupCompleted?: boolean;
   createdAt?: string;
   updatedAt?: string;
 }
