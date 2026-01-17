@@ -1,8 +1,9 @@
 <section class="workspace-shell">
-  <p-menubar [model]="items" [styleClass]="'workspace-menubar'">
+  <p-menubar [model]="items">
     <ng-template #start>
       <a class="app-title" routerLink="/workspaces">Business Control</a>
     </ng-template>
+
     <ng-template #item let-item let-root="root">
       <a pRipple class="flex items-center p-menubar-item-link" (click)="onMenuItemClick(item, $event)">
         <span>{{ item.label }}</span>
@@ -20,24 +21,26 @@
         <i *ngIf="item.items" [ngClass]="['ml-auto pi', root ? 'pi-angle-down' : 'pi-angle-right']"></i>
       </a>
     </ng-template>
+
     <ng-template #end>
       <div class="topbar-right">
         <p-button
-          styleClass="app-navbar-btn"
-          icon="pi pi-moon"
-          [rounded]="true"
-          [text]="true"
+          icon="pi pi-palette"
+          severity="info"
           (onClick)="toggleTheme()"
+          [text]="true"
+          [rounded]="true"
           ariaLabel="Theme"
         />
         <p-button
-          styleClass="app-navbar-btn"
+          
           *ngIf="isAuthenticated$ | async"
           icon="pi pi-sign-out"
-          [rounded]="true"
-          [text]="true"
+          severity="warn"
           (onClick)="logout()"
-          ariaLabel="Logout"
+          [text]="true"
+          [rounded]="true"
+          ariaLabel="Logout"    
         />
       </div>
     </ng-template>

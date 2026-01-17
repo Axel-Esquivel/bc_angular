@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
 import { filter, Subject, takeUntil } from 'rxjs';
-import { Button } from 'primeng/button';
+import { Button, ButtonModule } from 'primeng/button';
 import { Menubar } from 'primeng/menubar';
 import { MenuItem } from 'primeng/api';
 import { Badge } from 'primeng/badge';
@@ -16,7 +16,7 @@ import { WorkspaceModulesService } from '../../../../core/workspace/workspace-mo
 @Component({
   selector: 'app-workspace-shell',
   standalone: true,
-  imports: [CommonModule, RouterLink, RouterOutlet, Button, Menubar, Badge, Ripple],
+  imports: [CommonModule, RouterLink, RouterOutlet, ButtonModule, Menubar, Badge, Ripple],
   templateUrl: './workspace-shell.component.html',
   styleUrl: './workspace-shell.component.scss',
 })

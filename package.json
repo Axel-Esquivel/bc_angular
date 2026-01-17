@@ -28,9 +28,6 @@
     "@angular/forms": "^20.3.0",
     "@angular/platform-browser": "^20.3.0",
     "@angular/router": "^20.3.0",
-    "@fortawesome/angular-fontawesome": "^3.0.0",
-    "@fortawesome/fontawesome-svg-core": "^7.1.0",
-    "@fortawesome/free-solid-svg-icons": "^7.1.0",
     "@primeuix/themes": "^2.0.1",
     "primeicons": "^7.0.0",
     "primeng": "^20.3.0",
@@ -41,7 +38,7 @@
   },
   "devDependencies": {
     "@angular/build": "^20.3.12",
-    "@angular/cli": "^20.3.12",
+    "@angular/cli": "^21.1.0",
     "@angular/compiler-cli": "^20.3.0",
     "@types/jasmine": "~5.1.0",
     "jasmine-core": "~5.9.0",
