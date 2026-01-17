@@ -22,6 +22,7 @@ import { Warehouse, WarehousesApiService } from '../../../../core/api/warehouses
 import { WorkspacesApiService } from '../../../../core/api/workspaces-api.service';
 import { ApiResponse } from '../../../../shared/models/api-response.model';
 import { WorkspaceMember } from '../../../../shared/models/workspace.model';
+import { WorkspaceModulesService } from '../../../../core/workspace/workspace-modules.service';
 
 type FieldType =
   | 'text'
@@ -154,10 +155,11 @@ export class ModuleSettingsComponent implements OnInit {
   private readonly warehousesApi = inject(WarehousesApiService);
   private readonly accountingApi = inject(AccountingApiService);
   private readonly productCategoriesApi = inject(ProductCategoriesApiService);
+  private readonly workspaceModules = inject(WorkspaceModulesService);
   private readonly messageService = inject(MessageService);
 
   readonly workspaceId = this.route.parent?.snapshot.paramMap.get('id') ?? '';
-  readonly moduleId = this.route.snapshot.paramMap.get('moduleId') ?? '';
+  moduleId = '';
 
   moduleDefinition: ModuleDefinition | null = null;
   settingsSchema: SettingsSchema | null = null;
@@ -239,6 +241,7 @@ export class ModuleSettingsComponent implements OnInit {
   };
 
   ngOnInit(): void {
+    this.moduleId = this.route.snapshot.paramMap.get('moduleId') ?? this.route.snapshot.data?.['moduleId'] ?? '';
     if (!this.workspaceId || !this.moduleId) {
       return;
     }
@@ -256,6 +259,7 @@ export class ModuleSettingsComponent implements OnInit {
       accountingMappings?: Observable<ApiResponse<any>>;
       accounts?: Observable<ApiResponse<AccountingAccount[]>>;
       categories?: Observable<string[]>;
+      modulesOverview?: Observable<any>;
     };
 
     const requests: RequestsMap = {
@@ -277,6 +281,7 @@ export class ModuleSettingsComponent implements OnInit {
       requests['accounts'] = this.accountingApi.listAccounts(this.workspaceId);
       requests['categories'] = this.productCategoriesApi.listCategories();
     }
+    requests['modulesOverview'] = this.workspaceModules.load(this.workspaceId);
 
     forkJoin(requests).subscribe({
       next: (raw) => {
@@ -292,7 +297,16 @@ export class ModuleSettingsComponent implements OnInit {
           accountingMappings?: ApiResponse<any>;
           accounts?: ApiResponse<AccountingAccount[]>;
           categories?: string[];
+          modulesOverview?: { enabledModules?: { key: string; enabled: boolean }[] };
         };
+        const enabled = response['modulesOverview']?.enabledModules ?? [];
+        const isEnabled = enabled.some((module) => module.key === this.moduleId && module.enabled);
+        if (!isEnabled) {
+          this.loading = false;
+          this.router.navigateByUrl(`/workspace/${this.workspaceId}/settings/modules`);
+          return;
+        }
+
         const modules = response['definitions']?.result ?? [];
         this.moduleDefinition =
           modules.find((module: ModuleDefinition) => module.id === this.moduleId) ?? null;

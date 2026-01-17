@@ -8,6 +8,7 @@ export interface WorkspaceModuleCatalogEntry {
 export interface WorkspaceModuleState {
   key: string;
   enabled: boolean;
+  configured?: boolean;
   enabledAt?: string;
   enabledBy?: string;
 }

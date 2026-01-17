@@ -1,3 +1,28 @@
-<p-card header="Dashboard">
-  <p>Resumen general pendiente de implementar.</p>
-</p-card>
+<section class="dashboard">
+  <p-card>
+    <ng-template pTemplate="header">
+      <div class="dashboard-header">
+        <h2>Dashboard</h2>
+        <p-badge *ngIf="pendingModules.length > 0" value="Requiere configuración"></p-badge>
+      </div>
+    </ng-template>
+
+    <div *ngIf="pendingModules.length > 0" class="pending-banner">
+      <div class="pending-text">
+        Algunos módulos requieren configuración antes de usarlos.
+      </div>
+      <div class="pending-actions">
+        <a
+          *ngFor="let module of pendingModules"
+          class="pending-link"
+          [routerLink]="['/workspace', workspaceId, 'settings', module.key]"
+        >
+          <span>{{ module.name }}</span>
+          <p-button label="Configurar" size="small"></p-button>
+        </a>
+      </div>
+    </div>
+
+    <p class="dashboard-placeholder">Resumen general pendiente de implementar.</p>
+  </p-card>
+</section>
