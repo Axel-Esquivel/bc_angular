@@ -3,22 +3,25 @@ import { io, Socket } from 'socket.io-client';
 import { BehaviorSubject, catchError, map, of, take, tap } from 'rxjs';
 
 import { APP_CONFIG_TOKEN, AppConfig } from '../config/app-config';
-import { AuthService } from '../auth/auth.service';
 import { HealthApiService } from '../api/health-api.service';
 
 @Injectable({ providedIn: 'root' })
 export class RealtimeSocketService {
   private socket?: Socket;
   private isConnecting = false;
+  private authToken: string | null = null;
   private readonly connectedSubject = new BehaviorSubject<boolean>(false);
 
   readonly isConnected$ = this.connectedSubject.asObservable();
 
   constructor(
-    private readonly auth: AuthService,
     private readonly healthApi: HealthApiService,
     @Inject(APP_CONFIG_TOKEN) private readonly config: AppConfig
   ) {}
+
+  setAuthToken(token: string | null): void {
+    this.authToken = token;
+  }
 
   connect(): void {
     if (this.socket || this.isConnecting) {
@@ -31,7 +34,7 @@ export class RealtimeSocketService {
       .pipe(
         take(1),
         tap(() => {
-          const token = this.auth.getAccessToken();
+          const token = this.authToken;
           const socketConfig = this.resolveSocketConfig();
 
           this.socket = io(socketConfig.url, {

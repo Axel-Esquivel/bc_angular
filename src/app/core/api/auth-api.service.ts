@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
@@ -24,6 +24,11 @@ export class AuthApiService {
 
   refresh(refreshToken: string): Observable<ApiResponse<LoginResult>> {
     return this.http.post<ApiResponse<LoginResult>>(`${this.baseUrl}/refresh`, { refreshToken });
+  }
+
+  logout(deviceId?: string | null): Observable<ApiResponse<{ success: boolean }>> {
+    const headers = deviceId ? new HttpHeaders({ 'x-device-id': deviceId }) : undefined;
+    return this.http.post<ApiResponse<{ success: boolean }>>(`${this.baseUrl}/logout`, {}, { headers });
   }
 
   me(): Observable<ApiResponse<MeResult>> {

@@ -26,6 +26,7 @@ import { AuthApiService } from '../api/auth-api.service';
 import { LoggerService } from '../logging/logger.service';
 import { TokenStorageService } from './token-storage.service';
 import { WorkspaceStateService } from '../workspace/workspace-state.service';
+import { RealtimeSocketService } from '../services/realtime-socket.service';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -41,6 +42,7 @@ export class AuthService {
     private readonly authApi: AuthApiService,
     private readonly tokenStorage: TokenStorageService,
     private readonly workspaceState: WorkspaceStateService,
+    private readonly realtimeSocket: RealtimeSocketService,
     private readonly logger: LoggerService
   ) {
     const storedUser = this.getCurrentUser();
@@ -55,6 +57,8 @@ export class AuthService {
         this.persistAuthPayload(response.result);
         const token = this.getToken();
         this.logger.debug('[auth] token saved', token ? token.length : 0, this.hasToken());
+        this.realtimeSocket.setAuthToken(token);
+        this.realtimeSocket.connect();
       }),
       map((response) => this.mapUser(response.result?.user))
     );
@@ -68,11 +72,15 @@ export class AuthService {
   }
 
   logout(): void {
-    this.tokenStorage.clearTokens();
-    this.clearAuthStorage();
-    this.currentUserSubject.next(null);
-    this.authStateSubject.next(false);
-    this.workspaceState.clear();
+    const deviceId = this.tokenStorage.getDeviceId();
+    this.authApi
+      .logout(deviceId)
+      .pipe(
+        take(1),
+        catchError(() => of(null))
+      )
+      .subscribe();
+    this.finalizeLogout();
   }
 
   loadMe(): Observable<AuthUser | null> {
@@ -239,5 +247,16 @@ export class AuthService {
   private clearAuthStorage(): void {
     localStorage.removeItem(AuthService.TOKEN_KEY);
     localStorage.removeItem(AuthService.USER_KEY);
+  }
+
+  private finalizeLogout(): void {
+    this.realtimeSocket.disconnect();
+    this.realtimeSocket.setAuthToken(null);
+    this.tokenStorage.clearTokens();
+    this.clearAuthStorage();
+    this.currentUserSubject.next(null);
+    this.authStateSubject.next(false);
+    this.workspaceState.clear();
+    this.realtimeSocket.disconnect();
   }
 }
