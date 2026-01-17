@@ -6,18 +6,226 @@
       <h2>{{ moduleDefinition?.name || 'Settings' }}</h2>
       <span *ngIf="moduleDefinition?.version">v{{ moduleDefinition?.version }}</span>
     </div>
-    <div class="actions">
-      <p-button label="Volver" severity="secondary" (onClick)="back()"></p-button>
-      <p-button label="Guardar" [disabled]="saving" (onClick)="save()"></p-button>
+  <div class="actions">
+    <p-button label="Volver" severity="secondary" (onClick)="back()"></p-button>
+    <p-button label="Guardar" [disabled]="saving" (onClick)="save()"></p-button>
+  </div>
+</div>
+
+<div *ngIf="isPosModule" class="section-card">
+  <p-card>
+    <ng-template pTemplate="header">
+      <div class="section-header">
+        <div>
+          <h3>Cajas POS</h3>
+          <small>Configura las cajas y usuarios autorizados.</small>
+        </div>
+        <p-button label="Nueva caja" icon="pi pi-plus" (onClick)="openNewTerminal()"></p-button>
+      </div>
+    </ng-template>
+
+    <div class="pos-list" *ngIf="posSettings.terminals.length > 0">
+      <p-table [value]="posSettings.terminals">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Nombre</th>
+            <th>Bodega</th>
+            <th>Usuarios</th>
+            <th>Estado</th>
+            <th></th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-terminal>
+          <tr>
+            <td>{{ terminal.name }}</td>
+            <td>{{ getWarehouseLabel(terminal.warehouseId) }}</td>
+            <td>{{ terminal.allowedUsers?.length || 0 }}</td>
+            <td>{{ terminal.isActive ? 'Activa' : 'Inactiva' }}</td>
+            <td class="actions-cell">
+              <p-button icon="pi pi-pencil" [text]="true" (onClick)="editTerminal(terminal)"></p-button>
+              <p-button icon="pi pi-trash" [text]="true" severity="danger" (onClick)="deleteTerminal(terminal)"></p-button>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
     </div>
-  </div>
 
-  <div *ngIf="sections.length === 0" class="empty-state">
-    No hay configuraciones disponibles para este modulo.
-  </div>
+    <div *ngIf="posSettings.terminals.length === 0" class="empty-state">
+      No hay cajas registradas.
+    </div>
+  </p-card>
+</div>
 
-  <div *ngFor="let section of sections" class="section-card">
-    <p-card>
+<div *ngIf="isInventoryModule" class="section-card">
+  <p-card>
+    <ng-template pTemplate="header">
+      <div class="section-header">
+        <div>
+          <h3>Inventario</h3>
+          <small>Define el método de costeo y el nivel de control.</small>
+        </div>
+        <p-button label="Guardar" [disabled]="savingInventory" (onClick)="saveInventorySettings()"></p-button>
+      </div>
+    </ng-template>
+
+    <div class="inventory-settings">
+      <div class="field">
+        <label>Método de costeo</label>
+        <p-select
+          [options]="costMethodOptions"
+          optionLabel="label"
+          optionValue="value"
+          [(ngModel)]="inventorySettings.costMethod"
+        ></p-select>
+      </div>
+      <div class="field">
+        <label>Nivel de control</label>
+        <p-select
+          [options]="stockLevelOptions"
+          optionLabel="label"
+          optionValue="value"
+          [(ngModel)]="inventorySettings.stockLevel"
+        ></p-select>
+      </div>
+      <div class="field inline">
+        <label>Permitir negativos</label>
+        <p-toggleswitch [(ngModel)]="inventorySettings.allowNegative"></p-toggleswitch>
+      </div>
+    </div>
+  </p-card>
+</div>
+
+<div *ngIf="sections.length === 0 && !isPosModule && !isInventoryModule && !isAccountingModule" class="empty-state">
+  No hay configuraciones disponibles para este modulo.
+</div>
+
+<div *ngIf="isAccountingModule" class="section-card">
+  <p-card>
+    <ng-template pTemplate="header">
+      <div class="section-header">
+        <div>
+          <h3>Cuentas por defecto</h3>
+          <small>Define cuentas base para ventas, compras e inventario.</small>
+        </div>
+        <p-button label="Guardar" [disabled]="savingAccountingDefaults" (onClick)="saveAccountingDefaults()"></p-button>
+      </div>
+    </ng-template>
+
+    <div class="accounting-defaults">
+      <div class="field">
+        <label>Ingresos por ventas</label>
+        <p-select [options]="accountOptions" optionLabel="label" optionValue="value" [(ngModel)]="accountingDefaults.salesIncomeAccountId"></p-select>
+      </div>
+      <div class="field">
+        <label>Descuentos ventas</label>
+        <p-select [options]="accountOptions" optionLabel="label" optionValue="value" [(ngModel)]="accountingDefaults.salesDiscountAccountId"></p-select>
+      </div>
+      <div class="field">
+        <label>Inventario</label>
+        <p-select [options]="accountOptions" optionLabel="label" optionValue="value" [(ngModel)]="accountingDefaults.inventoryAccountId"></p-select>
+      </div>
+      <div class="field">
+        <label>Costo de ventas</label>
+        <p-select [options]="accountOptions" optionLabel="label" optionValue="value" [(ngModel)]="accountingDefaults.cogsAccountId"></p-select>
+      </div>
+      <div class="field">
+        <label>Compras</label>
+        <p-select [options]="accountOptions" optionLabel="label" optionValue="value" [(ngModel)]="accountingDefaults.purchasesAccountId"></p-select>
+      </div>
+      <div class="field">
+        <label>Impuestos por pagar</label>
+        <p-select [options]="accountOptions" optionLabel="label" optionValue="value" [(ngModel)]="accountingDefaults.taxPayableAccountId"></p-select>
+      </div>
+      <div class="field">
+        <label>Impuestos por cobrar</label>
+        <p-select [options]="accountOptions" optionLabel="label" optionValue="value" [(ngModel)]="accountingDefaults.taxReceivableAccountId"></p-select>
+      </div>
+    </div>
+  </p-card>
+</div>
+
+<div *ngIf="isAccountingModule" class="section-card">
+  <p-card>
+    <ng-template pTemplate="header">
+      <div class="section-header">
+        <div>
+          <h3>Impuestos</h3>
+          <small>Asocia impuestos con cuentas contables.</small>
+        </div>
+        <p-button label="Nuevo impuesto" icon="pi pi-plus" (onClick)="openNewTax()"></p-button>
+      </div>
+    </ng-template>
+
+    <div *ngIf="accountingTaxes.length === 0" class="empty-state">No hay impuestos configurados.</div>
+    <p-table *ngIf="accountingTaxes.length > 0" [value]="accountingTaxes">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Nombre</th>
+          <th>Tasa</th>
+          <th>Tipo</th>
+          <th>Cuenta</th>
+          <th>Activo</th>
+          <th></th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-tax>
+        <tr>
+          <td>{{ tax.name }}</td>
+          <td>{{ tax.rate }}%</td>
+          <td>{{ tax.type }}</td>
+          <td>{{ getAccountLabel(tax.accountId) }}</td>
+          <td>{{ tax.isActive ? 'Si' : 'No' }}</td>
+          <td class="actions-cell">
+            <p-button icon="pi pi-pencil" [text]="true" (onClick)="editTax(tax)"></p-button>
+            <p-button icon="pi pi-trash" [text]="true" severity="danger" (onClick)="deleteTax(tax)"></p-button>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </p-card>
+</div>
+
+<div *ngIf="isAccountingModule" class="section-card">
+  <p-card>
+    <ng-template pTemplate="header">
+      <div class="section-header">
+        <div>
+          <h3>Reglas por categoría</h3>
+          <small>Overrides de cuentas por categoría de producto.</small>
+        </div>
+        <p-button label="Nueva regla" icon="pi pi-plus" (onClick)="openNewMapping()"></p-button>
+      </div>
+    </ng-template>
+
+    <div *ngIf="accountingMappings.length === 0" class="empty-state">No hay reglas configuradas.</div>
+    <p-table *ngIf="accountingMappings.length > 0" [value]="accountingMappings">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Categoría</th>
+          <th>Ingresos</th>
+          <th>COGS</th>
+          <th>Inventario</th>
+          <th></th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-mapping>
+        <tr>
+          <td>{{ mapping.categoryId }}</td>
+          <td>{{ getAccountLabel(mapping.salesIncomeAccountId) }}</td>
+          <td>{{ getAccountLabel(mapping.cogsAccountId) }}</td>
+          <td>{{ getAccountLabel(mapping.inventoryAccountId) }}</td>
+          <td class="actions-cell">
+            <p-button icon="pi pi-pencil" [text]="true" (onClick)="editMapping(mapping)"></p-button>
+            <p-button icon="pi pi-trash" [text]="true" severity="danger" (onClick)="deleteMapping(mapping)"></p-button>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </p-card>
+</div>
+
+<div *ngFor="let section of sections" class="section-card">
+  <p-card>
       <ng-template pTemplate="header">
         <div class="section-header">
           <div>
@@ -124,3 +332,131 @@
     </p-card>
   </div>
 </section>
+
+<p-dialog
+  [(visible)]="terminalDialogVisible"
+  modal="true"
+  [draggable]="false"
+  [resizable]="false"
+  header="Caja POS"
+  [style]="{ width: '520px' }"
+>
+  <div class="terminal-form">
+    <div class="field">
+      <label>Nombre</label>
+      <p-inputText [(ngModel)]="terminalDraft.name"></p-inputText>
+    </div>
+    <div class="field">
+      <label>Company</label>
+      <p-select [options]="companyOptions" optionLabel="label" optionValue="value" [(ngModel)]="terminalDraft.companyId"></p-select>
+    </div>
+    <div class="field">
+      <label>Sucursal</label>
+      <p-select [options]="branchOptions" optionLabel="label" optionValue="value" [(ngModel)]="terminalDraft.branchId"></p-select>
+    </div>
+    <div class="field">
+      <label>Bodega</label>
+      <p-select
+        [options]="warehouseOptions"
+        optionLabel="label"
+        optionValue="value"
+        [(ngModel)]="terminalDraft.warehouseId"
+        (ngModelChange)="onWarehouseChange($event)"
+      ></p-select>
+    </div>
+    <div class="field">
+      <label>Moneda</label>
+      <p-select [options]="currencyOptions" optionLabel="label" optionValue="value" [(ngModel)]="terminalDraft.currencyId"></p-select>
+    </div>
+    <div class="field">
+      <label>Usuarios autorizados</label>
+      <p-multiSelect
+        [options]="userOptions"
+        optionLabel="label"
+        optionValue="value"
+        display="chip"
+        filter="true"
+        [(ngModel)]="terminalDraft.allowedUsers"
+      ></p-multiSelect>
+    </div>
+    <div class="field inline">
+      <label>Activa</label>
+      <p-toggleswitch [(ngModel)]="terminalDraft.isActive"></p-toggleswitch>
+    </div>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <p-button label="Cancelar" severity="secondary" (onClick)="terminalDialogVisible = false"></p-button>
+    <p-button label="Guardar" [disabled]="savingTerminal" (onClick)="saveTerminal()"></p-button>
+  </ng-template>
+</p-dialog>
+
+<p-dialog
+  [(visible)]="taxDialogVisible"
+  modal="true"
+  [draggable]="false"
+  [resizable]="false"
+  header="Impuesto"
+  [style]="{ width: '520px' }"
+>
+  <div class="terminal-form">
+    <div class="field">
+      <label>Nombre</label>
+      <p-inputText [(ngModel)]="taxDraft.name"></p-inputText>
+    </div>
+    <div class="field">
+      <label>Tasa (%)</label>
+      <p-inputNumber [(ngModel)]="taxDraft.rate"></p-inputNumber>
+    </div>
+    <div class="field">
+      <label>Tipo</label>
+      <p-select [options]="taxTypeOptions" optionLabel="label" optionValue="value" [(ngModel)]="taxDraft.type"></p-select>
+    </div>
+    <div class="field">
+      <label>Cuenta contable</label>
+      <p-select [options]="accountOptions" optionLabel="label" optionValue="value" [(ngModel)]="taxDraft.accountId"></p-select>
+    </div>
+    <div class="field inline">
+      <label>Activo</label>
+      <p-toggleswitch [(ngModel)]="taxDraft.isActive"></p-toggleswitch>
+    </div>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <p-button label="Cancelar" severity="secondary" (onClick)="taxDialogVisible = false"></p-button>
+    <p-button label="Guardar" [disabled]="savingTax" (onClick)="saveTax()"></p-button>
+  </ng-template>
+</p-dialog>
+
+<p-dialog
+  [(visible)]="mappingDialogVisible"
+  modal="true"
+  [draggable]="false"
+  [resizable]="false"
+  header="Regla por categoria"
+  [style]="{ width: '520px' }"
+>
+  <div class="terminal-form">
+    <div class="field">
+      <label>Categoria</label>
+      <p-select [options]="categoryOptions" optionLabel="label" optionValue="value" [(ngModel)]="mappingDraft.categoryId"></p-select>
+    </div>
+    <div class="field">
+      <label>Ingresos</label>
+      <p-select [options]="accountOptions" optionLabel="label" optionValue="value" [(ngModel)]="mappingDraft.salesIncomeAccountId"></p-select>
+    </div>
+    <div class="field">
+      <label>COGS</label>
+      <p-select [options]="accountOptions" optionLabel="label" optionValue="value" [(ngModel)]="mappingDraft.cogsAccountId"></p-select>
+    </div>
+    <div class="field">
+      <label>Inventario</label>
+      <p-select [options]="accountOptions" optionLabel="label" optionValue="value" [(ngModel)]="mappingDraft.inventoryAccountId"></p-select>
+    </div>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <p-button label="Cancelar" severity="secondary" (onClick)="mappingDialogVisible = false"></p-button>
+    <p-button label="Guardar" [disabled]="savingMapping" (onClick)="saveMapping()"></p-button>
+  </ng-template>
+</p-dialog>

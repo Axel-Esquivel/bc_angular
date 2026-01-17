@@ -36,6 +36,13 @@
   margin: 0;
 }
 
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
 .section-header small {
   color: var(--text-color-secondary);
 }
@@ -79,4 +86,63 @@
 
 .empty-state {
   color: var(--text-color-secondary);
+}
+
+.pos-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.actions-cell {
+  display: flex;
+  gap: 0.25rem;
+  justify-content: flex-end;
+}
+
+.terminal-form {
+  display: grid;
+  gap: 1rem;
+}
+
+.terminal-form .field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.terminal-form .field.inline {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.inventory-settings {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem 1.5rem;
+}
+
+.inventory-settings .field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.inventory-settings .field.inline {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.accounting-defaults {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem 1.5rem;
+}
+
+.accounting-defaults .field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
 }
