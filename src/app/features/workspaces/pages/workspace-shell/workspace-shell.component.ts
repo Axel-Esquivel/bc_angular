@@ -3,10 +3,10 @@ import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
 import { filter, Subject, takeUntil } from 'rxjs';
 import { Button } from 'primeng/button';
-import { MegaMenu } from 'primeng/megamenu';
-import { MegaMenuItem } from 'primeng/api';
-import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faMoon, faRightFromBracket } from '@fortawesome/free-solid-svg-icons';
+import { Menubar } from 'primeng/menubar';
+import { MenuItem } from 'primeng/api';
+import { Badge } from 'primeng/badge';
+import { Ripple } from 'primeng/ripple';
 
 import { AuthService } from '../../../../core/auth/auth.service';
 import { ThemeService } from '../../../../core/theme/theme.service';
@@ -16,7 +16,7 @@ import { WorkspaceModulesService } from '../../../../core/workspace/workspace-mo
 @Component({
   selector: 'app-workspace-shell',
   standalone: true,
-  imports: [CommonModule, RouterLink, RouterOutlet, Button, MegaMenu, FontAwesomeModule],
+  imports: [CommonModule, RouterLink, RouterOutlet, Button, Menubar, Badge, Ripple],
   templateUrl: './workspace-shell.component.html',
   styleUrl: './workspace-shell.component.scss',
 })
@@ -31,11 +31,9 @@ export class WorkspaceShellComponent implements OnInit, OnDestroy {
 
   workspaceId: string | null = null;
   userRole: 'admin' | 'member' | null = null;
-  menuItems: MegaMenuItem[] = [];
+  items: MenuItem[] = [];
   readonly theme$ = this.theme.theme$;
   readonly isAuthenticated$ = this.auth.isAuthenticated$;
-  readonly faMoon = faMoon;
-  readonly faLogout = faRightFromBracket;
 
   ngOnInit(): void {
     this.route.paramMap.pipe(takeUntil(this.destroy$)).subscribe((params) => {
@@ -47,7 +45,7 @@ export class WorkspaceShellComponent implements OnInit, OnDestroy {
       } else {
         this.userRole = null;
       }
-      this.menuItems = this.buildMenuItems();
+      this.items = this.buildMenuItems();
     });
 
     this.workspaceModules.overview$.pipe(takeUntil(this.destroy$)).subscribe((overview) => {
@@ -60,7 +58,7 @@ export class WorkspaceShellComponent implements OnInit, OnDestroy {
         takeUntil(this.destroy$)
       )
       .subscribe(() => {
-        this.menuItems = this.buildMenuItems();
+        this.items = this.buildMenuItems();
       });
   }
 
@@ -102,43 +100,32 @@ export class WorkspaceShellComponent implements OnInit, OnDestroy {
     });
   }
 
-  private buildMenuItems(): MegaMenuItem[] {
+  onMenuItemClick(item: MenuItem, event: Event): void {
+    if (!item.routerLink) {
+      return;
+    }
+
+    event.preventDefault();
+    if (Array.isArray(item.routerLink)) {
+      this.router.navigate(item.routerLink);
+      return;
+    }
+
+    this.router.navigateByUrl(item.routerLink);
+  }
+
+  private buildMenuItems(): MenuItem[] {
     const isWorkspaceRoot = this.router.url.startsWith('/workspace/');
     if (isWorkspaceRoot && this.workspaceId) {
       return [
-        {
-          label: 'Dashboard',
-          command: () => this.router.navigate(['/workspace', this.workspaceId, 'dashboard']),
-        },
-        {
-          label: 'Products',
-          command: () => this.router.navigate(['/workspace', this.workspaceId, 'products']),
-        },
-        {
-          label: 'POS',
-          command: () => this.router.navigate(['/workspace', this.workspaceId, 'pos']),
-        },
-        {
-          label: 'Reports',
-          command: () => this.router.navigate(['/workspace', this.workspaceId, 'reports']),
-        },
+        { label: 'Dashboard', routerLink: ['/workspace', this.workspaceId, 'dashboard'] },
+        { label: 'Products', routerLink: ['/workspace', this.workspaceId, 'products'] },
+        { label: 'POS', routerLink: ['/workspace', this.workspaceId, 'pos'] },
+        { label: 'Reports', routerLink: ['/workspace', this.workspaceId, 'reports'] },
+        { label: 'Settings', items: [{ label: 'Modules', routerLink: ['/workspace', this.workspaceId, 'settings/modules'] }] },
       ];
     }
 
-    return [
-      {
-        label: 'Workspaces',
-        items: [
-          [
-            {
-              items: [
-                { label: 'Onboarding', command: () => this.router.navigate(['/workspaces/onboarding']) },
-                { label: 'Select', command: () => this.router.navigate(['/workspaces/select']) },
-              ],
-            },
-          ],
-        ],
-      },
-    ];
+    return [{ label: 'Workspaces', routerLink: ['/workspaces/select'] }];
   }
 }

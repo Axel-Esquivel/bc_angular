@@ -1,30 +1,47 @@
 <section class="workspace-shell">
-  <header class="topbar app-navbar">
-    <a class="app-title" routerLink="/workspaces">Business Control</a>
-    <div class="topbar-right">
-      <p-button
-        styleClass="app-navbar-btn"
-        severity="secondary"
-        [text]="true"
-        [rounded]="true"
-        (onClick)="toggleTheme()"
-      >
-        <fa-icon [icon]="faMoon"></fa-icon>
-      </p-button>
-      <p-button
-        styleClass="app-navbar-btn"
-        *ngIf="isAuthenticated$ | async"
-        severity="secondary"
-        [text]="true"
-        [rounded]="true"
-        (onClick)="logout()"
-      >
-        <fa-icon [icon]="faLogout"></fa-icon>
-      </p-button>
-    </div>
-  </header>
-
-  <p-megaMenu [model]="menuItems" [styleClass]="'workspace-megamenu'"></p-megaMenu>
+  <p-menubar [model]="items" [styleClass]="'workspace-menubar'">
+    <ng-template #start>
+      <a class="app-title" routerLink="/workspaces">Business Control</a>
+    </ng-template>
+    <ng-template #item let-item let-root="root">
+      <a pRipple class="flex items-center p-menubar-item-link" (click)="onMenuItemClick(item, $event)">
+        <span>{{ item.label }}</span>
+        <p-badge
+          *ngIf="item.badge"
+          [ngClass]="{ 'ml-auto': !root, 'ml-2': root }"
+          [value]="item.badge"
+        />
+        <span
+          *ngIf="item.shortcut"
+          class="ml-auto border border-surface rounded bg-emphasis text-muted-color text-xs p-1"
+        >
+          {{ item.shortcut }}
+        </span>
+        <i *ngIf="item.items" [ngClass]="['ml-auto pi', root ? 'pi-angle-down' : 'pi-angle-right']"></i>
+      </a>
+    </ng-template>
+    <ng-template #end>
+      <div class="topbar-right">
+        <p-button
+          styleClass="app-navbar-btn"
+          icon="pi pi-moon"
+          [rounded]="true"
+          [text]="true"
+          (onClick)="toggleTheme()"
+          ariaLabel="Theme"
+        />
+        <p-button
+          styleClass="app-navbar-btn"
+          *ngIf="isAuthenticated$ | async"
+          icon="pi pi-sign-out"
+          [rounded]="true"
+          [text]="true"
+          (onClick)="logout()"
+          ariaLabel="Logout"
+        />
+      </div>
+    </ng-template>
+  </p-menubar>
 
   <router-outlet></router-outlet>
 </section>
