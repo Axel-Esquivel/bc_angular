@@ -20,9 +20,12 @@
         <div class="module-name">
           {{ module.name }}
         </div>
-        <div class="module-status">
+        <span
+          class="module-status"
+          [ngClass]="isEnabled(module.id) ? 'status-active' : 'status-inactive'"
+        >
           {{ isEnabled(module.id) ? 'Activo' : 'Instalar' }}
-        </div>
+        </span>
       </button>
     </div>
     <ng-template #emptyState>

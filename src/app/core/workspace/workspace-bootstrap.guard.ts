@@ -28,23 +28,31 @@ export const WorkspaceBootstrapGuard: CanActivateFn = (route, state) => {
         return router.parseUrl('/workspaces/onboarding');
       }
 
-      if (currentUrl.startsWith('/workspaces/select')) {
+      if (currentUrl.startsWith('/workspaces/select') || currentUrl.startsWith('/workspaces/onboarding')) {
         return true;
       }
 
-      const defaultId = response.result?.defaultWorkspaceId ?? null;
+      const defaultId = response.result?.defaultWorkspaceId ?? workspaceState.getDefaultWorkspaceId();
       const resolvedDefault =
         defaultId && workspaces.some((workspace) => getWorkspaceId(workspace) === defaultId)
           ? defaultId
           : null;
+      const storedActive = workspaceState.getActiveWorkspaceId();
+      const resolvedActive =
+        !resolvedDefault && storedActive && workspaces.some((workspace) => getWorkspaceId(workspace) === storedActive)
+          ? storedActive
+          : null;
 
-      if (resolvedDefault) {
-        workspaceState.setDefaultWorkspaceId(resolvedDefault);
-        workspaceState.setActiveWorkspaceId(resolvedDefault);
-        if (currentUrl.startsWith(`/workspace/${resolvedDefault}`)) {
+      const targetWorkspaceId = resolvedDefault ?? resolvedActive;
+      if (targetWorkspaceId) {
+        if (resolvedDefault) {
+          workspaceState.setDefaultWorkspaceId(resolvedDefault);
+        }
+        workspaceState.setActiveWorkspaceId(targetWorkspaceId);
+        if (currentUrl.startsWith(`/workspace/${targetWorkspaceId}`)) {
           return true;
         }
-        return router.parseUrl(`/workspace/${resolvedDefault}/dashboard`);
+        return router.parseUrl(`/workspace/${targetWorkspaceId}/dashboard`);
       }
 
       return router.parseUrl('/workspaces/select');

@@ -121,8 +121,9 @@ export class WorkspaceSelectPageComponent implements OnInit {
           }
           this.createDialogOpen = false;
           this.createForm.reset();
+          this.loadWorkspaces();
           if (createdId) {
-            this.router.navigateByUrl(`/workspace/${createdId}/setup`);
+            this.router.navigateByUrl(`/workspaces/${createdId}/setup`);
           }
         }
         this.submittingCreate = false;
@@ -159,6 +160,7 @@ export class WorkspaceSelectPageComponent implements OnInit {
           }
           this.joinDialogOpen = false;
           this.joinForm.reset();
+          this.loadWorkspaces();
         }
         this.submittingJoin = false;
       },

@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Card } from 'primeng/card';
@@ -19,6 +19,7 @@ import { WorkspaceModuleCatalogEntry } from '../../shared/models/workspace-modul
 export class DashboardPageComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly workspaceModules = inject(WorkspaceModulesService);
+  private readonly destroyRef = inject(DestroyRef);
 
   workspaceId = this.route.snapshot.paramMap.get('id') ?? '';
   pendingModules: WorkspaceModuleCatalogEntry[] = [];
@@ -29,7 +30,7 @@ export class DashboardPageComponent implements OnInit {
     }
 
     this.workspaceModules.overview$
-      .pipe(takeUntilDestroyed())
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((overview) => {
         const enabled = overview?.enabledModules ?? [];
         const pendingKeys = new Set(

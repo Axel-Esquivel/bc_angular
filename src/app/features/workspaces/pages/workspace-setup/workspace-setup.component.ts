@@ -9,6 +9,7 @@ import { forkJoin, take } from 'rxjs';
 
 import { WorkspacesApiService } from '../../../../core/api/workspaces-api.service';
 import { ModuleDefinition, ModulesApiService } from '../../../../core/api/modules-api.service';
+import { WorkspaceStateService } from '../../../../core/workspace/workspace-state.service';
 
 @Component({
   selector: 'app-workspace-setup',
@@ -29,8 +30,14 @@ export class WorkspaceSetupComponent implements OnInit {
   private readonly workspacesApi = inject(WorkspacesApiService);
   private readonly modulesApi = inject(ModulesApiService);
   private readonly messageService = inject(MessageService);
+  private readonly workspaceState = inject(WorkspaceStateService);
 
-  workspaceId = this.route.snapshot.paramMap.get('id') ?? '';
+  workspaceId =
+    this.route.snapshot.paramMap.get('id') ??
+    this.route.snapshot.queryParamMap.get('workspaceId') ??
+    this.router.getCurrentNavigation()?.extras.state?.['workspaceId'] ??
+    this.workspaceState.getActiveWorkspaceId() ??
+    '';
   modules: ModuleDefinition[] = [];
 
   enabledModules: string[] = [];
@@ -72,6 +79,14 @@ export class WorkspaceSetupComponent implements OnInit {
   }
 
   continue(): void {
+    if (!this.workspaceId) {
+      this.workspaceId =
+        this.route.snapshot.paramMap.get('id') ??
+        this.route.snapshot.queryParamMap.get('workspaceId') ??
+        this.workspaceState.getActiveWorkspaceId() ??
+        '';
+    }
+
     if (!this.workspaceId || this.submitting) {
       return;
     }
@@ -103,7 +118,11 @@ export class WorkspaceSetupComponent implements OnInit {
 
   ngOnInit(): void {
     if (!this.workspaceId) {
-      this.workspaceId = this.route.parent?.snapshot.paramMap.get('id') ?? '';
+      this.workspaceId =
+        this.route.parent?.snapshot.paramMap.get('id') ??
+        this.route.snapshot.queryParamMap.get('workspaceId') ??
+        this.workspaceState.getActiveWorkspaceId() ??
+        '';
     }
 
     if (!this.workspaceId) {

@@ -11,13 +11,11 @@ export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
   { path: 'login', component: LoginPageComponent },
   { path: 'register', component: RegisterPageComponent },
-  { path: 'workspaces', component: WorkspaceShellComponent, canActivate: [AuthGuard, WorkspaceBootstrapGuard], 
-    children: [
-      { path: 'onboarding', loadComponent: () => import('./features/workspaces/pages/workspace-onboarding/workspace-onboarding.component').then((m) => m.WorkspaceOnboardingComponent) },
-      { path: 'select', loadComponent: () => import('./features/workspaces/pages/workspace-select-page/workspace-select-page.component').then((m) => m.WorkspaceSelectPageComponent) },
-      { path: '', redirectTo: 'onboarding', pathMatch: 'full' },
-    ],
-  },
+  { path: 'workspaces', redirectTo: 'workspaces/select', pathMatch: 'full' },
+  { path: 'workspaces/onboarding', canActivate: [AuthGuard], loadComponent: () => import('./features/workspaces/pages/workspace-onboarding/workspace-onboarding.component').then((m) => m.WorkspaceOnboardingComponent) },
+  { path: 'workspaces/select', canActivate: [AuthGuard], loadComponent: () => import('./features/workspaces/pages/workspace-select-page/workspace-select-page.component').then((m) => m.WorkspaceSelectPageComponent) },
+  { path: 'workspaces/setup', canActivate: [AuthGuard], loadComponent: () => import('./features/workspaces/pages/workspace-setup/workspace-setup.component').then((m) => m.WorkspaceSetupComponent) },
+  { path: 'workspaces/:id/setup', canActivate: [AuthGuard, WorkspaceAccessGuard], loadComponent: () => import('./features/workspaces/pages/workspace-setup/workspace-setup.component').then((m) => m.WorkspaceSetupComponent) },
   {
     path: 'workspace/:id', component: WorkspaceShellComponent, canActivate: [AuthGuard, WorkspaceAccessGuard], 
     children: [
@@ -27,7 +25,6 @@ export const routes: Routes = [
       { path: 'products', loadComponent: () => import('./features/products/pages/products-list-page/products-list-page.component').then((m) => m.ProductsListPageComponent) },
       { path: 'inventory/stock', loadComponent: () => import('./features/inventory/pages/stock-list-page/stock-list-page.component').then((m) => m.StockListPageComponent) },
       { path: 'reports', loadComponent: () => import('./features/reports/pages/reports-dashboard-page/reports-dashboard-page.component').then((m) => m.ReportsDashboardPageComponent) },
-      { path: 'setup', loadComponent: () => import('./features/workspaces/pages/workspace-setup/workspace-setup.component').then((m) => m.WorkspaceSetupComponent) },
       { path: 'pos', loadComponent: () => import('./features/pos/pages/pos-terminal-page/pos-terminal-page.component').then((m) => m.PosTerminalPageComponent) },
       { path: 'settings/accounting', loadComponent: () => import('./features/workspaces/pages/module-settings/module-settings.component').then((m) => m.ModuleSettingsComponent), data: { moduleId: 'accounting' } },
       { path: 'settings/inventory', loadComponent: () => import('./features/workspaces/pages/module-settings/module-settings.component').then((m) => m.ModuleSettingsComponent), data: { moduleId: 'inventory' } },

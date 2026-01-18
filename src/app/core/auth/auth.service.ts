@@ -45,6 +45,13 @@ export class AuthService {
     private readonly realtimeSocket: RealtimeSocketService,
     private readonly logger: LoggerService
   ) {
+    const storedToken = this.tokenStorage.getAccessToken();
+    if (storedToken && !this.getToken()) {
+      this.setToken(storedToken);
+    }
+    if (storedToken) {
+      this.realtimeSocket.setAuthToken(storedToken);
+    }
     const storedUser = this.getCurrentUser();
     this.currentUserSubject.next(storedUser);
     this.workspaceState.syncFromUser(storedUser);

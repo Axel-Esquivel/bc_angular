@@ -38,9 +38,7 @@ export class App implements OnInit {
         takeUntilDestroyed(this.destroyRef)
       )
       .subscribe(({ shouldConnect }) => {
-        if (shouldConnect) {
-          this.realtimeSocket.connect();
-        } else {
+        if (!shouldConnect) {
           this.realtimeSocket.disconnect();
         }
       });

@@ -117,29 +117,46 @@ export class WorkspaceOnboardingComponent {
   }
 
   private finishOnboarding(workspace: Workspace): void {
-    const workspaceId = this.getWorkspaceId(workspace);
-    if (!workspaceId) {
-      return;
-    }
+    this.refreshWorkspaces(() => {
+      const workspaceId = this.getWorkspaceId(workspace);
+      if (!workspaceId) {
+        return;
+      }
 
-    this.workspaceState.setActiveWorkspaceId(workspaceId);
-    if (!this.workspaceState.getDefaultWorkspaceId()) {
-      this.workspaceState.setDefaultWorkspaceId(workspaceId);
-    }
-    this.router.navigateByUrl(`/workspace/${workspaceId}/dashboard`);
+      this.workspaceState.setActiveWorkspaceId(workspaceId);
+      if (!this.workspaceState.getDefaultWorkspaceId()) {
+        this.workspaceState.setDefaultWorkspaceId(workspaceId);
+      }
+      this.router.navigateByUrl(`/workspace/${workspaceId}/dashboard`);
+    });
   }
 
   private finishOnboardingSetup(workspace: Workspace): void {
-    const workspaceId = this.getWorkspaceId(workspace);
-    if (!workspaceId) {
-      return;
-    }
+    this.refreshWorkspaces(() => {
+      const workspaceId = this.getWorkspaceId(workspace);
+      if (!workspaceId) {
+        return;
+      }
 
-    this.workspaceState.setActiveWorkspaceId(workspaceId);
-    if (!this.workspaceState.getDefaultWorkspaceId()) {
-      this.workspaceState.setDefaultWorkspaceId(workspaceId);
-    }
-    this.router.navigateByUrl(`/workspace/${workspaceId}/setup`);
+      this.workspaceState.setActiveWorkspaceId(workspaceId);
+      if (!this.workspaceState.getDefaultWorkspaceId()) {
+        this.workspaceState.setDefaultWorkspaceId(workspaceId);
+      }
+      this.router.navigateByUrl(`/workspaces/${workspaceId}/setup`);
+    });
+  }
+
+  private refreshWorkspaces(onDone: () => void): void {
+    this.workspacesApi.listMine().subscribe({
+      next: (response) => {
+        const payload = response.result;
+        if (payload?.defaultWorkspaceId) {
+          this.workspaceState.setDefaultWorkspaceId(payload.defaultWorkspaceId);
+        }
+        onDone();
+      },
+      error: () => onDone(),
+    });
   }
 
   private getWorkspaceId(workspace: Workspace | null | undefined): string | null {

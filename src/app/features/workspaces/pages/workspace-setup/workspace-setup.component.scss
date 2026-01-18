@@ -25,7 +25,7 @@
   display: grid;
   gap: 0.5rem;
   padding: 1rem;
-  border: 1px solid var(--surface-border);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 0.75rem;
   background: var(--surface-card);
   text-align: left;
@@ -45,7 +45,7 @@
 }
 
 .module-card.active-module {
-  border-color: var(--primary-color);
+  border-color: rgba(74, 222, 128, 0.7);
   box-shadow: 0 0 0 1px var(--primary-color), 0 10px 22px rgba(0, 0, 0, 0.16);
   background: var(--surface-ground);
 }
@@ -64,7 +64,15 @@
 
 .module-status {
   font-size: 0.85rem;
-  color: var(--text-color-secondary);
+  font-weight: 600;
+}
+
+.status-active {
+  color: var(--green-400, #4ade80);
+}
+
+.status-inactive {
+  color: var(--surface-400, #9ca3af);
 }
 
 .dialog-title {

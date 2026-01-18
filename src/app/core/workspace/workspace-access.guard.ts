@@ -40,10 +40,10 @@ export const WorkspaceAccessGuard: CanActivateFn = (route, state) => {
       workspaceState.setActiveWorkspaceSetupCompleted(workspace.setupCompleted ?? null);
 
       if (workspace.setupCompleted === false) {
-        if (currentUrl.startsWith(`/workspace/${workspaceId}/setup`)) {
+        if (currentUrl.startsWith(`/workspaces/${workspaceId}/setup`)) {
           return true;
         }
-        return router.createUrlTree(['/workspace', workspaceId, 'setup']);
+        return router.createUrlTree(['/workspaces', workspaceId, 'setup']);
       }
 
       return true;

@@ -10,6 +10,7 @@ import { Ripple } from 'primeng/ripple';
 
 import { AuthService } from '../../../../core/auth/auth.service';
 import { ThemeService } from '../../../../core/theme/theme.service';
+import { RealtimeSocketService } from '../../../../core/services/realtime-socket.service';
 import { WorkspaceStateService } from '../../../../core/workspace/workspace-state.service';
 import { WorkspaceModulesService } from '../../../../core/workspace/workspace-modules.service';
 
@@ -25,6 +26,7 @@ export class WorkspaceShellComponent implements OnInit, OnDestroy {
   private readonly theme = inject(ThemeService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly realtimeSocket = inject(RealtimeSocketService);
   private readonly workspaceState = inject(WorkspaceStateService);
   private readonly workspaceModules = inject(WorkspaceModulesService);
   private readonly destroy$ = new Subject<void>();
@@ -43,6 +45,7 @@ export class WorkspaceShellComponent implements OnInit, OnDestroy {
       if (workspaceId) {
         this.workspaceState.setActiveWorkspaceId(workspaceId);
         this.loadModules(workspaceId);
+        this.realtimeSocket.connect();
       } else {
         this.userRole = null;
       }
@@ -69,6 +72,7 @@ export class WorkspaceShellComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.realtimeSocket.disconnect();
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -126,7 +130,7 @@ export class WorkspaceShellComponent implements OnInit, OnDestroy {
       const setupCompleted = this.workspaceState.getActiveWorkspaceSetupCompleted() !== false;
       if (!setupCompleted) {
         return [
-          { label: 'Setup', routerLink: ['/workspace', this.workspaceId, 'setup'] },
+          { label: 'Setup', routerLink: ['/workspaces', this.workspaceId, 'setup'] },
           { label: 'Workspaces', routerLink: ['/workspaces/select'] },
         ];
       }
