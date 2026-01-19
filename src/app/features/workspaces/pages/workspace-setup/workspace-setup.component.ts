@@ -5,11 +5,12 @@ import { MessageService } from 'primeng/api';
 import { Card } from 'primeng/card';
 import { Button } from 'primeng/button';
 import { Toast } from 'primeng/toast';
-import { forkJoin, take } from 'rxjs';
+import { catchError, finalize, forkJoin, map, of, switchMap, take } from 'rxjs';
 
 import { WorkspacesApiService } from '../../../../core/api/workspaces-api.service';
 import { ModuleDefinition, ModulesApiService } from '../../../../core/api/modules-api.service';
 import { WorkspaceStateService } from '../../../../core/workspace/workspace-state.service';
+import { Workspace } from '../../../../shared/models/workspace.model';
 
 @Component({
   selector: 'app-workspace-setup',
@@ -44,34 +45,10 @@ export class WorkspaceSetupComponent implements OnInit {
   submitting = false;
 
   toggleModule(module: ModuleDefinition): void {
-    if (!this.workspaceId) {
-      return;
-    }
-
-    const previous = [...this.enabledModules];
     const isEnabled = this.enabledModules.includes(module.id);
     this.enabledModules = isEnabled
       ? this.enabledModules.filter((id) => id !== module.id)
       : [...this.enabledModules, module.id];
-
-    const modules = this.modules.map((entry) => ({
-      key: entry.id,
-      enabled: this.enabledModules.includes(entry.id),
-    }));
-
-    this.workspacesApi
-      .updateWorkspaceModules(this.workspaceId, modules)
-      .pipe(take(1))
-      .subscribe({
-        error: () => {
-          this.enabledModules = previous;
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: 'No se pudo actualizar el modulo.',
-          });
-        },
-      });
   }
 
   isEnabled(moduleId: string): boolean {
@@ -99,14 +76,25 @@ export class WorkspaceSetupComponent implements OnInit {
 
     this.workspacesApi
       .updateWorkspaceModules(this.workspaceId, modules)
-      .pipe(take(1))
+      .pipe(
+        take(1),
+        switchMap(() => {
+          this.workspaceState.setActiveWorkspaceId(this.workspaceId);
+          if (!this.workspaceState.getDefaultWorkspaceId()) {
+            this.workspaceState.setDefaultWorkspaceId(this.workspaceId);
+          }
+          this.workspaceState.setActiveWorkspaceSetupCompleted(true);
+          return this.refreshWorkspaceState();
+        }),
+        finalize(() => {
+          this.submitting = false;
+        })
+      )
       .subscribe({
         next: () => {
-          this.submitting = false;
           this.router.navigateByUrl(`/workspace/${this.workspaceId}/dashboard`);
         },
         error: () => {
-          this.submitting = false;
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
@@ -151,6 +139,28 @@ export class WorkspaceSetupComponent implements OnInit {
           });
         },
       });
+  }
+
+  private refreshWorkspaceState() {
+    return this.workspacesApi.listMine().pipe(
+      take(1),
+      map((response) => {
+        const workspaces = response.result?.workspaces ?? [];
+        const workspace =
+          workspaces.find((item) => this.getWorkspaceId(item) === this.workspaceId) ?? null;
+        if (response.result?.defaultWorkspaceId) {
+          this.workspaceState.setDefaultWorkspaceId(response.result.defaultWorkspaceId);
+        }
+        if (workspace && typeof workspace.setupCompleted === 'boolean') {
+          this.workspaceState.setActiveWorkspaceSetupCompleted(workspace.setupCompleted);
+        }
+      }),
+      catchError(() => of(undefined))
+    );
+  }
+
+  private getWorkspaceId(workspace: Workspace | null | undefined): string | null {
+    return workspace?.id ?? workspace?._id ?? null;
   }
 
 }

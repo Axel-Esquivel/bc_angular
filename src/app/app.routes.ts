@@ -4,7 +4,6 @@ import { LoginPageComponent } from './features/auth/login-page/login-page.compon
 import { RegisterPageComponent } from './features/auth/register-page/register-page.component';
 import { AuthGuard } from './core/auth/auth.guard';
 import { WorkspaceShellComponent } from './features/workspaces/pages/workspace-shell/workspace-shell.component';
-import { WorkspaceBootstrapGuard } from './core/workspace/workspace-bootstrap.guard';
 import { WorkspaceAccessGuard } from './core/workspace/workspace-access.guard';
 
 export const routes: Routes = [
@@ -15,7 +14,7 @@ export const routes: Routes = [
   { path: 'workspaces/onboarding', canActivate: [AuthGuard], loadComponent: () => import('./features/workspaces/pages/workspace-onboarding/workspace-onboarding.component').then((m) => m.WorkspaceOnboardingComponent) },
   { path: 'workspaces/select', canActivate: [AuthGuard], loadComponent: () => import('./features/workspaces/pages/workspace-select-page/workspace-select-page.component').then((m) => m.WorkspaceSelectPageComponent) },
   { path: 'workspaces/setup', canActivate: [AuthGuard], loadComponent: () => import('./features/workspaces/pages/workspace-setup/workspace-setup.component').then((m) => m.WorkspaceSetupComponent) },
-  { path: 'workspaces/:id/setup', canActivate: [AuthGuard, WorkspaceAccessGuard], loadComponent: () => import('./features/workspaces/pages/workspace-setup/workspace-setup.component').then((m) => m.WorkspaceSetupComponent) },
+  { path: 'workspaces/:id/setup', canActivate: [AuthGuard], loadComponent: () => import('./features/workspaces/pages/workspace-setup/workspace-setup.component').then((m) => m.WorkspaceSetupComponent) },
   {
     path: 'workspace/:id', component: WorkspaceShellComponent, canActivate: [AuthGuard, WorkspaceAccessGuard], 
     children: [

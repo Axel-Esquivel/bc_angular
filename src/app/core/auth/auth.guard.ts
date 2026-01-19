@@ -7,9 +7,13 @@ export const AuthGuard: CanActivateFn = (route, state) => {
   const authService = inject(AuthService);
   const router = inject(Router);
 
-  if (!authService.hasToken()) {
-    return router.createUrlTree(['/login']);
+  const hasToken = authService.hasToken();
+  if (!hasToken) {
+    const redirect = router.createUrlTree(['/login']);
+    console.log('[GUARD AuthGuard]', { url: state.url, ok: false, token: hasToken, redirect: redirect.toString() });
+    return redirect;
   }
 
+  console.log('[GUARD AuthGuard]', { url: state.url, ok: true, token: hasToken });
   return true;
 };

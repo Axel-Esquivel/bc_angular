@@ -75,6 +75,7 @@
           [options]="costMethodOptions"
           optionLabel="label"
           optionValue="value"
+          appendTo="body"
           [(ngModel)]="inventorySettings.costMethod"
         ></p-select>
       </div>
@@ -84,6 +85,7 @@
           [options]="stockLevelOptions"
           optionLabel="label"
           optionValue="value"
+          appendTo="body"
           [(ngModel)]="inventorySettings.stockLevel"
         ></p-select>
       </div>
@@ -114,31 +116,31 @@
     <div class="accounting-defaults">
       <div class="field">
         <label>Ingresos por ventas</label>
-        <p-select [options]="accountOptions" optionLabel="label" optionValue="value" [(ngModel)]="accountingDefaults.salesIncomeAccountId"></p-select>
+        <p-select [options]="accountOptions" optionLabel="label" optionValue="value" appendTo="body" [(ngModel)]="accountingDefaults.salesIncomeAccountId"></p-select>
       </div>
       <div class="field">
         <label>Descuentos ventas</label>
-        <p-select [options]="accountOptions" optionLabel="label" optionValue="value" [(ngModel)]="accountingDefaults.salesDiscountAccountId"></p-select>
+        <p-select [options]="accountOptions" optionLabel="label" optionValue="value" appendTo="body" [(ngModel)]="accountingDefaults.salesDiscountAccountId"></p-select>
       </div>
       <div class="field">
         <label>Inventario</label>
-        <p-select [options]="accountOptions" optionLabel="label" optionValue="value" [(ngModel)]="accountingDefaults.inventoryAccountId"></p-select>
+        <p-select [options]="accountOptions" optionLabel="label" optionValue="value" appendTo="body" [(ngModel)]="accountingDefaults.inventoryAccountId"></p-select>
       </div>
       <div class="field">
         <label>Costo de ventas</label>
-        <p-select [options]="accountOptions" optionLabel="label" optionValue="value" [(ngModel)]="accountingDefaults.cogsAccountId"></p-select>
+        <p-select [options]="accountOptions" optionLabel="label" optionValue="value" appendTo="body" [(ngModel)]="accountingDefaults.cogsAccountId"></p-select>
       </div>
       <div class="field">
         <label>Compras</label>
-        <p-select [options]="accountOptions" optionLabel="label" optionValue="value" [(ngModel)]="accountingDefaults.purchasesAccountId"></p-select>
+        <p-select [options]="accountOptions" optionLabel="label" optionValue="value" appendTo="body" [(ngModel)]="accountingDefaults.purchasesAccountId"></p-select>
       </div>
       <div class="field">
         <label>Impuestos por pagar</label>
-        <p-select [options]="accountOptions" optionLabel="label" optionValue="value" [(ngModel)]="accountingDefaults.taxPayableAccountId"></p-select>
+        <p-select [options]="accountOptions" optionLabel="label" optionValue="value" appendTo="body" [(ngModel)]="accountingDefaults.taxPayableAccountId"></p-select>
       </div>
       <div class="field">
         <label>Impuestos por cobrar</label>
-        <p-select [options]="accountOptions" optionLabel="label" optionValue="value" [(ngModel)]="accountingDefaults.taxReceivableAccountId"></p-select>
+        <p-select [options]="accountOptions" optionLabel="label" optionValue="value" appendTo="body" [(ngModel)]="accountingDefaults.taxReceivableAccountId"></p-select>
       </div>
     </div>
   </p-card>
@@ -243,10 +245,11 @@
 
             <label *ngIf="field.type !== 'divider' && field.type !== 'note'">{{ field.label }}</label>
 
-            <p-inputText
+            <input
               *ngIf="field.type === 'text'"
+              pInputText
               [(ngModel)]="settingsData[field.key]"
-            ></p-inputText>
+            />
 
             <p-inputNumber
               *ngIf="field.type === 'number'"
@@ -263,6 +266,7 @@
               [options]="field.options || []"
               optionLabel="label"
               optionValue="value"
+              appendTo="body"
               [(ngModel)]="settingsData[field.key]"
             ></p-select>
 
@@ -271,13 +275,15 @@
               [options]="field.options || []"
               optionLabel="label"
               optionValue="value"
+              appendTo="body"
               [(ngModel)]="settingsData[field.key]"
             ></p-multiSelect>
 
-            <p-textarea
+            <textarea
               *ngIf="field.type === 'textarea'"
+              pInputTextarea
               [(ngModel)]="settingsData[field.key]"
-            ></p-textarea>
+            ></textarea>
           </ng-container>
         </div>
 
@@ -290,10 +296,11 @@
 
               <label *ngIf="field.type !== 'divider' && field.type !== 'note'">{{ field.label }}</label>
 
-              <p-inputText
+              <input
                 *ngIf="field.type === 'text'"
+                pInputText
                 [(ngModel)]="settingsData[field.key]"
-              ></p-inputText>
+              />
 
               <p-inputNumber
                 *ngIf="field.type === 'number'"
@@ -310,6 +317,7 @@
                 [options]="field.options || []"
                 optionLabel="label"
                 optionValue="value"
+                appendTo="body"
                 [(ngModel)]="settingsData[field.key]"
               ></p-select>
 
@@ -318,13 +326,15 @@
                 [options]="field.options || []"
                 optionLabel="label"
                 optionValue="value"
+                appendTo="body"
                 [(ngModel)]="settingsData[field.key]"
               ></p-multiSelect>
 
-              <p-textarea
+              <textarea
                 *ngIf="field.type === 'textarea'"
+                pInputTextarea
                 [(ngModel)]="settingsData[field.key]"
-              ></p-textarea>
+              ></textarea>
             </ng-container>
           </div>
         </div>
@@ -344,15 +354,15 @@
   <div class="terminal-form">
     <div class="field">
       <label>Nombre</label>
-      <p-inputText [(ngModel)]="terminalDraft.name"></p-inputText>
+      <input pInputText [(ngModel)]="terminalDraft.name" />
     </div>
     <div class="field">
       <label>Company</label>
-      <p-select [options]="companyOptions" optionLabel="label" optionValue="value" [(ngModel)]="terminalDraft.companyId"></p-select>
+      <p-select [options]="companyOptions" optionLabel="label" optionValue="value" appendTo="body" [(ngModel)]="terminalDraft.companyId"></p-select>
     </div>
     <div class="field">
       <label>Sucursal</label>
-      <p-select [options]="branchOptions" optionLabel="label" optionValue="value" [(ngModel)]="terminalDraft.branchId"></p-select>
+      <p-select [options]="branchOptions" optionLabel="label" optionValue="value" appendTo="body" [(ngModel)]="terminalDraft.branchId"></p-select>
     </div>
     <div class="field">
       <label>Bodega</label>
@@ -360,13 +370,14 @@
         [options]="warehouseOptions"
         optionLabel="label"
         optionValue="value"
+        appendTo="body"
         [(ngModel)]="terminalDraft.warehouseId"
         (ngModelChange)="onWarehouseChange($event)"
       ></p-select>
     </div>
     <div class="field">
       <label>Moneda</label>
-      <p-select [options]="currencyOptions" optionLabel="label" optionValue="value" [(ngModel)]="terminalDraft.currencyId"></p-select>
+      <p-select [options]="currencyOptions" optionLabel="label" optionValue="value" appendTo="body" [(ngModel)]="terminalDraft.currencyId"></p-select>
     </div>
     <div class="field">
       <label>Usuarios autorizados</label>
@@ -376,6 +387,7 @@
         optionValue="value"
         display="chip"
         filter="true"
+        appendTo="body"
         [(ngModel)]="terminalDraft.allowedUsers"
       ></p-multiSelect>
     </div>
@@ -402,7 +414,7 @@
   <div class="terminal-form">
     <div class="field">
       <label>Nombre</label>
-      <p-inputText [(ngModel)]="taxDraft.name"></p-inputText>
+      <input pInputText [(ngModel)]="taxDraft.name" />
     </div>
     <div class="field">
       <label>Tasa (%)</label>
@@ -410,11 +422,11 @@
     </div>
     <div class="field">
       <label>Tipo</label>
-      <p-select [options]="taxTypeOptions" optionLabel="label" optionValue="value" [(ngModel)]="taxDraft.type"></p-select>
+      <p-select [options]="taxTypeOptions" optionLabel="label" optionValue="value" appendTo="body" [(ngModel)]="taxDraft.type"></p-select>
     </div>
     <div class="field">
       <label>Cuenta contable</label>
-      <p-select [options]="accountOptions" optionLabel="label" optionValue="value" [(ngModel)]="taxDraft.accountId"></p-select>
+      <p-select [options]="accountOptions" optionLabel="label" optionValue="value" appendTo="body" [(ngModel)]="taxDraft.accountId"></p-select>
     </div>
     <div class="field inline">
       <label>Activo</label>
@@ -439,19 +451,19 @@
   <div class="terminal-form">
     <div class="field">
       <label>Categoria</label>
-      <p-select [options]="categoryOptions" optionLabel="label" optionValue="value" [(ngModel)]="mappingDraft.categoryId"></p-select>
+      <p-select [options]="categoryOptions" optionLabel="label" optionValue="value" appendTo="body" [(ngModel)]="mappingDraft.categoryId"></p-select>
     </div>
     <div class="field">
       <label>Ingresos</label>
-      <p-select [options]="accountOptions" optionLabel="label" optionValue="value" [(ngModel)]="mappingDraft.salesIncomeAccountId"></p-select>
+      <p-select [options]="accountOptions" optionLabel="label" optionValue="value" appendTo="body" [(ngModel)]="mappingDraft.salesIncomeAccountId"></p-select>
     </div>
     <div class="field">
       <label>COGS</label>
-      <p-select [options]="accountOptions" optionLabel="label" optionValue="value" [(ngModel)]="mappingDraft.cogsAccountId"></p-select>
+      <p-select [options]="accountOptions" optionLabel="label" optionValue="value" appendTo="body" [(ngModel)]="mappingDraft.cogsAccountId"></p-select>
     </div>
     <div class="field">
       <label>Inventario</label>
-      <p-select [options]="accountOptions" optionLabel="label" optionValue="value" [(ngModel)]="mappingDraft.inventoryAccountId"></p-select>
+      <p-select [options]="accountOptions" optionLabel="label" optionValue="value" appendTo="body" [(ngModel)]="mappingDraft.inventoryAccountId"></p-select>
     </div>
   </div>
 

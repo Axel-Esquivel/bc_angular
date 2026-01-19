@@ -24,28 +24,55 @@ export const WorkspaceAccessGuard: CanActivateFn = (route, state) => {
     map((response) => {
       const workspaces = response.result?.workspaces ?? [];
       if (workspaces.length === 0) {
+        const storedActive = workspaceState.getActiveWorkspaceId();
+        const storedDefault = workspaceState.getDefaultWorkspaceId();
+        if (workspaceId && (workspaceId === storedActive || workspaceId === storedDefault)) {
+          console.log('[GUARD WorkspaceAccessGuard]', { workspaceId, ok: true, source: 'stored', url: state.url });
+          return true;
+        }
+        const redirect = router.createUrlTree(['/workspaces/onboarding']);
+        console.log('[GUARD WorkspaceAccessGuard]', { workspaceId, ok: false, redirect: redirect.toString(), url: state.url });
         return router.createUrlTree(['/workspaces/onboarding']);
       }
 
       const currentUrl = state.url;
       const workspace = workspaces.find((item) => getWorkspaceId(item) === workspaceId);
       if (!workspace) {
+        const redirect = router.createUrlTree(['/workspaces/select']);
+        console.log('[GUARD WorkspaceAccessGuard]', { workspaceId, ok: false, redirect: redirect.toString(), url: state.url });
         return router.createUrlTree(['/workspaces/select']);
       }
+
+      const storedActive = workspaceState.getActiveWorkspaceId();
+      const storedSetupCompleted = workspaceState.getActiveWorkspaceSetupCompleted();
 
       if (response.result?.defaultWorkspaceId) {
         workspaceState.setDefaultWorkspaceId(response.result.defaultWorkspaceId);
       }
       workspaceState.setActiveWorkspaceId(workspaceId);
-      workspaceState.setActiveWorkspaceSetupCompleted(workspace.setupCompleted ?? null);
+      const setupCompleted = workspace.setupCompleted;
+      const trustStored =
+        setupCompleted === false &&
+        storedSetupCompleted === true &&
+        storedActive === workspaceId;
+      if (typeof setupCompleted === 'boolean' && !trustStored) {
+        workspaceState.setActiveWorkspaceSetupCompleted(setupCompleted);
+      }
 
-      if (workspace.setupCompleted === false) {
-        if (currentUrl.startsWith(`/workspaces/${workspaceId}/setup`)) {
+      if (setupCompleted === false) {
+        if (trustStored) {
           return true;
         }
+        if (currentUrl.startsWith(`/workspaces/${workspaceId}/setup`)) {
+          console.log('[GUARD WorkspaceAccessGuard]', { workspaceId, ok: true, url: state.url, setupCompleted: false });
+          return true;
+        }
+        const redirect = router.createUrlTree(['/workspaces', workspaceId, 'setup']);
+        console.log('[GUARD WorkspaceAccessGuard]', { workspaceId, ok: false, redirect: redirect.toString(), url: state.url, setupCompleted: false });
         return router.createUrlTree(['/workspaces', workspaceId, 'setup']);
       }
 
+      console.log('[GUARD WorkspaceAccessGuard]', { workspaceId, ok: true, url: state.url, setupCompleted: workspace.setupCompleted });
       return true;
     }),
     catchError(() => of(router.createUrlTree(['/workspaces/onboarding']))),

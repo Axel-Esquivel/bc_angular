@@ -3,6 +3,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
+import { take } from 'rxjs';
 import { Button } from 'primeng/button';
 import { Card } from 'primeng/card';
 import { DialogModule } from 'primeng/dialog';
@@ -73,7 +74,7 @@ export class WorkspaceSelectPageComponent implements OnInit {
   loadWorkspaces(): void {
     this.loadingWorkspaces = true;
 
-    this.workspacesApi.listMine().subscribe({
+    this.workspacesApi.listMine().pipe(take(1)).subscribe({
       next: (response) => {
         const payload = response.result;
         this.workspaces = payload?.workspaces ?? [];

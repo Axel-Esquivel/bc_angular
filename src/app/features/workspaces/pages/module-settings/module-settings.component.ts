@@ -11,9 +11,10 @@ import { InputText } from 'primeng/inputtext';
 import { MultiSelect } from 'primeng/multiselect';
 import { Select } from 'primeng/select';
 import { TableModule } from 'primeng/table';
+import { Textarea } from 'primeng/textarea';
 import { ToggleSwitchModule } from 'primeng/toggleswitch';
 import { Toast } from 'primeng/toast';
-import { forkJoin, Observable } from 'rxjs';
+import { catchError, forkJoin, Observable, of } from 'rxjs';
 
 import { AccountingAccount, AccountingApiService } from '../../../../core/api/accounting-api.service';
 import { ModuleDefinition, ModulesApiService } from '../../../../core/api/modules-api.service';
@@ -265,11 +266,34 @@ export class ModuleSettingsComponent implements OnInit {
     const requests: RequestsMap = {
       definitions: this.modulesApi.getDefinitions(this.workspaceId),
       settings: this.workspacesApi.getModuleSettings(this.workspaceId, this.moduleId),
-      workspaces: this.workspacesApi.listMine(),
+      workspaces: this.workspacesApi.listMine().pipe(
+        catchError(() => {
+          this.messageService.add({
+            severity: 'warn',
+            summary: 'Sesión',
+            detail: 'No se pudieron cargar los workspaces.',
+          });
+          return of({
+            status: 'error',
+            message: 'No autorizado',
+            result: { workspaces: [] },
+            error: null,
+          } as ApiResponse<{ workspaces: WorkspaceMember[] }>);
+        })
+      ),
     };
     if (this.isPosModule) {
       requests['pos'] = this.workspacesApi.getPosTerminals(this.workspaceId);
-      requests['warehouses'] = this.warehousesApi.list();
+      requests['warehouses'] = this.warehousesApi.list().pipe(
+        catchError(() => {
+          this.messageService.add({
+            severity: 'warn',
+            summary: 'Bodegas',
+            detail: 'No se pudieron cargar las bodegas.',
+          });
+          return of([] as Warehouse[]);
+        })
+      );
     }
     if (this.isInventoryModule) {
       requests['inventory'] = this.workspacesApi.getInventorySettings(this.workspaceId);
@@ -317,7 +341,7 @@ export class ModuleSettingsComponent implements OnInit {
           this.posSettings = this.normalizePosSettings(response['pos'].result);
         }
         if (this.isPosModule && response['warehouses']) {
-          this.warehouses = response['warehouses'] ?? [];
+          this.warehouses = this.normalizeArray<Warehouse>(response['warehouses']);
           this.warehouseOptions = this.warehouses.map((warehouse) => ({
             label: warehouse.name,
             value: warehouse.id,
@@ -842,5 +866,24 @@ export class ModuleSettingsComponent implements OnInit {
       default:
         target[field.key] = '';
     }
+  }
+
+  private normalizeArray<T>(value: unknown): T[] {
+    if (Array.isArray(value)) {
+      return value as T[];
+    }
+    const result = (value as { result?: unknown })?.result;
+    if (Array.isArray(result)) {
+      return result as T[];
+    }
+    const resultItems = (value as { result?: { items?: unknown } })?.result?.items;
+    if (Array.isArray(resultItems)) {
+      return resultItems as T[];
+    }
+    const items = (value as { items?: unknown })?.items;
+    if (Array.isArray(items)) {
+      return items as T[];
+    }
+    return [];
   }
 }

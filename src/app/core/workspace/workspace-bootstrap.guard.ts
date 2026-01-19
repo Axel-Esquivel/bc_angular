@@ -23,12 +23,16 @@ export const WorkspaceBootstrapGuard: CanActivateFn = (route, state) => {
 
       if (count === 0) {
         if (currentUrl.startsWith('/workspaces/onboarding')) {
+          console.log('[GUARD WorkspaceBootstrapGuard]', { ok: true, url: state.url, count });
           return true;
         }
+        const redirect = router.parseUrl('/workspaces/onboarding');
+        console.log('[GUARD WorkspaceBootstrapGuard]', { ok: false, url: state.url, count, redirect: redirect.toString() });
         return router.parseUrl('/workspaces/onboarding');
       }
 
       if (currentUrl.startsWith('/workspaces/select') || currentUrl.startsWith('/workspaces/onboarding')) {
+        console.log('[GUARD WorkspaceBootstrapGuard]', { ok: true, url: state.url, count });
         return true;
       }
 
@@ -50,14 +54,21 @@ export const WorkspaceBootstrapGuard: CanActivateFn = (route, state) => {
         }
         workspaceState.setActiveWorkspaceId(targetWorkspaceId);
         if (currentUrl.startsWith(`/workspace/${targetWorkspaceId}`)) {
+          console.log('[GUARD WorkspaceBootstrapGuard]', { ok: true, url: state.url, workspaceId: targetWorkspaceId });
           return true;
         }
+        const redirect = router.parseUrl(`/workspace/${targetWorkspaceId}/dashboard`);
+        console.log('[GUARD WorkspaceBootstrapGuard]', { ok: false, url: state.url, workspaceId: targetWorkspaceId, redirect: redirect.toString() });
         return router.parseUrl(`/workspace/${targetWorkspaceId}/dashboard`);
       }
 
+      const redirect = router.parseUrl('/workspaces/select');
+      console.log('[GUARD WorkspaceBootstrapGuard]', { ok: false, url: state.url, count, redirect: redirect.toString() });
       return router.parseUrl('/workspaces/select');
     }),
     catchError(() => {
+      const redirect = router.parseUrl('/workspaces/onboarding');
+      console.log('[GUARD WorkspaceBootstrapGuard]', { ok: false, url: state.url, redirect: redirect.toString(), error: true });
       return of(router.parseUrl('/workspaces/onboarding'));
     }),
   );

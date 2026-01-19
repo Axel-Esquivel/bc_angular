@@ -20,6 +20,7 @@ export class DashboardPageComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly workspaceModules = inject(WorkspaceModulesService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly overview$ = this.workspaceModules.overview$.pipe(takeUntilDestroyed(this.destroyRef));
 
   workspaceId = this.route.snapshot.paramMap.get('id') ?? '';
   pendingModules: WorkspaceModuleCatalogEntry[] = [];
@@ -29,15 +30,13 @@ export class DashboardPageComponent implements OnInit {
       this.workspaceId = this.route.parent?.snapshot.paramMap.get('id') ?? '';
     }
 
-    this.workspaceModules.overview$
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((overview) => {
-        const enabled = overview?.enabledModules ?? [];
-        const pendingKeys = new Set(
-          enabled.filter((module) => module.enabled && module.configured === false).map((module) => module.key)
-        );
-        const available = overview?.availableModules ?? [];
-        this.pendingModules = available.filter((module) => pendingKeys.has(module.key));
-      });
+    this.overview$.subscribe((overview) => {
+      const enabled = overview?.enabledModules ?? [];
+      const pendingKeys = new Set(
+        enabled.filter((module) => module.enabled && module.configured === false).map((module) => module.key)
+      );
+      const available = overview?.availableModules ?? [];
+      this.pendingModules = available.filter((module) => pendingKeys.has(module.key));
+    });
   }
 }
