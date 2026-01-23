@@ -9,7 +9,9 @@ import { Card } from 'primeng/card';
 import { ToggleSwitchModule } from 'primeng/toggleswitch';
 import { Toast } from 'primeng/toast';
 
+import { ModuleDefinition, ModulesApiService } from '../../../../core/api/modules-api.service';
 import { WorkspacesApiService } from '../../../../core/api/workspaces-api.service';
+import { ModuleDependenciesService } from '../../../../core/workspace/module-dependencies.service';
 import { WorkspaceModulesService } from '../../../../core/workspace/workspace-modules.service';
 import {
   WorkspaceModuleCatalogEntry,
@@ -29,6 +31,8 @@ export class WorkspaceModulesPageComponent implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly workspacesApi = inject(WorkspacesApiService);
+  private readonly modulesApi = inject(ModulesApiService);
+  private readonly moduleDependencies = inject(ModuleDependenciesService);
   private readonly workspaceModules = inject(WorkspaceModulesService);
   private readonly messageService = inject(MessageService);
   private readonly destroy$ = new Subject<void>();
@@ -36,12 +40,26 @@ export class WorkspaceModulesPageComponent implements OnInit, OnDestroy {
   workspaceId: string | null = null;
   modules: WorkspaceModuleCatalogEntry[] = [];
   enabledMap = new Map<string, WorkspaceModuleState>();
+  moduleDefinitions: ModuleDefinition[] = [];
   loading = false;
   processing = new Set<string>();
   userRole: 'admin' | 'member' | null = null;
 
   ngOnInit(): void {
     this.workspaceId = this.route.parent?.snapshot.paramMap.get('id') ?? null;
+    if (this.workspaceId) {
+      this.modulesApi
+        .getDefinitions(this.workspaceId)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (response) => {
+            this.moduleDefinitions = response.result ?? [];
+          },
+          error: () => {
+            this.moduleDefinitions = [];
+          },
+        });
+    }
     this.workspaceModules.overview$.pipe(takeUntil(this.destroy$)).subscribe((overview) => {
       if (!overview) {
         return;
@@ -78,15 +96,37 @@ export class WorkspaceModulesPageComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.processing.add(module.key);
+    const enabledIds = this.getEnabledIds();
     const nextEnabled = !this.isEnabled(module);
+    if (!nextEnabled) {
+      const result = this.moduleDependencies.canDisable(enabledIds, module.key, this.moduleDefinitions);
+      if (!result.allowed && result.requiredBy.length > 0) {
+        this.messageService.add({
+          severity: 'warn',
+          summary: 'Dependencias',
+          detail: `No puedes desactivar ${this.getModuleLabel(module.key)} porque ${this.getModuleLabel(
+            result.requiredBy[0]
+          )} lo requiere.`,
+        });
+        return;
+      }
+    }
+
+    this.processing.add(module.key);
+
+    const payload = nextEnabled
+      ? this.buildEnablePayload(enabledIds, module.key)
+      : [{ key: module.key, enabled: false }];
 
     this.workspacesApi
-      .updateWorkspaceModules(this.workspaceId, [{ key: module.key, enabled: nextEnabled }])
+      .updateWorkspaceModules(this.workspaceId, payload)
       .subscribe({
         next: () => {
           this.processing.delete(module.key);
           this.workspaceModules.load(this.workspaceId!).subscribe();
+          if (nextEnabled) {
+            this.showAutoEnableToast(module.key);
+          }
         },
         error: () => {
           this.processing.delete(module.key);
@@ -97,5 +137,43 @@ export class WorkspaceModulesPageComponent implements OnInit, OnDestroy {
           });
         },
       });
+  }
+
+  private getEnabledIds(): string[] {
+    return Array.from(this.enabledMap.values())
+      .filter((state) => state.enabled)
+      .map((state) => state.key);
+  }
+
+  private buildEnablePayload(enabledIds: string[], moduleId: string): { key: string; enabled: boolean }[] {
+    const result = this.moduleDependencies.applyEnableWithDeps(
+      enabledIds,
+      moduleId,
+      this.moduleDefinitions
+    );
+    const idsToEnable = [moduleId, ...result.newDependencies];
+    return idsToEnable.map((key) => ({ key, enabled: true }));
+  }
+
+  private showAutoEnableToast(moduleId: string): void {
+    const enabledIds = this.getEnabledIds();
+    const result = this.moduleDependencies.applyEnableWithDeps(
+      enabledIds,
+      moduleId,
+      this.moduleDefinitions
+    );
+    if (result.newDependencies.length === 0) {
+      return;
+    }
+    const formatted = result.newDependencies.map((id) => this.getModuleLabel(id)).join(', ');
+    this.messageService.add({
+      severity: 'info',
+      summary: 'Dependencias',
+      detail: `Se activó ${this.getModuleLabel(moduleId)} y también: ${formatted} (dependencias).`,
+    });
+  }
+
+  private getModuleLabel(moduleId: string): string {
+    return this.moduleDefinitions.find((item) => item.id === moduleId)?.name ?? moduleId;
   }
 }
