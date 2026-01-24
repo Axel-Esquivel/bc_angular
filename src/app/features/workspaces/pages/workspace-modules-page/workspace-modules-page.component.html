@@ -17,16 +17,34 @@
           <span *ngIf="module.description; else noDescription">{{ module.description }}</span>
           <ng-template #noDescription>Sin descripcion</ng-template>
         </ng-template>
+        <div class="card-meta">
+          <span class="status-pill" [class.is-ready]="getState(module).status === 'ready'">
+            {{ getStatusLabel(module) }}
+          </span>
+          <span class="hint" *ngIf="module.requiresConfig">Requiere configuracion</span>
+          <span class="hint warn" *ngIf="isGlobalDisabled(module)">Global deshabilitado</span>
+          <div class="deps" *ngIf="module.dependencies?.length">
+            <span>Dependencias:</span>
+            <span class="deps-list">{{ (module.dependencies ?? []).join(', ') }}</span>
+          </div>
+        </div>
         <ng-template pTemplate="footer">
           <div class="card-footer">
             <div class="toggle">
               <span class="state-label">{{ isEnabled(module) ? 'Activo' : 'Inactivo' }}</span>
               <p-toggleswitch
                 [ngModel]="isEnabled(module)"
-                [disabled]="processing.has(module.key)"
+                [disabled]="processing.has(module.key) || isGlobalDisabled(module)"
                 (onChange)="toggleModule(module)"
               ></p-toggleswitch>
             </div>
+            <p-button
+              label="Configurar"
+              severity="secondary"
+              size="small"
+              [disabled]="processing.has(module.key) || !needsConfiguration(module)"
+              (onClick)="configureModule(module)"
+            ></p-button>
             <span class="processing" *ngIf="processing.has(module.key)">Guardando...</span>
           </div>
         </ng-template>

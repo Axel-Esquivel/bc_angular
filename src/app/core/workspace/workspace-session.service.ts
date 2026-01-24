@@ -3,6 +3,7 @@ import { BehaviorSubject, Observable } from 'rxjs';
 
 import { Workspace } from '../../shared/models/workspace.model';
 
+/** @deprecated Use CompanySessionService instead. */
 @Injectable({ providedIn: 'root' })
 export class WorkspaceSessionService {
   private readonly storageKey = 'bc_selected_workspace';

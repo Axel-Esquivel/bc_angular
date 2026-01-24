@@ -9,6 +9,7 @@ import { Workspace } from '../../shared/models/workspace.model';
 const getWorkspaceId = (workspace: Workspace | null | undefined): string | null =>
   workspace?.id ?? workspace?._id ?? null;
 
+/** @deprecated Use CompanyBootstrapGuard instead. */
 export const WorkspaceBootstrapGuard: CanActivateFn = (route, state) => {
   const workspacesApi = inject(WorkspacesApiService);
   const workspaceState = inject(WorkspaceStateService);

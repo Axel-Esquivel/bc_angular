@@ -2,14 +2,14 @@
 <section class="workspace-page">
   <header class="workspace-page__header">
     <div>
-      <p class="eyebrow">Workspaces</p>
-      <h1>Crea o unete a un workspace</h1>
-      <p class="subtitle">Empieza creando uno nuevo o usando un codigo de invitacion.</p>
+      <p class="eyebrow">Companias</p>
+      <h1>Crea o unete a una compania</h1>
+      <p class="subtitle">Empieza creando una nueva o usando un codigo de invitacion.</p>
     </div>
   </header>
 
   <p-card class="workspace-card" header="Acciones">
-    <p>Necesitas al menos un workspace para continuar.</p>
+    <p>Necesitas al menos una compania para continuar.</p>
     <div class="header-actions">
       <p-button label="Crear" icon="pi pi-plus" (onClick)="openCreateDialog()"></p-button>
       <p-button label="Unirse" icon="pi pi-link" severity="secondary" (onClick)="openJoinDialog()"></p-button>
@@ -17,13 +17,48 @@
   </p-card>
 </section>
 
-<p-dialog header="Crear workspace" [(visible)]="createDialogOpen" [modal]="true" [style]="{ width: '420px' }">
+<p-dialog header="Crear compania" [(visible)]="createDialogOpen" [modal]="true" [style]="{ width: '420px' }">
   <form [formGroup]="createForm" class="dialog-form" (ngSubmit)="createWorkspace()">
     <div class="form-field">
       <label for="createName">Nombre</label>
-      <input id="createName" type="text" pInputText formControlName="name" placeholder="Nombre del workspace" />
+      <input id="createName" type="text" pInputText formControlName="name" placeholder="Nombre de la compania" />
       <small class="error" *ngIf="createForm.controls.name.touched && createForm.controls.name.invalid">
         El nombre es obligatorio.
+      </small>
+    </div>
+
+    <div class="form-field">
+      <label for="createOrganization">Organizacion</label>
+      <p-select
+        inputId="createOrganization"
+        [options]="organizationOptions"
+        optionLabel="label"
+        optionValue="value"
+        formControlName="organizationId"
+        placeholder="Selecciona una organizacion"
+        appendTo="body"
+      ></p-select>
+      <small class="error" *ngIf="createForm.controls.organizationId.touched && createForm.controls.organizationId.invalid">
+        La organizacion es obligatoria.
+      </small>
+      <small class="hint" *ngIf="organizationOptions.length === 0">
+        No hay organizaciones disponibles.
+      </small>
+    </div>
+
+    <div class="form-field">
+      <label for="createCountry">Pais</label>
+      <p-select
+        inputId="createCountry"
+        [options]="countryOptions"
+        optionLabel="label"
+        optionValue="value"
+        formControlName="countryId"
+        placeholder="Selecciona un pais"
+        appendTo="body"
+      ></p-select>
+      <small class="error" *ngIf="createForm.controls.countryId.touched && createForm.controls.countryId.invalid">
+        El pais es obligatorio.
       </small>
     </div>
 

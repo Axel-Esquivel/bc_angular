@@ -1,0 +1,114 @@
+<p-toast></p-toast>
+
+<section class="workspace-roles">
+  <p-card header="Roles y permisos">
+    <div class="card-actions" *ngIf="canManageRoles">
+      <p-button label="Nuevo rol" icon="pi pi-plus" (onClick)="openCreateRole()"></p-button>
+    </div>
+
+    <p-table [value]="roles" responsiveLayout="scroll">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Key</th>
+          <th>Nombre</th>
+          <th>Permisos</th>
+          <th style="width: 1%" *ngIf="canManageRoles"></th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-role>
+        <tr>
+          <td>{{ role.key }}</td>
+          <td>{{ role.name }}</td>
+          <td>{{ role.permissions.join(', ') || '-' }}</td>
+          <td class="row-actions" *ngIf="canManageRoles">
+            <p-button label="Editar" size="small" severity="secondary" (onClick)="openEditRole(role)"></p-button>
+            <p-button
+              label="Eliminar"
+              size="small"
+              severity="danger"
+              [disabled]="isDefaultRole(role)"
+              (onClick)="deleteRole(role)"
+            ></p-button>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="4">No hay roles definidos.</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </p-card>
+
+  <p-card header="Miembros">
+    <div class="member-actions" *ngIf="canInviteMembers">
+      <div class="invite-form">
+        <input pInputText placeholder="User ID" [(ngModel)]="memberDraft.userId" />
+        <p-select
+          [options]="roleOptions"
+          optionLabel="label"
+          optionValue="value"
+          [(ngModel)]="memberDraft.roleKey"
+          appendTo="body"
+        ></p-select>
+        <p-button label="Invitar" (onClick)="inviteMember()"></p-button>
+      </div>
+    </div>
+
+    <p-table [value]="members" responsiveLayout="scroll">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Usuario</th>
+          <th>Rol</th>
+          <th>Estado</th>
+          <th style="width: 1%" *ngIf="canManageRoles"></th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-member>
+        <tr>
+          <td>{{ member.userId }}</td>
+          <td>
+            <p-select
+              [options]="roleOptions"
+              optionLabel="label"
+              optionValue="value"
+              [(ngModel)]="member.roleKey"
+              [disabled]="!canManageRoles"
+              appendTo="body"
+            ></p-select>
+          </td>
+          <td>{{ member.status || 'active' }}</td>
+          <td *ngIf="canManageRoles" class="row-actions">
+            <p-button label="Guardar" size="small" (onClick)="updateMemberRole(member)"></p-button>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="4">No hay miembros cargados.</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </p-card>
+</section>
+
+<p-dialog header="Rol" [(visible)]="roleDialogOpen" [modal]="true" [style]="{ width: '420px' }">
+  <form class="dialog-form" (ngSubmit)="saveRole()">
+    <div class="form-field">
+      <label>Key</label>
+      <input pInputText [(ngModel)]="roleDraft.key" name="roleKey" [readonly]="roleDialogMode === 'edit'" />
+    </div>
+    <div class="form-field">
+      <label>Nombre</label>
+      <input pInputText [(ngModel)]="roleDraft.name" name="roleName" />
+    </div>
+    <div class="form-field">
+      <label>Permisos (comma)</label>
+      <input pInputText [(ngModel)]="permissionsDraft" name="rolePermissions" />
+    </div>
+    <div class="dialog-actions">
+      <p-button type="button" label="Cancelar" severity="secondary" (onClick)="roleDialogOpen = false"></p-button>
+      <p-button type="submit" label="Guardar" [loading]="submitting"></p-button>
+    </div>
+  </form>
+</p-dialog>

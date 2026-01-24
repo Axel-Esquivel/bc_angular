@@ -8,10 +8,46 @@
   color: var(--text-color-secondary);
 }
 
+.setup-steps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.setup-step {
+  padding: 0.5rem 0.75rem;
+  text-align: center;
+  border-radius: 0.5rem;
+  border: 1px solid var(--surface-border);
+  color: var(--text-color-secondary);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.setup-step.is-active {
+  border-color: var(--primary-color);
+  color: var(--text-color);
+  background: var(--surface-ground);
+}
+
+.form-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  margin-bottom: 1.25rem;
+}
+
+.form-field {
+  display: grid;
+  gap: 0.35rem;
+}
+
 .actions {
   margin-top: 1.5rem;
   display: flex;
   justify-content: flex-end;
+  gap: 0.75rem;
 }
 
 .modules-grid {
@@ -73,4 +109,40 @@
 
 .status-inactive {
   color: var(--surface-400, #9ca3af);
+}
+
+.list-editor {
+  margin-top: 1.5rem;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.list-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.list-items {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.list-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--surface-border);
+  border-radius: 0.5rem;
+  background: var(--surface-ground);
+}
+
+.roles-placeholder {
+  padding: 1rem;
+  border: 1px dashed var(--surface-border);
+  border-radius: 0.75rem;
+  background: var(--surface-ground);
 }

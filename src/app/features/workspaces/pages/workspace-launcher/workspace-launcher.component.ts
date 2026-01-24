@@ -35,7 +35,7 @@ export class WorkspaceLauncherComponent implements OnInit, OnDestroy {
   enabledModuleKeys = new Set<string>();
 
   ngOnInit(): void {
-    this.workspaceId = this.route.parent?.snapshot.paramMap.get('workspaceId') ?? null;
+    this.workspaceId = this.route.parent?.snapshot.paramMap.get('id') ?? null;
 
     this.workspaceModules.overview$.pipe(takeUntil(this.destroy$)).subscribe((overview) => {
       this.overview = overview;
@@ -98,13 +98,13 @@ export class WorkspaceLauncherComponent implements OnInit, OnDestroy {
     }
 
     const routeMap: Record<string, string[]> = {
-      products: ['/workspace', this.workspaceId, 'products'],
-      inventory: ['/workspace', this.workspaceId, 'inventory', 'stock'],
-      pos: ['/workspace', this.workspaceId, 'pos'],
-      reports: ['/workspace', this.workspaceId, 'reports'],
-      dashboard: ['/workspace', this.workspaceId, 'dashboard'],
+      products: ['/company', this.workspaceId, 'products'],
+      inventory: ['/company', this.workspaceId, 'inventory', 'stock'],
+      pos: ['/company', this.workspaceId, 'pos'],
+      reports: ['/company', this.workspaceId, 'reports'],
+      dashboard: ['/company', this.workspaceId, 'dashboard'],
     };
 
-    return routeMap[moduleKey] ?? ['/workspace', this.workspaceId, 'dashboard'];
+    return routeMap[moduleKey] ?? ['/company', this.workspaceId, 'dashboard'];
   }
 }

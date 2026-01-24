@@ -7,7 +7,7 @@ import { HealthApiService } from './core/api/health-api.service';
 import { RealtimeSocketService } from './core/services/realtime-socket.service';
 import { ThemeService } from './core/theme/theme.service';
 import { AuthService } from './core/auth/auth.service';
-import { WorkspaceStateService } from './core/workspace/workspace-state.service';
+import { CompanyStateService } from './core/company/company-state.service';
 
 @Component({
   selector: 'app-root',
@@ -23,13 +23,13 @@ export class App implements OnInit {
   private readonly healthApi = inject(HealthApiService);
   private readonly realtimeSocket = inject(RealtimeSocketService);
   private readonly auth = inject(AuthService);
-  private readonly workspaceState = inject(WorkspaceStateService);
+  private readonly companyState = inject(CompanyStateService);
 
   constructor() {}
 
   ngOnInit(): void {
     this.theme.initTheme();
-    combineLatest([this.auth.isAuthenticated$, this.workspaceState.activeWorkspaceId$])
+    combineLatest([this.auth.isAuthenticated$, this.companyState.activeCompanyId$])
       .pipe(
         map(([isAuthenticated, workspaceId]) => ({
           shouldConnect: isAuthenticated && !!workspaceId,

@@ -26,6 +26,49 @@
   gap: 0.5rem;
 }
 
+.card-meta {
+  margin: 0.75rem 0 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.status-pill {
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: var(--surface-100);
+  color: var(--text-color-secondary);
+}
+
+.status-pill.is-ready {
+  background: rgba(74, 222, 128, 0.2);
+  color: #15803d;
+}
+
+.hint {
+  font-size: 0.75rem;
+  color: #6c757d;
+}
+
+.hint.warn {
+  color: #b34200;
+}
+
+.deps {
+  width: 100%;
+  font-size: 0.85rem;
+  color: #6b6b6b;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.deps-list {
+  font-weight: 500;
+}
+
 .version {
   font-size: 0.8rem;
   color: #6c757d;

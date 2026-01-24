@@ -16,7 +16,7 @@ export class WorkspacesApiService {
     this.baseUrl = `${this.config.apiBaseUrl}/workspaces`;
   }
 
-  create(dto: { name: string }): Observable<ApiResponse<Workspace>> {
+  create(dto: { name: string; organizationId: string; countryId: string; baseCurrencyId?: string }): Observable<ApiResponse<Workspace>> {
     return this.http.post<ApiResponse<Workspace>>(this.baseUrl, dto);
   }
 
@@ -42,6 +42,50 @@ export class WorkspacesApiService {
     return this.http.get<ApiResponse<WorkspaceListResult>>(this.baseUrl);
   }
 
+  listRoles(workspaceId: string): Observable<ApiResponse<any[]>> {
+    return this.http.get<ApiResponse<any[]>>(`${this.baseUrl}/${workspaceId}/roles`);
+  }
+
+  createRole(
+    workspaceId: string,
+    payload: { key: string; name: string; permissions: string[] }
+  ): Observable<ApiResponse<any[]>> {
+    return this.http.post<ApiResponse<any[]>>(`${this.baseUrl}/${workspaceId}/roles`, payload);
+  }
+
+  updateRole(
+    workspaceId: string,
+    roleKey: string,
+    payload: { name?: string; permissions?: string[] }
+  ): Observable<ApiResponse<any[]>> {
+    return this.http.patch<ApiResponse<any[]>>(`${this.baseUrl}/${workspaceId}/roles/${encodeURIComponent(roleKey)}`, payload);
+  }
+
+  deleteRole(workspaceId: string, roleKey: string): Observable<ApiResponse<any[]>> {
+    return this.http.delete<ApiResponse<any[]>>(`${this.baseUrl}/${workspaceId}/roles/${encodeURIComponent(roleKey)}`);
+  }
+
+  updateMemberRole(
+    workspaceId: string,
+    userId: string,
+    roleKey: string
+  ): Observable<ApiResponse<Record<string, any>>> {
+    return this.http.patch<ApiResponse<Record<string, any>>>(
+      `${this.baseUrl}/${workspaceId}/members/${encodeURIComponent(userId)}/role`,
+      { roleKey }
+    );
+  }
+
+  addMember(
+    workspaceId: string,
+    payload: { userId: string; roleKey: string }
+  ): Observable<ApiResponse<Record<string, any>>> {
+    return this.http.post<ApiResponse<Record<string, any>>>(
+      `${this.baseUrl}/${workspaceId}/members`,
+      payload
+    );
+  }
+
   completeSetup(workspaceId: string): Observable<ApiResponse<Workspace>> {
     return this.http.patch<ApiResponse<Workspace>>(`${this.baseUrl}/${workspaceId}/setup-complete`, {});
   }
@@ -49,6 +93,22 @@ export class WorkspacesApiService {
   updateModuleSettings(workspaceId: string, moduleId: string, settings: Record<string, any>): Observable<ApiResponse<Record<string, any>>> {
     return this.http.patch<ApiResponse<Record<string, any>>>(
       `${this.baseUrl}/${workspaceId}/module-settings/${moduleId}`,
+      settings
+    );
+  }
+
+  getCoreSettings(workspaceId: string): Observable<ApiResponse<Record<string, any>>> {
+    return this.http.get<ApiResponse<Record<string, any>>>(
+      `${this.baseUrl}/${workspaceId}/settings/core`
+    );
+  }
+
+  updateCoreSettings(
+    workspaceId: string,
+    settings: Record<string, any>
+  ): Observable<ApiResponse<Record<string, any>>> {
+    return this.http.patch<ApiResponse<Record<string, any>>>(
+      `${this.baseUrl}/${workspaceId}/settings/core`,
       settings
     );
   }
@@ -116,6 +176,20 @@ export class WorkspacesApiService {
   deletePosTerminal(workspaceId: string, terminalId: string): Observable<ApiResponse<Record<string, any>>> {
     return this.http.delete<ApiResponse<Record<string, any>>>(
       `${this.baseUrl}/${workspaceId}/pos/terminals/${terminalId}`
+    );
+  }
+
+  enableModule(workspaceId: string, moduleKey: string): Observable<ApiResponse<Record<string, any>>> {
+    return this.http.post<ApiResponse<Record<string, any>>>(
+      `${this.baseUrl}/${workspaceId}/modules/${encodeURIComponent(moduleKey)}/enable`,
+      {}
+    );
+  }
+
+  configureModule(workspaceId: string, moduleKey: string): Observable<ApiResponse<Record<string, any>>> {
+    return this.http.post<ApiResponse<Record<string, any>>>(
+      `${this.baseUrl}/${workspaceId}/modules/${encodeURIComponent(moduleKey)}/configure`,
+      {}
     );
   }
 

@@ -10,14 +10,14 @@ import { ToggleSwitchModule } from 'primeng/toggleswitch';
 import { Toast } from 'primeng/toast';
 
 import { ModuleDefinition, ModulesApiService } from '../../../../core/api/modules-api.service';
-import { WorkspacesApiService } from '../../../../core/api/workspaces-api.service';
+import { CompaniesApiService } from '../../../../core/api/companies-api.service';
 import { ModuleDependenciesService } from '../../../../core/workspace/module-dependencies.service';
 import { WorkspaceModulesService } from '../../../../core/workspace/workspace-modules.service';
-import {
-  WorkspaceModuleCatalogEntry,
-  WorkspaceModuleState,
-  WorkspaceModulesOverview,
-} from '../../../../shared/models/workspace-modules.model';
+import { WorkspaceModuleCatalogEntry, WorkspaceModuleState } from '../../../../shared/models/workspace-modules.model';
+
+interface CompanyModuleEntry extends WorkspaceModuleCatalogEntry {
+  globalDisabled?: boolean;
+}
 
 @Component({
   selector: 'app-workspace-modules-page',
@@ -30,7 +30,7 @@ import {
 export class WorkspaceModulesPageComponent implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
-  private readonly workspacesApi = inject(WorkspacesApiService);
+  private readonly companiesApi = inject(CompaniesApiService);
   private readonly modulesApi = inject(ModulesApiService);
   private readonly moduleDependencies = inject(ModuleDependenciesService);
   private readonly workspaceModules = inject(WorkspaceModulesService);
@@ -38,12 +38,13 @@ export class WorkspaceModulesPageComponent implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
 
   workspaceId: string | null = null;
-  modules: WorkspaceModuleCatalogEntry[] = [];
+  modules: CompanyModuleEntry[] = [];
   enabledMap = new Map<string, WorkspaceModuleState>();
   moduleDefinitions: ModuleDefinition[] = [];
+  availableModulesMap = new Map<string, WorkspaceModuleCatalogEntry>();
   loading = false;
   processing = new Set<string>();
-  userRole: 'admin' | 'member' | null = null;
+  userRole: string | null = null;
 
   ngOnInit(): void {
     this.workspaceId = this.route.parent?.snapshot.paramMap.get('id') ?? null;
@@ -54,6 +55,9 @@ export class WorkspaceModulesPageComponent implements OnInit, OnDestroy {
         .subscribe({
           next: (response) => {
             this.moduleDefinitions = response.result ?? [];
+            if (this.availableModulesMap.size > 0) {
+              this.modules = this.buildModulesList();
+            }
           },
           error: () => {
             this.moduleDefinitions = [];
@@ -66,10 +70,13 @@ export class WorkspaceModulesPageComponent implements OnInit, OnDestroy {
       }
       this.userRole = overview.userRole;
       if (overview.userRole !== 'admin') {
-        this.router.navigate(['/workspace', this.workspaceId ?? '', 'dashboard']);
+        this.router.navigate(['/company', this.workspaceId ?? '', 'dashboard']);
         return;
       }
-      this.modules = overview.availableModules ?? [];
+      this.availableModulesMap = new Map(
+        (overview.availableModules ?? []).map((module) => [module.key, module]),
+      );
+      this.modules = this.buildModulesList();
       this.enabledMap = new Map((overview.enabledModules ?? []).map((state) => [state.key, state]));
     });
   }
@@ -81,9 +88,9 @@ export class WorkspaceModulesPageComponent implements OnInit, OnDestroy {
 
   goBack(): void {
     if (this.workspaceId) {
-      this.router.navigate(['/workspace', this.workspaceId, 'dashboard']);
+      this.router.navigate(['/company', this.workspaceId, 'dashboard']);
     } else {
-      this.router.navigate(['/workspaces/select']);
+      this.router.navigate(['/companies/select']);
     }
   }
 
@@ -91,52 +98,111 @@ export class WorkspaceModulesPageComponent implements OnInit, OnDestroy {
     return this.enabledMap.get(module.key)?.enabled ?? false;
   }
 
+  isGlobalDisabled(module: CompanyModuleEntry): boolean {
+    return module.globalDisabled === true;
+  }
+
+  getState(module: WorkspaceModuleCatalogEntry): WorkspaceModuleState {
+    return (
+      this.enabledMap.get(module.key) ?? {
+        key: module.key,
+        enabled: false,
+        configured: false,
+        status: 'inactive',
+      }
+    );
+  }
+
+  getStatusLabel(module: WorkspaceModuleCatalogEntry): string {
+    const status = this.getState(module).status ?? (this.isEnabled(module) ? 'enabled' : 'inactive');
+    switch (status) {
+      case 'pendingConfig':
+        return 'Pendiente';
+      case 'configured':
+        return 'Configurado';
+      case 'ready':
+        return 'Listo';
+      case 'error':
+        return 'Error';
+      case 'enabled':
+        return 'Activo';
+      default:
+        return 'Inactivo';
+    }
+  }
+
+  needsConfiguration(module: WorkspaceModuleCatalogEntry): boolean {
+    const state = this.getState(module);
+    return Boolean(module.requiresConfig) && state.enabled && state.status !== 'ready';
+  }
+
   toggleModule(module: WorkspaceModuleCatalogEntry): void {
     if (!this.workspaceId || this.processing.has(module.key)) {
       return;
     }
 
-    const enabledIds = this.getEnabledIds();
     const nextEnabled = !this.isEnabled(module);
+    if (nextEnabled && this.isGlobalDisabled(module)) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Modulo deshabilitado',
+        detail: 'El modulo no esta habilitado globalmente.',
+      });
+      return;
+    }
     if (!nextEnabled) {
-      const result = this.moduleDependencies.canDisable(enabledIds, module.key, this.moduleDefinitions);
-      if (!result.allowed && result.requiredBy.length > 0) {
-        this.messageService.add({
-          severity: 'warn',
-          summary: 'Dependencias',
-          detail: `No puedes desactivar ${this.getModuleLabel(module.key)} porque ${this.getModuleLabel(
-            result.requiredBy[0]
-          )} lo requiere.`,
-        });
-        return;
-      }
+      this.messageService.add({
+        severity: 'info',
+        summary: 'Desactivar',
+        detail: 'La desactivacion de modulos por compania aun no esta disponible.',
+      });
+      return;
     }
 
     this.processing.add(module.key);
 
-    const payload = nextEnabled
-      ? this.buildEnablePayload(enabledIds, module.key)
-      : [{ key: module.key, enabled: false }];
-
-    this.workspacesApi
-      .updateWorkspaceModules(this.workspaceId, payload)
-      .subscribe({
+    if (nextEnabled) {
+      this.companiesApi.enableModule(this.workspaceId, module.key).subscribe({
         next: () => {
           this.processing.delete(module.key);
           this.workspaceModules.load(this.workspaceId!).subscribe();
-          if (nextEnabled) {
-            this.showAutoEnableToast(module.key);
-          }
+          this.showAutoEnableToast(module.key);
         },
         error: () => {
           this.processing.delete(module.key);
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
-            detail: 'No se pudo actualizar el modulo.',
+            detail: 'No se pudo activar el modulo.',
           });
         },
       });
+      return;
+    }
+
+  }
+
+  configureModule(module: WorkspaceModuleCatalogEntry): void {
+    if (!this.workspaceId || this.processing.has(module.key)) {
+      return;
+    }
+
+    this.processing.add(module.key);
+    this.companiesApi.configureModule(this.workspaceId, module.key).subscribe({
+      next: () => {
+        this.processing.delete(module.key);
+        this.workspaceModules.load(this.workspaceId!).subscribe();
+        this.router.navigate(['/company', this.workspaceId, 'settings', module.key]);
+      },
+      error: () => {
+        this.processing.delete(module.key);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'No se pudo configurar el modulo.',
+        });
+      },
+    });
   }
 
   private getEnabledIds(): string[] {
@@ -145,14 +211,23 @@ export class WorkspaceModulesPageComponent implements OnInit, OnDestroy {
       .map((state) => state.key);
   }
 
-  private buildEnablePayload(enabledIds: string[], moduleId: string): { key: string; enabled: boolean }[] {
-    const result = this.moduleDependencies.applyEnableWithDeps(
-      enabledIds,
-      moduleId,
-      this.moduleDefinitions
-    );
-    const idsToEnable = [moduleId, ...result.newDependencies];
-    return idsToEnable.map((key) => ({ key, enabled: true }));
+  private buildModulesList(): CompanyModuleEntry[] {
+    if (this.moduleDefinitions.length === 0) {
+      return Array.from(this.availableModulesMap.values());
+    }
+
+    return this.moduleDefinitions.map((definition) => {
+      const available = this.availableModulesMap.get(definition.id);
+      return {
+        key: definition.id,
+        name: definition.name,
+        description: available?.description,
+        version: available?.version ?? definition.version,
+        dependencies: available?.dependencies ?? definition.dependencies ?? [],
+        requiresConfig: available?.requiresConfig ?? false,
+        globalDisabled: !available,
+      };
+    });
   }
 
   private showAutoEnableToast(moduleId: string): void {

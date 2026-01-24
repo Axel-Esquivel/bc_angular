@@ -1,0 +1,55 @@
+<p-toast></p-toast>
+
+<div class="branches-page">
+  <p-card>
+    <ng-template pTemplate="title">Sucursales</ng-template>
+    <div class="actions">
+      <p-button label="Nueva sucursal" icon="pi pi-plus" (onClick)="openCreate()"></p-button>
+    </div>
+  </p-card>
+
+  <p-card>
+    <p-table [value]="branches" [loading]="loading" dataKey="id">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Nombre</th>
+          <th>Tipo</th>
+          <th>Pais</th>
+          <th>Monedas</th>
+          <th></th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-branch>
+        <tr>
+          <td>{{ branch.name }}</td>
+          <td>{{ branch.type }}</td>
+          <td>{{ branch.countryId }}</td>
+          <td>{{ branch.currencyIds?.join(', ') || '-' }}</td>
+          <td>
+            <p-button label="Editar" icon="pi pi-pencil" [text]="true" (onClick)="openEdit(branch)"></p-button>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </p-card>
+</div>
+
+<p-dialog header="Sucursal" [(visible)]="dialogOpen" [modal]="true" [style]="{ width: '520px' }">
+  <form [formGroup]="form" class="dialog-form">
+    <label>Nombre</label>
+    <input pInputText formControlName="name" />
+
+    <label>Tipo</label>
+    <p-select [options]="typeOptions" formControlName="type" appendTo="body"></p-select>
+
+    <label>Pais</label>
+    <p-select [options]="countryOptions" formControlName="countryId" [filter]="true" appendTo="body"></p-select>
+
+    <label>Monedas (comma separated)</label>
+    <input pInputText formControlName="currencyIds" placeholder="COP, USD" />
+  </form>
+  <ng-template pTemplate="footer">
+    <p-button label="Cancelar" [text]="true" (onClick)="dialogOpen=false"></p-button>
+    <p-button label="Guardar" icon="pi pi-check" (onClick)="save()"></p-button>
+  </ng-template>
+</p-dialog>

@@ -11,7 +11,7 @@ import { Toast } from 'primeng/toast';
 
 import { AuthService } from '../../../core/auth/auth.service';
 import { WorkspacesApiService } from '../../../core/api/workspaces-api.service';
-import { WorkspaceStateService } from '../../../core/workspace/workspace-state.service';
+import { CompanyStateService } from '../../../core/company/company-state.service';
 import { RegisterRequest } from '../../../shared/models/auth.model';
 
 @Component({
@@ -26,7 +26,7 @@ export class RegisterPageComponent {
   private readonly fb = inject(FormBuilder);
   private readonly authService = inject(AuthService);
   private readonly workspacesApi = inject(WorkspacesApiService);
-  private readonly workspaceState = inject(WorkspaceStateService);
+  private readonly companyState = inject(CompanyStateService);
   private readonly router = inject(Router);
   private readonly messageService = inject(MessageService);
 
@@ -78,21 +78,21 @@ export class RegisterPageComponent {
             : null;
 
         if (resolvedDefault) {
-          this.workspaceState.setDefaultWorkspaceId(resolvedDefault);
-          this.workspaceState.setActiveWorkspaceId(resolvedDefault);
-          this.router.navigateByUrl(`/workspace/${resolvedDefault}/dashboard`);
+          this.companyState.setDefaultCompanyId(resolvedDefault);
+          this.companyState.setActiveCompanyId(resolvedDefault);
+          this.router.navigateByUrl(`/company/${resolvedDefault}/dashboard`);
           return;
         }
 
         if (workspaces.length === 0) {
-          this.router.navigate(['/workspaces/onboarding']);
+          this.router.navigate(['/companies/select']);
           return;
         }
 
-        this.router.navigate(['/workspaces/select']);
+        this.router.navigate(['/companies/select']);
       },
       error: () => {
-        this.router.navigate(['/workspaces/onboarding']);
+        this.router.navigate(['/companies/select']);
       },
     });
   }

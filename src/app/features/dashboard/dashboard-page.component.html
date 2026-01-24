@@ -15,7 +15,7 @@
         <a
           *ngFor="let module of pendingModules"
           class="pending-link"
-          [routerLink]="['/workspace', workspaceId, 'settings', module.key]"
+          [routerLink]="['/company', workspaceId, 'settings', module.key]"
         >
           <span>{{ module.name }}</span>
           <p-button label="Configurar" size="small"></p-button>

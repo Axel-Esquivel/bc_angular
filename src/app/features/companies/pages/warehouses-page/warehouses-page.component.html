@@ -1,0 +1,50 @@
+<p-toast></p-toast>
+
+<div class="warehouses-page">
+  <p-card>
+    <ng-template pTemplate="title">Bodegas</ng-template>
+    <div class="actions">
+      <p-button label="Nueva bodega" icon="pi pi-plus" (onClick)="openCreate()"></p-button>
+    </div>
+  </p-card>
+
+  <p-card>
+    <p-table [value]="warehouses" [loading]="loading" dataKey="id">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Nombre</th>
+          <th>Codigo</th>
+          <th>Sucursal</th>
+          <th></th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-warehouse>
+        <tr>
+          <td>{{ warehouse.name }}</td>
+          <td>{{ warehouse.code }}</td>
+          <td>{{ warehouse.branchId }}</td>
+          <td>
+            <p-button label="Editar" icon="pi pi-pencil" [text]="true" (onClick)="openEdit(warehouse)"></p-button>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </p-card>
+</div>
+
+<p-dialog header="Bodega" [(visible)]="dialogOpen" [modal]="true" [style]="{ width: '520px' }">
+  <form [formGroup]="form" class="dialog-form">
+    <label>Nombre</label>
+    <input pInputText formControlName="name" />
+
+    <label>Sucursal</label>
+    <p-select [options]="branchOptions" formControlName="branchId" appendTo="body"></p-select>
+
+    <label>Codigo</label>
+    <input pInputText formControlName="code" placeholder="Auto si vacio" />
+  </form>
+  <ng-template pTemplate="footer">
+    <p-button label="Cancelar" [text]="true" (onClick)="dialogOpen=false"></p-button>
+    <p-button label="Guardar" icon="pi pi-check" (onClick)="save()"></p-button>
+  </ng-template>
+</p-dialog>

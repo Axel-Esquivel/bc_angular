@@ -1,0 +1,56 @@
+<p-toast></p-toast>
+
+<div class="countries-page">
+  <p-card>
+    <ng-template pTemplate="title">Catalogo de paises</ng-template>
+    <div class="actions">
+      <p-button label="Nuevo pais" icon="pi pi-plus" (onClick)="openCreate()"></p-button>
+    </div>
+  </p-card>
+
+  <p-card>
+    <p-table [value]="countries" [loading]="loading" dataKey="iso2">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>ISO2</th>
+          <th>ISO3</th>
+          <th>Nombre (ES)</th>
+          <th>Nombre (EN)</th>
+          <th>Telefono</th>
+          <th></th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-country>
+        <tr>
+          <td>{{ country.iso2 }}</td>
+          <td>{{ country.iso3 }}</td>
+          <td>{{ country.nameEs }}</td>
+          <td>{{ country.nameEn }}</td>
+          <td>{{ country.phoneCode || '-' }}</td>
+          <td>
+            <p-button label="Editar" icon="pi pi-pencil" [text]="true" (onClick)="openEdit(country)"></p-button>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </p-card>
+</div>
+
+<p-dialog header="Pais" [(visible)]="dialogOpen" [modal]="true" [style]="{ width: '480px' }">
+  <form [formGroup]="form" class="dialog-form">
+    <label>ISO2</label>
+    <input pInputText formControlName="iso2" [disabled]="!!editingCountry" />
+    <label>ISO3</label>
+    <input pInputText formControlName="iso3" [disabled]="!!editingCountry" />
+    <label>Nombre ES</label>
+    <input pInputText formControlName="nameEs" />
+    <label>Nombre EN</label>
+    <input pInputText formControlName="nameEn" />
+    <label>Telefono</label>
+    <input pInputText formControlName="phoneCode" />
+  </form>
+  <ng-template pTemplate="footer">
+    <p-button label="Cancelar" [text]="true" (onClick)="dialogOpen=false"></p-button>
+    <p-button label="Guardar" icon="pi pi-check" (onClick)="save()"></p-button>
+  </ng-template>
+</p-dialog>

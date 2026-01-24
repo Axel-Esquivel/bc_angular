@@ -1,8 +1,8 @@
-<p-card header="Crear workspace">
+<p-card header="Crear compania">
   <form class="form" [formGroup]="form" (ngSubmit)="submit()">
     <div class="form__field">
       <label for="name">Nombre</label>
-      <input id="name" type="text" pInputText formControlName="name" placeholder="Nombre del workspace" />
+      <input id="name" type="text" pInputText formControlName="name" placeholder="Nombre de la compania" />
       <small class="form__error" *ngIf="form.controls.name.touched && form.controls.name.invalid">
         El nombre es obligatorio.
       </small>
@@ -15,12 +15,12 @@
         rows="3"
         pInputTextarea
         formControlName="description"
-        placeholder="Describe brevemente el workspace"
+        placeholder="Describe brevemente la compania"
       ></textarea>
     </div>
 
     <div class="form__actions">
-      <p-button type="submit" label="Crear workspace" [loading]="loading" [disabled]="form.invalid"></p-button>
+      <p-button type="submit" label="Crear compania" [loading]="loading" [disabled]="form.invalid"></p-button>
     </div>
   </form>
 </p-card>

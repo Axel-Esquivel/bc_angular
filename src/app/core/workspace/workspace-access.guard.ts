@@ -10,6 +10,7 @@ import { Workspace } from '../../shared/models/workspace.model';
 const getWorkspaceId = (workspace: Workspace | null | undefined): string | null =>
   workspace?.id ?? workspace?._id ?? null;
 
+/** @deprecated Use CompanyAccessGuard instead. */
 export const WorkspaceAccessGuard: CanActivateFn = (route, state) => {
   const workspacesApi = inject(WorkspacesApiService);
   const logger = inject(LoggerService);

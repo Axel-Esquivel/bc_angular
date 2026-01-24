@@ -25,7 +25,7 @@ import {
 import { AuthApiService } from '../api/auth-api.service';
 import { LoggerService } from '../logging/logger.service';
 import { TokenStorageService } from './token-storage.service';
-import { WorkspaceStateService } from '../workspace/workspace-state.service';
+import { CompanyStateService } from '../company/company-state.service';
 import { RealtimeSocketService } from '../services/realtime-socket.service';
 
 @Injectable({ providedIn: 'root' })
@@ -41,7 +41,7 @@ export class AuthService {
   constructor(
     private readonly authApi: AuthApiService,
     private readonly tokenStorage: TokenStorageService,
-    private readonly workspaceState: WorkspaceStateService,
+    private readonly companyState: CompanyStateService,
     private readonly realtimeSocket: RealtimeSocketService,
     private readonly logger: LoggerService
   ) {
@@ -54,7 +54,7 @@ export class AuthService {
     }
     const storedUser = this.getCurrentUser();
     this.currentUserSubject.next(storedUser);
-    this.workspaceState.syncFromUser(storedUser);
+    this.companyState.syncFromUser(storedUser);
     this.authStateSubject.next(this.hasToken());
   }
 
@@ -101,7 +101,7 @@ export class AuthService {
       tap((user) => {
         this.tokenStorage.setUser(user);
         this.currentUserSubject.next(user);
-        this.workspaceState.syncFromUser(user);
+        this.companyState.syncFromUser(user);
       }),
       catchError(() => {
         this.logout();
@@ -205,7 +205,7 @@ export class AuthService {
       this.setUser(mappedUser);
       this.tokenStorage.setUser(mappedUser);
       this.currentUserSubject.next(mappedUser);
-      this.workspaceState.syncFromUser(mappedUser);
+      this.companyState.syncFromUser(mappedUser);
     }
   }
 
@@ -263,7 +263,7 @@ export class AuthService {
     this.clearAuthStorage();
     this.currentUserSubject.next(null);
     this.authStateSubject.next(false);
-    this.workspaceState.clear();
+    this.companyState.clear();
     this.realtimeSocket.disconnect();
   }
 }

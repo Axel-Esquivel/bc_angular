@@ -3,41 +3,180 @@
 <div class="workspace-setup">
   <p-card>
     <ng-template pTemplate="header">
-      <h2>Activar módulos</h2>
+      <h2>Setup de la compania</h2>
     </ng-template>
-    <p class="subtitle">Selecciona los módulos que deseas habilitar en este workspace.</p>
 
-    <div class="modules-grid" *ngIf="modules.length > 0; else emptyState">
-      <button
-        type="button"
-        class="module-card"
-        *ngFor="let module of modules"
-        [class.is-active]="isEnabled(module.id)"
-        [class.active-module]="isEnabled(module.id)"
-        (click)="toggleModule(module)"
-      >
-        <i class="module-icon pi pi-box"></i>
-        <div class="module-name">
-          {{ module.name }}
-        </div>
-        <span
-          class="module-status"
-          [ngClass]="isEnabled(module.id) ? 'status-active' : 'status-inactive'"
+    <div class="setup-steps">
+      <div class="setup-step" [class.is-active]="stepIndex === 0">1. Modulos</div>
+      <div class="setup-step" [class.is-active]="stepIndex === 1">2. Core settings</div>
+      <div class="setup-step" [class.is-active]="stepIndex === 2">3. Roles</div>
+    </div>
+
+    <section *ngIf="stepIndex === 0">
+      <p class="subtitle">Selecciona los modulos que deseas habilitar en esta compania.</p>
+
+      <div class="modules-grid" *ngIf="modules.length > 0; else emptyState">
+        <button
+          type="button"
+          class="module-card"
+          *ngFor="let module of modules"
+          [class.is-active]="isEnabled(module.id)"
+          [class.active-module]="isEnabled(module.id)"
+          (click)="toggleModule(module)"
         >
-          {{ isEnabled(module.id) ? 'Activo' : 'Instalar' }}
-        </span>
-      </button>
-    </div>
-    <ng-template #emptyState>
-      <div class="empty-state">No hay modulos disponibles.</div>
-    </ng-template>
+          <i class="module-icon pi pi-box"></i>
+          <div class="module-name">
+            {{ module.name }}
+          </div>
+          <span
+            class="module-status"
+            [ngClass]="isEnabled(module.id) ? 'status-active' : 'status-inactive'"
+          >
+            {{ isEnabled(module.id) ? 'Activo' : 'Instalar' }}
+          </span>
+        </button>
+      </div>
+      <ng-template #emptyState>
+        <div class="empty-state">No hay modulos disponibles.</div>
+      </ng-template>
 
-    <div class="actions">
-      <p-button
-        label="Continuar"
-        [disabled]="submitting"
-        (onClick)="continue()"
-      ></p-button>
-    </div>
+      <div class="actions">
+        <p-button label="Continuar" [disabled]="submitting" (onClick)="continue()"></p-button>
+      </div>
+    </section>
+
+    <section *ngIf="stepIndex === 1">
+      <p class="subtitle">Configura los datos base de la compania para continuar.</p>
+
+      <div class="form-grid">
+        <div class="form-field">
+          <label for="coreCountry">Pais</label>
+          <p-select
+            inputId="coreCountry"
+            [options]="countryOptions"
+            optionLabel="label"
+            optionValue="value"
+            [(ngModel)]="coreSettings.countryId"
+            appendTo="body"
+          ></p-select>
+        </div>
+        <div class="form-field">
+          <label for="coreCurrency">Moneda base</label>
+          <p-select
+            inputId="coreCurrency"
+            [options]="currencySelectOptions"
+            optionLabel="label"
+            optionValue="value"
+            [(ngModel)]="coreSettings.baseCurrencyId"
+            appendTo="body"
+          ></p-select>
+        </div>
+      </div>
+
+      <div class="list-editor">
+        <h3>Monedas</h3>
+        <div class="list-form">
+          <input pInputText placeholder="Id" [(ngModel)]="draftCurrency.id" />
+          <input pInputText placeholder="Codigo" [(ngModel)]="draftCurrency.code" />
+          <input pInputText placeholder="Nombre" [(ngModel)]="draftCurrency.name" />
+          <p-button label="Agregar" (onClick)="addCurrency()"></p-button>
+        </div>
+        <div class="list-items" *ngIf="coreSettings.currencies.length > 0; else emptyCurrencies">
+          <div class="list-item" *ngFor="let item of coreSettings.currencies">
+            <span>{{ item.id }} - {{ item.code || item.name || 'Sin nombre' }}</span>
+            <p-button label="Quitar" severity="secondary" (onClick)="removeCurrency(item.id)"></p-button>
+          </div>
+        </div>
+        <ng-template #emptyCurrencies>
+          <div class="empty-state">No hay monedas cargadas.</div>
+        </ng-template>
+      </div>
+
+      <div class="list-editor">
+        <h3>Empresas</h3>
+        <div class="list-form">
+          <input pInputText placeholder="Id" [(ngModel)]="draftCompany.id" />
+          <input pInputText placeholder="Nombre" [(ngModel)]="draftCompany.name" />
+          <p-button label="Agregar" (onClick)="addCompany()"></p-button>
+        </div>
+        <div class="list-items" *ngIf="coreSettings.companies.length > 0; else emptyCompanies">
+          <div class="list-item" *ngFor="let item of coreSettings.companies">
+            <span>{{ item.id }} - {{ item.name || 'Sin nombre' }}</span>
+            <p-button label="Quitar" severity="secondary" (onClick)="removeCompany(item.id)"></p-button>
+          </div>
+        </div>
+        <ng-template #emptyCompanies>
+          <div class="empty-state">No hay empresas cargadas.</div>
+        </ng-template>
+      </div>
+
+      <div class="list-editor">
+        <h3>Sucursales</h3>
+        <div class="list-form">
+          <input pInputText placeholder="Id" [(ngModel)]="draftBranch.id" />
+          <p-select
+            [options]="companyOptions"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Empresa"
+            [(ngModel)]="draftBranch.companyId"
+            appendTo="body"
+          ></p-select>
+          <input pInputText placeholder="Nombre" [(ngModel)]="draftBranch.name" />
+          <p-button label="Agregar" (onClick)="addBranch()"></p-button>
+        </div>
+        <div class="list-items" *ngIf="coreSettings.branches.length > 0; else emptyBranches">
+          <div class="list-item" *ngFor="let item of coreSettings.branches">
+            <span>{{ item.id }} - {{ item.name || 'Sin nombre' }} ({{ item.companyId }})</span>
+            <p-button label="Quitar" severity="secondary" (onClick)="removeBranch(item.id)"></p-button>
+          </div>
+        </div>
+        <ng-template #emptyBranches>
+          <div class="empty-state">No hay sucursales cargadas.</div>
+        </ng-template>
+      </div>
+
+      <div class="list-editor">
+        <h3>Bodegas</h3>
+        <div class="list-form">
+          <input pInputText placeholder="Id" [(ngModel)]="draftWarehouse.id" />
+          <p-select
+            [options]="branchOptions"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Sucursal"
+            [(ngModel)]="draftWarehouse.branchId"
+            appendTo="body"
+          ></p-select>
+          <input pInputText placeholder="Nombre" [(ngModel)]="draftWarehouse.name" />
+          <p-button label="Agregar" (onClick)="addWarehouse()"></p-button>
+        </div>
+        <div class="list-items" *ngIf="coreSettings.warehouses.length > 0; else emptyWarehouses">
+          <div class="list-item" *ngFor="let item of coreSettings.warehouses">
+            <span>{{ item.id }} - {{ item.name || 'Sin nombre' }} ({{ item.branchId }})</span>
+            <p-button label="Quitar" severity="secondary" (onClick)="removeWarehouse(item.id)"></p-button>
+          </div>
+        </div>
+        <ng-template #emptyWarehouses>
+          <div class="empty-state">No hay bodegas cargadas.</div>
+        </ng-template>
+      </div>
+
+      <div class="actions">
+        <p-button label="Volver" severity="secondary" (onClick)="goBack()"></p-button>
+        <p-button label="Guardar y continuar" [disabled]="submitting" (onClick)="saveCoreSettings()"></p-button>
+      </div>
+    </section>
+
+    <section *ngIf="stepIndex === 2">
+      <p class="subtitle">Configura roles y permisos si lo necesitas. Este paso es opcional.</p>
+      <div class="roles-placeholder">
+        <p>Podras administrar roles desde la configuracion de la compania.</p>
+      </div>
+      <div class="actions">
+        <p-button label="Volver" severity="secondary" (onClick)="goBack()"></p-button>
+        <p-button label="Finalizar" [disabled]="submitting" (onClick)="finishSetup()"></p-button>
+      </div>
+    </section>
   </p-card>
 </div>

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, map, tap } from 'rxjs';
 
-import { WorkspacesApiService } from '../api/workspaces-api.service';
+import { CompaniesApiService } from '../api/companies-api.service';
 import { WorkspaceModulesOverview } from '../../shared/models/workspace-modules.model';
 
 @Injectable({ providedIn: 'root' })
@@ -10,10 +10,10 @@ export class WorkspaceModulesService {
 
   readonly overview$: Observable<WorkspaceModulesOverview | null> = this.overviewSubject.asObservable();
 
-  constructor(private readonly workspacesApi: WorkspacesApiService) {}
+  constructor(private readonly companiesApi: CompaniesApiService) {}
 
   load(workspaceId: string): Observable<WorkspaceModulesOverview> {
-    return this.workspacesApi.getWorkspaceModules(workspaceId).pipe(
+    return this.companiesApi.getModules(workspaceId).pipe(
       map((response) => {
         if (!response?.result) {
           throw new Error('Workspace modules response is empty');

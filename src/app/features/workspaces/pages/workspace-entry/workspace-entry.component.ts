@@ -24,8 +24,8 @@ export class WorkspaceEntryComponent implements OnInit {
         const count = workspaces.length;
         this.logger.debug('[ws-entry] count', count);
         if (count === 0) {
-          this.logger.debug('[ws-entry] -> onboarding');
-          this.router.navigateByUrl('/workspaces/onboarding');
+          this.logger.debug('[ws-entry] -> companies select');
+          this.router.navigateByUrl('/companies/select');
         }
       });
   }

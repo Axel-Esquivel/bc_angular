@@ -1,0 +1,70 @@
+<p-toast></p-toast>
+
+<div class="companies-page">
+  <p-card>
+    <ng-template pTemplate="title">Companias</ng-template>
+    <ng-template pTemplate="subtitle">
+      {{ organization?.name || 'Selecciona una organizacion' }}
+    </ng-template>
+    <div class="actions">
+      <p-button label="Crear compania" icon="pi pi-plus" (onClick)="openCreateDialog()"></p-button>
+    </div>
+  </p-card>
+
+  <p-card *ngIf="companies.length === 0">
+    <ng-template pTemplate="title">Sin companias</ng-template>
+    <p>No tienes companias registradas en esta organizacion.</p>
+    <p-button label="Crear compania" icon="pi pi-plus" (onClick)="openCreateDialog()"></p-button>
+  </p-card>
+
+  <p-card *ngIf="companies.length > 0">
+    <ng-template pTemplate="title">Lista de companias</ng-template>
+    <p-table [value]="companies" [loading]="loading" dataKey="id">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Nombre</th>
+          <th>Pais base</th>
+          <th>Moneda base</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-company>
+        <tr>
+          <td>{{ company.name }}</td>
+          <td>{{ company.baseCountryId }}</td>
+          <td>{{ company.baseCurrencyId }}</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </p-card>
+</div>
+
+<p-dialog header="Crear compania" [(visible)]="createDialogOpen" [modal]="true" [style]="{ width: '520px' }">
+  <form [formGroup]="createForm" class="dialog-form">
+    <label>Nombre</label>
+    <input pInputText formControlName="name" />
+
+    <label>Razon social</label>
+    <input pInputText formControlName="legalName" />
+
+    <label>NIT / Tax ID</label>
+    <input pInputText formControlName="taxId" />
+
+    <label>Pais base</label>
+    <p-select
+      [options]="countryOptions"
+      formControlName="baseCountryId"
+      [filter]="true"
+      filterPlaceholder="Buscar pais"
+     appendTo="body"></p-select>
+
+    <label>Moneda base</label>
+    <p-select [options]="currencyOptions" formControlName="baseCurrencyId" appendTo="body"></p-select>
+
+    <label>Monedas (comma separated)</label>
+    <input pInputText formControlName="currencies" placeholder="COP, USD" />
+  </form>
+  <ng-template pTemplate="footer">
+    <p-button label="Cancelar" [text]="true" (onClick)="createDialogOpen=false"></p-button>
+    <p-button label="Crear" icon="pi pi-check" (onClick)="createCompany()"></p-button>
+  </ng-template>
+</p-dialog>

@@ -1,0 +1,44 @@
+<p-toast></p-toast>
+
+<div class="company-selector">
+  <p-card>
+    <ng-template pTemplate="title">Seleccionar compania</ng-template>
+    <ng-template pTemplate="subtitle">Elige una organizacion y luego una compania.</ng-template>
+    <div class="selector-grid">
+      <div class="field">
+        <label>Organizacion</label>
+        <p-select
+          [options]="organizationOptions"
+          [(ngModel)]="selectedOrganizationId"
+          (onChange)="onOrganizationChange()"
+          placeholder="Seleccionar"
+         appendTo="body"></p-select>
+      </div>
+      <div class="field">
+        <label>Compania</label>
+        <p-select
+          [options]="companyOptions"
+          [(ngModel)]="selectedCompanyId"
+          placeholder="Seleccionar"
+         appendTo="body"></p-select>
+      </div>
+    </div>
+    <div class="actions">
+      <p-button label="Ir a organizaciones" [text]="true" (onClick)="goToOrganizations()"></p-button>
+      <p-button label="Crear compania" [outlined]="true" (onClick)="goToCompanies()"></p-button>
+      <p-button label="Continuar" icon="pi pi-arrow-right" (onClick)="selectCompany()"></p-button>
+    </div>
+  </p-card>
+
+  <p-card *ngIf="organizations.length === 0">
+    <ng-template pTemplate="title">Sin organizaciones</ng-template>
+    <p>Crea un grupo para empezar.</p>
+    <p-button label="Crear grupo" icon="pi pi-plus" (onClick)="goToOrganizations()"></p-button>
+  </p-card>
+
+  <p-card *ngIf="organizations.length > 0 && companies.length === 0">
+    <ng-template pTemplate="title">Sin companias</ng-template>
+    <p>Esta organizacion no tiene companias. Crea una para continuar.</p>
+    <p-button label="Crear compania" icon="pi pi-plus" (onClick)="goToCompanies()"></p-button>
+  </p-card>
+</div>

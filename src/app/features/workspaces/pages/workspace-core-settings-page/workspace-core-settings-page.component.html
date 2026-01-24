@@ -1,0 +1,252 @@
+<p-toast></p-toast>
+
+<section class="core-settings">
+  <p-card header="Core settings">
+    <div class="header-grid">
+      <div class="form-field">
+        <label for="country">Pais</label>
+        <p-select
+          inputId="country"
+          [options]="countryOptions"
+          optionLabel="label"
+          optionValue="value"
+          [(ngModel)]="settings.countryId"
+          appendTo="body"
+          (onChange)="updateCoreHeader()"
+        ></p-select>
+      </div>
+      <div class="form-field">
+        <label for="baseCurrency">Moneda base</label>
+        <p-select
+          inputId="baseCurrency"
+          [options]="currencyOptions"
+          optionLabel="label"
+          optionValue="value"
+          [(ngModel)]="settings.baseCurrencyId"
+          appendTo="body"
+          (onChange)="updateCoreHeader()"
+        ></p-select>
+      </div>
+    </div>
+  </p-card>
+
+  <p-card header="Monedas">
+    <div class="card-actions">
+      <p-button label="Agregar" icon="pi pi-plus" (onClick)="openCurrencyDialog()"></p-button>
+    </div>
+    <p-table [value]="settings.currencies" responsiveLayout="scroll">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>ID</th>
+          <th>Codigo</th>
+          <th>Nombre</th>
+          <th style="width: 1%"></th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-item>
+        <tr>
+          <td>{{ item.id }}</td>
+          <td>{{ item.code || '-' }}</td>
+          <td>{{ item.name || '-' }}</td>
+          <td class="row-actions">
+            <p-button label="Editar" size="small" severity="secondary" (onClick)="openCurrencyDialog(item)"></p-button>
+            <p-button label="Eliminar" size="small" severity="danger" (onClick)="removeCurrency(item)"></p-button>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="4">No hay monedas cargadas.</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </p-card>
+
+  <p-card header="Companias">
+    <div class="card-actions">
+      <p-button label="Agregar" icon="pi pi-plus" (onClick)="openCompanyDialog()"></p-button>
+    </div>
+    <p-table [value]="settings.companies" responsiveLayout="scroll">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>ID</th>
+          <th>Nombre</th>
+          <th style="width: 1%"></th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-item>
+        <tr>
+          <td>{{ item.id }}</td>
+          <td>{{ item.name || '-' }}</td>
+          <td class="row-actions">
+            <p-button label="Editar" size="small" severity="secondary" (onClick)="openCompanyDialog(item)"></p-button>
+            <p-button label="Eliminar" size="small" severity="danger" (onClick)="removeCompany(item)"></p-button>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="3">No hay companias cargadas.</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </p-card>
+
+  <p-card header="Sucursales">
+    <div class="card-actions">
+      <p-button label="Agregar" icon="pi pi-plus" (onClick)="openBranchDialog()"></p-button>
+    </div>
+    <p-table [value]="settings.branches" responsiveLayout="scroll">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>ID</th>
+          <th>Nombre</th>
+          <th>Empresa</th>
+          <th style="width: 1%"></th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-item>
+        <tr>
+          <td>{{ item.id }}</td>
+          <td>{{ item.name || '-' }}</td>
+          <td>{{ item.companyId }}</td>
+          <td class="row-actions">
+            <p-button label="Editar" size="small" severity="secondary" (onClick)="openBranchDialog(item)"></p-button>
+            <p-button label="Eliminar" size="small" severity="danger" (onClick)="removeBranch(item)"></p-button>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="4">No hay sucursales cargadas.</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </p-card>
+
+  <p-card header="Bodegas">
+    <div class="card-actions">
+      <p-button label="Agregar" icon="pi pi-plus" (onClick)="openWarehouseDialog()"></p-button>
+    </div>
+    <p-table [value]="settings.warehouses" responsiveLayout="scroll">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>ID</th>
+          <th>Nombre</th>
+          <th>Sucursal</th>
+          <th style="width: 1%"></th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-item>
+        <tr>
+          <td>{{ item.id }}</td>
+          <td>{{ item.name || '-' }}</td>
+          <td>{{ item.branchId }}</td>
+          <td class="row-actions">
+            <p-button label="Editar" size="small" severity="secondary" (onClick)="openWarehouseDialog(item)"></p-button>
+            <p-button label="Eliminar" size="small" severity="danger" (onClick)="removeWarehouse(item)"></p-button>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="4">No hay bodegas cargadas.</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </p-card>
+</section>
+
+<p-dialog header="Moneda" [(visible)]="currencyDialogOpen" [modal]="true" [style]="{ width: '420px' }">
+  <form class="dialog-form" (ngSubmit)="saveCurrency()">
+    <div class="form-field">
+      <label>ID</label>
+      <input pInputText [(ngModel)]="currencyDraft.id" name="currencyId" />
+    </div>
+    <div class="form-field">
+      <label>Codigo</label>
+      <input pInputText [(ngModel)]="currencyDraft.code" name="currencyCode" />
+    </div>
+    <div class="form-field">
+      <label>Nombre</label>
+      <input pInputText [(ngModel)]="currencyDraft.name" name="currencyName" />
+    </div>
+    <div class="dialog-actions">
+      <p-button type="button" label="Cancelar" severity="secondary" (onClick)="currencyDialogOpen = false"></p-button>
+      <p-button type="submit" label="Guardar" [loading]="submitting"></p-button>
+    </div>
+  </form>
+</p-dialog>
+
+<p-dialog header="Compania" [(visible)]="companyDialogOpen" [modal]="true" [style]="{ width: '420px' }">
+  <form class="dialog-form" (ngSubmit)="saveCompany()">
+    <div class="form-field">
+      <label>ID</label>
+      <input pInputText [(ngModel)]="companyDraft.id" name="companyId" />
+    </div>
+    <div class="form-field">
+      <label>Nombre</label>
+      <input pInputText [(ngModel)]="companyDraft.name" name="companyName" />
+    </div>
+    <div class="dialog-actions">
+      <p-button type="button" label="Cancelar" severity="secondary" (onClick)="companyDialogOpen = false"></p-button>
+      <p-button type="submit" label="Guardar" [loading]="submitting"></p-button>
+    </div>
+  </form>
+</p-dialog>
+
+<p-dialog header="Sucursal" [(visible)]="branchDialogOpen" [modal]="true" [style]="{ width: '420px' }">
+  <form class="dialog-form" (ngSubmit)="saveBranch()">
+    <div class="form-field">
+      <label>ID</label>
+      <input pInputText [(ngModel)]="branchDraft.id" name="branchId" />
+    </div>
+    <div class="form-field">
+      <label>Empresa</label>
+      <p-select
+        [options]="companyOptions"
+        optionLabel="label"
+        optionValue="value"
+        [(ngModel)]="branchDraft.companyId"
+        name="branchCompany"
+        appendTo="body"
+      ></p-select>
+    </div>
+    <div class="form-field">
+      <label>Nombre</label>
+      <input pInputText [(ngModel)]="branchDraft.name" name="branchName" />
+    </div>
+    <div class="dialog-actions">
+      <p-button type="button" label="Cancelar" severity="secondary" (onClick)="branchDialogOpen = false"></p-button>
+      <p-button type="submit" label="Guardar" [loading]="submitting"></p-button>
+    </div>
+  </form>
+</p-dialog>
+
+<p-dialog header="Bodega" [(visible)]="warehouseDialogOpen" [modal]="true" [style]="{ width: '420px' }">
+  <form class="dialog-form" (ngSubmit)="saveWarehouse()">
+    <div class="form-field">
+      <label>ID</label>
+      <input pInputText [(ngModel)]="warehouseDraft.id" name="warehouseId" />
+    </div>
+    <div class="form-field">
+      <label>Sucursal</label>
+      <p-select
+        [options]="branchOptions"
+        optionLabel="label"
+        optionValue="value"
+        [(ngModel)]="warehouseDraft.branchId"
+        name="warehouseBranch"
+        appendTo="body"
+      ></p-select>
+    </div>
+    <div class="form-field">
+      <label>Nombre</label>
+      <input pInputText [(ngModel)]="warehouseDraft.name" name="warehouseName" />
+    </div>
+    <div class="dialog-actions">
+      <p-button type="button" label="Cancelar" severity="secondary" (onClick)="warehouseDialogOpen = false"></p-button>
+      <p-button type="submit" label="Guardar" [loading]="submitting"></p-button>
+    </div>
+  </form>
+</p-dialog>

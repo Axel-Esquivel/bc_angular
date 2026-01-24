@@ -271,7 +271,7 @@ export class ModuleSettingsComponent implements OnInit {
           this.messageService.add({
             severity: 'warn',
             summary: 'Sesión',
-            detail: 'No se pudieron cargar los workspaces.',
+            detail: 'No se pudieron cargar las companias.',
           });
           return of({
             status: 'error',
@@ -327,7 +327,7 @@ export class ModuleSettingsComponent implements OnInit {
         const isEnabled = enabled.some((module) => module.key === this.moduleId && module.enabled);
         if (!isEnabled) {
           this.loading = false;
-          this.router.navigateByUrl(`/workspace/${this.workspaceId}/settings/modules`);
+          this.router.navigateByUrl(`/company/${this.workspaceId}/settings/modules`);
           return;
         }
 
@@ -542,7 +542,7 @@ export class ModuleSettingsComponent implements OnInit {
 
   back(): void {
     if (this.workspaceId) {
-      this.router.navigateByUrl(`/workspace/${this.workspaceId}/dashboard`);
+      this.router.navigateByUrl(`/company/${this.workspaceId}/dashboard`);
     }
   }
 

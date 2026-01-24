@@ -1,0 +1,75 @@
+.orgs-page {
+  display: grid;
+  gap: 1rem;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.dialog-form {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.members-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.members-header .title {
+  font-weight: 600;
+}
+
+.members-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.members-requests {
+  margin-bottom: 0.75rem;
+  font-weight: 500;
+}
+
+.row-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.permissions-grid {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.permission-group {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--surface-border);
+}
+
+.permission-title {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.permission-items {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.5rem 0.75rem;
+}
+
+.permission-item {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.5rem;
+  align-items: center;
+}

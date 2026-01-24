@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
@@ -7,10 +7,12 @@ import { Button } from 'primeng/button';
 import { Card } from 'primeng/card';
 import { DialogModule } from 'primeng/dialog';
 import { InputText } from 'primeng/inputtext';
+import { Select } from 'primeng/select';
 import { Toast } from 'primeng/toast';
 
+import { OrganizationsService } from '../../../../core/api/organizations-api.service';
 import { WorkspacesApiService } from '../../../../core/api/workspaces-api.service';
-import { WorkspaceStateService } from '../../../../core/workspace/workspace-state.service';
+import { CompanyStateService } from '../../../../core/company/company-state.service';
 import { Workspace } from '../../../../shared/models/workspace.model';
 
 @Component({
@@ -23,15 +25,17 @@ import { Workspace } from '../../../../shared/models/workspace.model';
     Button,
     DialogModule,
     InputText,
+    Select,
     Toast,
   ],
   templateUrl: './workspace-onboarding.component.html',
   styleUrl: './workspace-onboarding.component.scss',
   providers: [MessageService],
 })
-export class WorkspaceOnboardingComponent {
+export class WorkspaceOnboardingComponent implements OnInit {
+  private readonly organizationsApi = inject(OrganizationsService);
   private readonly workspacesApi = inject(WorkspacesApiService);
-  private readonly workspaceState = inject(WorkspaceStateService);
+  private readonly companyState = inject(CompanyStateService);
   private readonly router = inject(Router);
   private readonly messageService = inject(MessageService);
   private readonly fb = inject(FormBuilder);
@@ -43,11 +47,29 @@ export class WorkspaceOnboardingComponent {
 
   readonly createForm = this.fb.nonNullable.group({
     name: ['', [Validators.required, Validators.minLength(2)]],
+    organizationId: ['', [Validators.required]],
+    countryId: ['', [Validators.required]],
   });
 
   readonly joinForm = this.fb.nonNullable.group({
     code: ['', [Validators.required, Validators.minLength(4)]],
   });
+
+  organizationOptions: { label: string; value: string }[] = [];
+  countryOptions: { label: string; value: string }[] = [
+    { label: 'Argentina', value: 'AR' },
+    { label: 'Chile', value: 'CL' },
+    { label: 'Colombia', value: 'CO' },
+    { label: 'Mexico', value: 'MX' },
+    { label: 'Peru', value: 'PE' },
+  ];
+
+  ngOnInit(): void {
+    this.loadOrganizations();
+    if (!this.createForm.controls.countryId.value) {
+      this.createForm.controls.countryId.setValue(this.countryOptions[0]?.value ?? '');
+    }
+  }
 
   openCreateDialog(): void {
     this.createDialogOpen = true;
@@ -66,7 +88,13 @@ export class WorkspaceOnboardingComponent {
     this.submittingCreate = true;
     const payload = this.createForm.getRawValue();
 
-    this.workspacesApi.create({ name: payload.name }).subscribe({
+    this.workspacesApi
+      .create({
+        name: payload.name,
+        organizationId: payload.organizationId,
+        countryId: payload.countryId,
+      })
+      .subscribe({
       next: ({ result }) => {
         if (result) {
           this.finishOnboardingSetup(result);
@@ -80,7 +108,7 @@ export class WorkspaceOnboardingComponent {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'No se pudo crear el workspace.',
+          detail: 'No se pudo crear la compania.',
         });
       },
     });
@@ -110,7 +138,7 @@ export class WorkspaceOnboardingComponent {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'No se pudo unir al workspace con ese codigo.',
+          detail: 'No se pudo unir a la compania con ese codigo.',
         });
       },
     });
@@ -123,11 +151,11 @@ export class WorkspaceOnboardingComponent {
         return;
       }
 
-      this.workspaceState.setActiveWorkspaceId(workspaceId);
-      if (!this.workspaceState.getDefaultWorkspaceId()) {
-        this.workspaceState.setDefaultWorkspaceId(workspaceId);
+      this.companyState.setActiveCompanyId(workspaceId);
+      if (!this.companyState.getDefaultCompanyId()) {
+        this.companyState.setDefaultCompanyId(workspaceId);
       }
-      this.router.navigateByUrl(`/workspace/${workspaceId}/dashboard`);
+      this.router.navigateByUrl(`/company/${workspaceId}/dashboard`);
     });
   }
 
@@ -138,11 +166,11 @@ export class WorkspaceOnboardingComponent {
         return;
       }
 
-      this.workspaceState.setActiveWorkspaceId(workspaceId);
-      if (!this.workspaceState.getDefaultWorkspaceId()) {
-        this.workspaceState.setDefaultWorkspaceId(workspaceId);
+      this.companyState.setActiveCompanyId(workspaceId);
+      if (!this.companyState.getDefaultCompanyId()) {
+        this.companyState.setDefaultCompanyId(workspaceId);
       }
-      this.router.navigateByUrl(`/workspaces/${workspaceId}/setup`);
+      this.router.navigateByUrl(`/company/${workspaceId}/setup`);
     });
   }
 
@@ -151,7 +179,7 @@ export class WorkspaceOnboardingComponent {
       next: (response) => {
         const payload = response.result;
         if (payload?.defaultWorkspaceId) {
-          this.workspaceState.setDefaultWorkspaceId(payload.defaultWorkspaceId);
+          this.companyState.setDefaultCompanyId(payload.defaultWorkspaceId);
         }
         onDone();
       },
@@ -161,5 +189,28 @@ export class WorkspaceOnboardingComponent {
 
   private getWorkspaceId(workspace: Workspace | null | undefined): string | null {
     return workspace?.id ?? workspace?._id ?? null;
+  }
+
+  private loadOrganizations(): void {
+    this.organizationsApi.list().subscribe({
+      next: ({ result }) => {
+        this.organizationOptions = (result ?? []).map((org) => ({
+          label: org.name,
+          value: org.id ?? '',
+        }));
+        const first = this.organizationOptions[0]?.value ?? '';
+        if (first && !this.createForm.controls.organizationId.value) {
+          this.createForm.controls.organizationId.setValue(first);
+        }
+      },
+      error: () => {
+        this.organizationOptions = [];
+        this.messageService.add({
+          severity: 'warn',
+          summary: 'Organizaciones',
+          detail: 'No se pudieron cargar las organizaciones.',
+        });
+      },
+    });
   }
 }

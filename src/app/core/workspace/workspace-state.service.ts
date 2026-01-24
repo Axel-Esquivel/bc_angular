@@ -4,6 +4,7 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import { AuthUser } from '../../shared/models/auth.model';
 import { TokenStorageService } from '../auth/token-storage.service';
 
+/** @deprecated Use CompanyStateService instead. */
 @Injectable({ providedIn: 'root' })
 export class WorkspaceStateService {
   private readonly activeKey = 'bc_active_workspace_id';

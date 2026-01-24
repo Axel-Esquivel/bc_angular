@@ -8,12 +8,14 @@ import { Button } from 'primeng/button';
 import { Card } from 'primeng/card';
 import { DialogModule } from 'primeng/dialog';
 import { InputText } from 'primeng/inputtext';
+import { Select } from 'primeng/select';
 import { TableModule } from 'primeng/table';
 import { Toast } from 'primeng/toast';
 
+import { OrganizationsService } from '../../../../core/api/organizations-api.service';
 import { WorkspacesApiService } from '../../../../core/api/workspaces-api.service';
 import { TokenStorageService } from '../../../../core/auth/token-storage.service';
-import { WorkspaceStateService } from '../../../../core/workspace/workspace-state.service';
+import { CompanyStateService } from '../../../../core/company/company-state.service';
 import { Workspace } from '../../../../shared/models/workspace.model';
 
 @Component({
@@ -27,6 +29,7 @@ import { Workspace } from '../../../../shared/models/workspace.model';
     Button,
     DialogModule,
     InputText,
+    Select,
     Toast,
   ],
   templateUrl: './workspace-select-page.component.html',
@@ -34,8 +37,9 @@ import { Workspace } from '../../../../shared/models/workspace.model';
   providers: [MessageService],
 })
 export class WorkspaceSelectPageComponent implements OnInit {
+  private readonly organizationsApi = inject(OrganizationsService);
   private readonly workspacesApi = inject(WorkspacesApiService);
-  private readonly workspaceState = inject(WorkspaceStateService);
+  private readonly companyState = inject(CompanyStateService);
   private readonly tokenStorage = inject(TokenStorageService);
   private readonly router = inject(Router);
   private readonly messageService = inject(MessageService);
@@ -52,22 +56,37 @@ export class WorkspaceSelectPageComponent implements OnInit {
 
   readonly createForm = this.fb.nonNullable.group({
     name: ['', [Validators.required, Validators.minLength(2)]],
+    organizationId: ['', [Validators.required]],
+    countryId: ['', [Validators.required]],
   });
 
   readonly joinForm = this.fb.nonNullable.group({
     code: ['', [Validators.required, Validators.minLength(4)]],
   });
 
+  organizationOptions: { label: string; value: string }[] = [];
+  countryOptions: { label: string; value: string }[] = [
+    { label: 'Argentina', value: 'AR' },
+    { label: 'Chile', value: 'CL' },
+    { label: 'Colombia', value: 'CO' },
+    { label: 'Mexico', value: 'MX' },
+    { label: 'Peru', value: 'PE' },
+  ];
+
   ngOnInit(): void {
     this.loadWorkspaces();
+    this.loadOrganizations();
+    if (!this.createForm.controls.countryId.value) {
+      this.createForm.controls.countryId.setValue(this.countryOptions[0]?.value ?? '');
+    }
   }
 
   get activeWorkspaceId(): string | null {
-    return this.workspaceState.getActiveWorkspaceId();
+    return this.companyState.getActiveCompanyId();
   }
 
   get defaultWorkspaceId(): string | null {
-    return this.workspaceState.getDefaultWorkspaceId();
+    return this.companyState.getDefaultCompanyId();
   }
 
 
@@ -79,7 +98,7 @@ export class WorkspaceSelectPageComponent implements OnInit {
         const payload = response.result;
         this.workspaces = payload?.workspaces ?? [];
         if (payload?.defaultWorkspaceId) {
-          this.workspaceState.setDefaultWorkspaceId(payload.defaultWorkspaceId);
+          this.companyState.setDefaultCompanyId(payload.defaultWorkspaceId);
         }
         this.loadingWorkspaces = false;
       },
@@ -88,7 +107,7 @@ export class WorkspaceSelectPageComponent implements OnInit {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'No se pudieron cargar los workspaces.',
+          detail: 'No se pudieron cargar las companias.',
         });
       },
     });
@@ -111,20 +130,26 @@ export class WorkspaceSelectPageComponent implements OnInit {
     this.submittingCreate = true;
     const payload = this.createForm.getRawValue();
 
-    this.workspacesApi.create({ name: payload.name }).subscribe({
+    this.workspacesApi
+      .create({
+        name: payload.name,
+        organizationId: payload.organizationId,
+        countryId: payload.countryId,
+      })
+      .subscribe({
       next: ({ result }) => {
         if (result) {
           const createdId = this.getWorkspaceId(result);
           this.workspaces = [result, ...this.workspaces.filter((w) => this.getWorkspaceId(w) !== createdId)];
-          this.workspaceState.setActiveWorkspaceId(createdId);
+          this.companyState.setActiveCompanyId(createdId);
           if (!this.defaultWorkspaceId && createdId) {
-            this.workspaceState.setDefaultWorkspaceId(createdId);
+            this.companyState.setDefaultCompanyId(createdId);
           }
           this.createDialogOpen = false;
           this.createForm.reset();
           this.loadWorkspaces();
           if (createdId) {
-            this.router.navigateByUrl(`/workspaces/${createdId}/setup`);
+            this.router.navigateByUrl(`/company/${createdId}/setup`);
           }
         }
         this.submittingCreate = false;
@@ -134,7 +159,7 @@ export class WorkspaceSelectPageComponent implements OnInit {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'No se pudo crear el workspace.',
+          detail: 'No se pudo crear la compania.',
         });
       },
     });
@@ -157,7 +182,7 @@ export class WorkspaceSelectPageComponent implements OnInit {
           const exists = this.workspaces.some((workspace) => this.getWorkspaceId(workspace) === id);
           this.workspaces = exists ? this.workspaces : [result, ...this.workspaces];
           if (!this.defaultWorkspaceId && id) {
-            this.workspaceState.setDefaultWorkspaceId(id);
+            this.companyState.setDefaultCompanyId(id);
           }
           this.joinDialogOpen = false;
           this.joinForm.reset();
@@ -170,7 +195,7 @@ export class WorkspaceSelectPageComponent implements OnInit {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'No se pudo unir al workspace con ese codigo.',
+          detail: 'No se pudo unir a la compania con ese codigo.',
         });
       },
     });
@@ -188,7 +213,7 @@ export class WorkspaceSelectPageComponent implements OnInit {
         const user = response.result ?? null;
         if (user) {
           this.tokenStorage.setUser(user);
-          this.workspaceState.syncFromUser(user);
+          this.companyState.syncFromUser(user);
         }
         this.submittingDefault = '';
       },
@@ -197,7 +222,7 @@ export class WorkspaceSelectPageComponent implements OnInit {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'No se pudo actualizar el workspace por defecto.',
+          detail: 'No se pudo actualizar la compania por defecto.',
         });
       },
     });
@@ -209,8 +234,8 @@ export class WorkspaceSelectPageComponent implements OnInit {
       return;
     }
 
-    this.workspaceState.setActiveWorkspaceId(workspaceId);
-    this.router.navigateByUrl(`/workspace/${workspaceId}/dashboard`);
+    this.companyState.setActiveCompanyId(workspaceId);
+    this.router.navigateByUrl(`/company/${workspaceId}/dashboard`);
   }
 
   isDefault(workspace: Workspace): boolean {
@@ -223,5 +248,28 @@ export class WorkspaceSelectPageComponent implements OnInit {
 
   private getWorkspaceId(workspace: Workspace | null | undefined): string | null {
     return workspace?.id ?? workspace?._id ?? null;
+  }
+
+  private loadOrganizations(): void {
+    this.organizationsApi.list().subscribe({
+      next: ({ result }) => {
+        this.organizationOptions = (result ?? []).map((org) => ({
+          label: org.name,
+          value: org.id ?? '',
+        }));
+        const first = this.organizationOptions[0]?.value ?? '';
+        if (first && !this.createForm.controls.organizationId.value) {
+          this.createForm.controls.organizationId.setValue(first);
+        }
+      },
+      error: () => {
+        this.organizationOptions = [];
+        this.messageService.add({
+          severity: 'warn',
+          summary: 'Organizaciones',
+          detail: 'No se pudieron cargar las organizaciones.',
+        });
+      },
+    });
   }
 }

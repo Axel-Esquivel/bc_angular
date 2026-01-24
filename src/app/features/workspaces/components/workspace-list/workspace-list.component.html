@@ -1,4 +1,4 @@
-<p-card header="Mis workspaces">
+﻿<p-card header="Mis companias">
   <div class="list__actions">
     <p-button label="Recargar" severity="secondary" [loading]="loading" (onClick)="refresh.emit()"></p-button>
   </div>
@@ -8,7 +8,7 @@
       <ng-template pTemplate="header">
         <tr>
           <th>Nombre</th>
-          <th>Descripción</th>
+          <th>DescripciÃ³n</th>
           <th style="width: 1%"></th>
         </tr>
       </ng-template>
@@ -16,7 +16,7 @@
       <ng-template pTemplate="body" let-workspace>
         <tr>
           <td>{{ workspace.name }}</td>
-          <td>{{ workspace.description || '—' }}</td>
+          <td>{{ workspace.description || 'â€”' }}</td>
           <td class="list__actions-cell">
             <p-button
               label="Ingresar"
@@ -30,7 +30,7 @@
 
       <ng-template pTemplate="emptymessage">
         <tr>
-          <td colspan="3">No hay workspaces disponibles.</td>
+          <td colspan="3">No hay companias disponibles.</td>
         </tr>
       </ng-template>
     </p-table>
@@ -39,9 +39,10 @@
   <ng-template #unavailableBlock>
     <div class="list__placeholder">
       <p>
-        El listado de workspaces depende del endpoint <code>GET /workspaces</code>, que aún no está disponible en el backend.
+        El listado de companias depende del endpoint <code>GET /companies</code>, que aÃºn no estÃ¡ disponible en el backend.
       </p>
       <p-button label="Reintentar" severity="info" [loading]="loading" (onClick)="refresh.emit()"></p-button>
     </div>
   </ng-template>
 </p-card>
+
