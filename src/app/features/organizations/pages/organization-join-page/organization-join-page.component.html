@@ -1,0 +1,16 @@
+<p-toast></p-toast>
+
+<section class="org-join">
+  <p-card header="Unirse a organizacion">
+    <form class="form" (ngSubmit)="submit()">
+      <div class="form-field">
+        <label>Codigo o email</label>
+        <input pInputText formControlName="selector" placeholder="ABCD-1234 o correo@dominio.com" [formGroup]="form" />
+      </div>
+      <div class="actions">
+        <p-button type="button" label="Cancelar" severity="secondary" (onClick)="cancel()"></p-button>
+        <p-button type="submit" label="Enviar solicitud" [disabled]="submitting"></p-button>
+      </div>
+    </form>
+  </p-card>
+</section>

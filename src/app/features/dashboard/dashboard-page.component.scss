@@ -34,6 +34,21 @@
   gap: 0.5rem;
 }
 
+.pending-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  color: var(--text-color-secondary);
+}
+
+.pending-list span {
+  background: var(--surface-0);
+  border: 1px solid var(--surface-border);
+  border-radius: 999px;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.85rem;
+}
+
 .pending-link {
   display: flex;
   align-items: center;

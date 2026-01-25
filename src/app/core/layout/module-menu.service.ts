@@ -1,13 +1,17 @@
 import { Injectable, inject } from '@angular/core';
-import { Observable, catchError, map, of, shareReplay } from 'rxjs';
+import { Observable, catchError, combineLatest, map, of, shareReplay } from 'rxjs';
 import { MenuItem } from 'primeng/api';
 
 import { ModulesApiService } from '../api/modules-api.service';
+import { DashboardApiService } from '../api/dashboard-api.service';
+import { CompanyStateService } from '../company/company-state.service';
 import { ModuleInfo } from '../../shared/models/module.model';
 
 @Injectable({ providedIn: 'root' })
 export class ModuleMenuService {
   private readonly modulesApi = inject(ModulesApiService);
+  private readonly dashboardApi = inject(DashboardApiService);
+  private readonly companyState = inject(CompanyStateService);
 
   private readonly moduleRouteMap: Record<string, string> = {
     dashboard: '/dashboard',
@@ -17,13 +21,19 @@ export class ModuleMenuService {
   };
 
   getMenuItems(): Observable<MenuItem[]> {
-    return this.modulesApi.getModules().pipe(
-      map((response) => {
+    const companyId = this.companyState.getActiveCompanyId() ?? undefined;
+    const overview$ = this.dashboardApi.getOverview({ companyId }).pipe(
+      map((response) => response.result ?? null),
+      catchError(() => of(null))
+    );
+
+    return combineLatest([this.modulesApi.getModules(), overview$]).pipe(
+      map(([response, overview]) => {
         const modules = response.result ?? [];
         const moduleItems = modules.filter((module) => module.enabled).map((module) => this.toMenuItem(module));
-        return this.buildMenu(moduleItems);
+        return this.buildMenu(moduleItems, overview?.currentOrgRoleKey === 'owner', overview?.currentOrgId ?? null, companyId);
       }),
-      catchError(() => of(this.buildMenu([]))),
+      catchError(() => of(this.buildMenu([], false, null, companyId))),
       shareReplay(1)
     );
   }
@@ -35,11 +45,36 @@ export class ModuleMenuService {
     };
   }
 
-  private buildMenu(moduleItems: MenuItem[]): MenuItem[] {
+  private buildMenu(
+    moduleItems: MenuItem[],
+    isOwner: boolean,
+    organizationId: string | null,
+    companyId?: string,
+  ): MenuItem[] {
+    const configItems: MenuItem[] = [];
+    if (isOwner) {
+      configItems.push({ label: 'Organizacion', routerLink: '/organizations' });
+      const setupItem: MenuItem = { label: 'Instalacion de modulos', routerLink: '/setup/modules' };
+      if (organizationId) {
+        setupItem.queryParams = companyId ? { orgId: organizationId, companyId } : { orgId: organizationId };
+      }
+      configItems.push(setupItem);
+      if (companyId) {
+        configItems.push({
+          label: 'Configuracion de modulos',
+          routerLink: ['/company', companyId, 'settings/modules'],
+        });
+      }
+      configItems.push({
+        label: 'Catalogos',
+        items: [{ label: 'Paises', routerLink: '/settings/countries' }],
+      });
+    }
+
     return [
       { label: 'Dashboard', routerLink: '/dashboard' },
       ...moduleItems,
-      { label: 'Configuración', items: [{ label: 'Módulos', routerLink: '/settings/modules' }] },
+      ...(configItems.length > 0 ? [{ label: 'Configuracion', items: configItems }] : []),
     ];
   }
 

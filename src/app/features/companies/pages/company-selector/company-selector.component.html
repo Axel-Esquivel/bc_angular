@@ -1,44 +1,141 @@
 <p-toast></p-toast>
 
+<p-toast></p-toast>
+
 <div class="company-selector">
+  <div class="page-header">
+    <div>
+      <h1>Selecciona Organization y Compania</h1>
+      <div class="breadcrumbs">Organization &gt; Compania</div>
+    </div>
+    <p-button label="Volver" icon="pi pi-arrow-left" [text]="true" (onClick)="goBack()"></p-button>
+  </div>
+
   <p-card>
-    <ng-template pTemplate="title">Seleccionar compania</ng-template>
-    <ng-template pTemplate="subtitle">Elige una organizacion y luego una compania.</ng-template>
+    <ng-template pTemplate="title">Selector</ng-template>
+    <ng-template pTemplate="subtitle">Crea o selecciona la organizacion y la compania.</ng-template>
     <div class="selector-grid">
       <div class="field">
         <label>Organizacion</label>
         <p-select
-          [options]="organizationOptions"
-          [(ngModel)]="selectedOrganizationId"
-          (onChange)="onOrganizationChange()"
+          [options]="organizations"
+          [(ngModel)]="selectedOrganization"
+          optionLabel="name"
+          [showClear]="true"
           placeholder="Seleccionar"
-         appendTo="body"></p-select>
+          appendTo="body"
+          (onChange)="onOrganizationChange()"
+        >
+          <ng-template pTemplate="selectedItem" let-org>
+            <div class="option-item" *ngIf="org">
+              <div class="option-title">{{ org.name }}</div>
+              <small class="option-meta" *ngIf="org.code">{{ org.code }}</small>
+            </div>
+            <span *ngIf="!org">Seleccionar</span>
+          </ng-template>
+          <ng-template pTemplate="item" let-org>
+            <div class="option-item">
+              <div class="option-title">{{ org.name }}</div>
+              <small class="option-meta" *ngIf="org.code">{{ org.code }}</small>
+            </div>
+          </ng-template>
+          <ng-template pTemplate="footer">
+            <div class="select-footer">
+              <p-button
+                label="Crear organizacion"
+                icon="pi pi-plus"
+                [text]="true"
+                severity="secondary"
+                (onClick)="openCreateOrganizationDialog()"
+              ></p-button>
+            </div>
+          </ng-template>
+        </p-select>
       </div>
       <div class="field">
         <label>Compania</label>
         <p-select
-          [options]="companyOptions"
-          [(ngModel)]="selectedCompanyId"
+          [options]="companies"
+          [(ngModel)]="selectedCompany"
+          optionLabel="name"
+          [showClear]="true"
           placeholder="Seleccionar"
-         appendTo="body"></p-select>
+          appendTo="body"
+          [disabled]="!selectedOrganization"
+        >
+          <ng-template pTemplate="selectedItem" let-company>
+            <div class="option-item" *ngIf="company">
+              <div class="option-title">{{ company.name }}</div>
+              <small class="option-meta" *ngIf="company.legalName">{{ company.legalName }}</small>
+            </div>
+            <span *ngIf="!company">Seleccionar</span>
+          </ng-template>
+          <ng-template pTemplate="item" let-company>
+            <div class="option-item">
+              <div class="option-title">{{ company.name }}</div>
+              <small class="option-meta" *ngIf="company.legalName">{{ company.legalName }}</small>
+            </div>
+          </ng-template>
+          <ng-template pTemplate="footer">
+            <div class="select-footer">
+              <p-button
+                label="Crear compania"
+                icon="pi pi-plus"
+                [text]="true"
+                severity="secondary"
+                [disabled]="!selectedOrganization"
+                (onClick)="openCreateCompanyDialog()"
+              ></p-button>
+            </div>
+          </ng-template>
+        </p-select>
       </div>
     </div>
     <div class="actions">
-      <p-button label="Ir a organizaciones" [text]="true" (onClick)="goToOrganizations()"></p-button>
-      <p-button label="Crear compania" [outlined]="true" (onClick)="goToCompanies()"></p-button>
-      <p-button label="Continuar" icon="pi pi-arrow-right" (onClick)="selectCompany()"></p-button>
+      <p-button
+        label="Continuar"
+        icon="pi pi-arrow-right"
+        [disabled]="!selectedCompany?.id"
+        (onClick)="selectCompany()"
+      ></p-button>
     </div>
   </p-card>
-
-  <p-card *ngIf="organizations.length === 0">
-    <ng-template pTemplate="title">Sin organizaciones</ng-template>
-    <p>Crea un grupo para empezar.</p>
-    <p-button label="Crear grupo" icon="pi pi-plus" (onClick)="goToOrganizations()"></p-button>
-  </p-card>
-
-  <p-card *ngIf="organizations.length > 0 && companies.length === 0">
-    <ng-template pTemplate="title">Sin companias</ng-template>
-    <p>Esta organizacion no tiene companias. Crea una para continuar.</p>
-    <p-button label="Crear compania" icon="pi pi-plus" (onClick)="goToCompanies()"></p-button>
-  </p-card>
 </div>
+
+<p-dialog header="Crear organizacion" [(visible)]="createOrganizationDialogOpen" [modal]="true" [style]="{ width: '420px' }">
+  <form [formGroup]="createOrganizationForm" class="dialog-form">
+    <label>Nombre</label>
+    <input pInputText formControlName="name" />
+  </form>
+  <ng-template pTemplate="footer">
+    <p-button label="Cancelar" [text]="true" (onClick)="createOrganizationDialogOpen=false"></p-button>
+    <p-button label="Crear" icon="pi pi-check" (onClick)="createOrganization()"></p-button>
+  </ng-template>
+</p-dialog>
+
+<p-dialog header="Crear compania" [(visible)]="createCompanyDialogOpen" [modal]="true" [style]="{ width: '520px' }">
+  <form [formGroup]="createCompanyForm" class="dialog-form">
+    <label>Nombre</label>
+    <input pInputText formControlName="name" />
+
+    <label>Pais base</label>
+    <p-select
+      [options]="countryOptions"
+      formControlName="baseCountryId"
+      placeholder="Seleccionar"
+      appendTo="body"
+    ></p-select>
+
+    <label>Moneda base</label>
+    <p-select
+      [options]="currencyOptions"
+      formControlName="baseCurrencyId"
+      placeholder="Seleccionar"
+      appendTo="body"
+    ></p-select>
+  </form>
+  <ng-template pTemplate="footer">
+    <p-button label="Cancelar" [text]="true" (onClick)="createCompanyDialogOpen=false"></p-button>
+    <p-button label="Crear" icon="pi pi-check" (onClick)="createCompany()"></p-button>
+  </ng-template>
+</p-dialog>

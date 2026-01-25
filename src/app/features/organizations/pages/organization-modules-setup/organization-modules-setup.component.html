@@ -1,0 +1,35 @@
+<p-toast></p-toast>
+
+<div class="setup">
+  <div class="setup-header">
+    <h2>Configurar modulos</h2>
+  </div>
+
+  <p-card>
+    <div class="modules-grid" *ngIf="modules.length > 0; else emptyState">
+      <div class="module-card" *ngFor="let module of modules">
+        <div class="module-head">
+          <h3>{{ module.name }}</h3>
+          <p-button
+            [label]="isEnabled(module.id) ? 'Activo' : 'Activar'"
+            [severity]="isEnabled(module.id) ? 'success' : 'secondary'"
+            (onClick)="toggleModule(module)"
+          ></p-button>
+        </div>
+        <p class="module-meta">Clave: {{ module.id }}</p>
+        <p class="module-meta">
+          Dependencias:
+          {{ (module.dependencies ?? []).join(', ') || 'Ninguna' }}
+        </p>
+      </div>
+    </div>
+
+    <ng-template #emptyState>
+      <div class="empty-state">No hay modulos disponibles.</div>
+    </ng-template>
+
+    <div class="footer-actions">
+      <p-button label="Guardar y continuar" [disabled]="submitting" (onClick)="save()"></p-button>
+    </div>
+  </p-card>
+</div>

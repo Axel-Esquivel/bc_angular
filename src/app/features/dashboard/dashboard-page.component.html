@@ -3,22 +3,23 @@
     <ng-template pTemplate="header">
       <div class="dashboard-header">
         <h2>Dashboard</h2>
-        <p-badge *ngIf="pendingModules.length > 0" value="Requiere configuración"></p-badge>
+        <p-badge *ngIf="isOwner && pendingModules.length > 0" value="Requiere configuracion"></p-badge>
       </div>
     </ng-template>
 
-    <div *ngIf="pendingModules.length > 0" class="pending-banner">
-      <div class="pending-text">
-        Algunos módulos requieren configuración antes de usarlos.
-      </div>
+    <div *ngIf="isOwner && pendingModules.length > 0" class="pending-banner">
+      <div class="pending-text">Algunos modulos requieren configuracion antes de usarlos.</div>
       <div class="pending-actions">
+        <div class="pending-list">
+          <span *ngFor="let module of pendingModules">{{ module.name }}</span>
+        </div>
         <a
-          *ngFor="let module of pendingModules"
+          *ngIf="setupQueryParams"
           class="pending-link"
-          [routerLink]="['/company', workspaceId, 'settings', module.key]"
+          [routerLink]="['/setup/modules']"
+          [queryParams]="setupQueryParams"
         >
-          <span>{{ module.name }}</span>
-          <p-button label="Configurar" size="small"></p-button>
+          <p-button label="Ir a configuracion" size="small"></p-button>
         </a>
       </div>
     </div>

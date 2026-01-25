@@ -1,4 +1,5 @@
 <p-toast></p-toast>
+<p-confirmDialog></p-confirmDialog>
 
 <div class="workspace-setup">
   <p-card>
@@ -55,108 +56,224 @@
             inputId="coreCountry"
             [options]="countryOptions"
             optionLabel="label"
-            optionValue="value"
-            [(ngModel)]="coreSettings.countryId"
+            optionValue="id"
+            filter
             appendTo="body"
-          ></p-select>
+            [(ngModel)]="coreSettings.countryId"
+          >
+            <ng-template pTemplate="selectedItem" let-value>
+              <span>{{ getCountryLabelById(value) || 'Seleccionar' }}</span>
+            </ng-template>
+            <ng-template pTemplate="item" let-country>
+              <div class="select-item">
+                <span class="select-title">{{ country.label }}</span>
+                <small class="select-meta">{{ country.code }}</small>
+              </div>
+            </ng-template>
+            <ng-template pTemplate="footer">
+              <div class="select-footer">
+                <p-button
+                  label="Agregar pais"
+                  icon="pi pi-plus"
+                  [text]="true"
+                  severity="secondary"
+                  (onClick)="openCreateCountryDialog()"
+                ></p-button>
+              </div>
+            </ng-template>
+          </p-select>
         </div>
         <div class="form-field">
           <label for="coreCurrency">Moneda base</label>
           <p-select
             inputId="coreCurrency"
-            [options]="currencySelectOptions"
+            [options]="currencyOptions"
             optionLabel="label"
-            optionValue="value"
-            [(ngModel)]="coreSettings.baseCurrencyId"
+            optionValue="id"
+            filter
             appendTo="body"
-          ></p-select>
+            [(ngModel)]="coreSettings.baseCurrencyId"
+            (onChange)="onBaseCurrencyChange()"
+          >
+            <ng-template pTemplate="selectedItem" let-value>
+              <span>{{ getCurrencyLabelById(value) || 'Seleccionar' }}</span>
+            </ng-template>
+            <ng-template pTemplate="item" let-currency>
+              <div class="select-item">
+                <span class="select-title">{{ currency.label }}</span>
+                <small class="select-meta">{{ currency.code }}</small>
+              </div>
+            </ng-template>
+            <ng-template pTemplate="footer">
+              <div class="select-footer">
+                <p-button
+                  label="Agregar moneda"
+                  icon="pi pi-plus"
+                  [text]="true"
+                  severity="secondary"
+                  (onClick)="openCreateCurrencyDialog()"
+                ></p-button>
+              </div>
+            </ng-template>
+          </p-select>
+        </div>
+        <div class="form-field">
+          <label for="coreCurrencies">Monedas disponibles</label>
+          <p-multiSelect
+            inputId="coreCurrencies"
+            [options]="currencyOptions"
+            optionLabel="label"
+            optionValue="id"
+            filter
+            display="chip"
+            appendTo="body"
+            [(ngModel)]="coreSettings.currencyIds"
+            (onChange)="onCurrencyIdsChange()"
+          >
+            <ng-template pTemplate="item" let-currency>
+              <div class="select-item">
+                <span class="select-title">{{ currency.label }}</span>
+                <small class="select-meta">{{ currency.code }}</small>
+              </div>
+            </ng-template>
+            <ng-template pTemplate="footer">
+              <div class="select-footer">
+                <p-button
+                  label="Agregar moneda"
+                  icon="pi pi-plus"
+                  [text]="true"
+                  severity="secondary"
+                  (onClick)="openCreateCurrencyDialog()"
+                ></p-button>
+              </div>
+            </ng-template>
+          </p-multiSelect>
         </div>
       </div>
 
       <div class="list-editor">
-        <h3>Monedas</h3>
+        <div class="list-header">
+          <h3>Empresas</h3>
+          <span class="hint">Agrega las empresas internas para organizar sucursales.</span>
+        </div>
         <div class="list-form">
-          <input pInputText placeholder="Id" [(ngModel)]="draftCurrency.id" />
-          <input pInputText placeholder="Codigo" [(ngModel)]="draftCurrency.code" />
-          <input pInputText placeholder="Nombre" [(ngModel)]="draftCurrency.name" />
-          <p-button label="Agregar" (onClick)="addCurrency()"></p-button>
+          <input pInputText placeholder="Nombre de la empresa" [(ngModel)]="draftCompanyName" />
+          <p-button label="Agregar" icon="pi pi-plus" (onClick)="addCompany()"></p-button>
         </div>
-        <div class="list-items" *ngIf="coreSettings.currencies.length > 0; else emptyCurrencies">
-          <div class="list-item" *ngFor="let item of coreSettings.currencies">
-            <span>{{ item.id }} - {{ item.code || item.name || 'Sin nombre' }}</span>
-            <p-button label="Quitar" severity="secondary" (onClick)="removeCurrency(item.id)"></p-button>
-          </div>
-        </div>
-        <ng-template #emptyCurrencies>
-          <div class="empty-state">No hay monedas cargadas.</div>
-        </ng-template>
-      </div>
-
-      <div class="list-editor">
-        <h3>Empresas</h3>
-        <div class="list-form">
-          <input pInputText placeholder="Id" [(ngModel)]="draftCompany.id" />
-          <input pInputText placeholder="Nombre" [(ngModel)]="draftCompany.name" />
-          <p-button label="Agregar" (onClick)="addCompany()"></p-button>
-        </div>
-        <div class="list-items" *ngIf="coreSettings.companies.length > 0; else emptyCompanies">
-          <div class="list-item" *ngFor="let item of coreSettings.companies">
-            <span>{{ item.id }} - {{ item.name || 'Sin nombre' }}</span>
-            <p-button label="Quitar" severity="secondary" (onClick)="removeCompany(item.id)"></p-button>
-          </div>
-        </div>
+        <p-table *ngIf="coreSettings.companies.length > 0; else emptyCompanies" [value]="coreSettings.companies">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Nombre</th>
+              <th class="actions-col"></th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-company>
+            <tr>
+              <td>{{ company.name }}</td>
+              <td class="actions-col">
+                <p-button
+                  icon="pi pi-trash"
+                  [text]="true"
+                  severity="danger"
+                  ariaLabel="Eliminar empresa"
+                  (onClick)="confirmRemoveCompany(company.id)"
+                ></p-button>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
         <ng-template #emptyCompanies>
           <div class="empty-state">No hay empresas cargadas.</div>
         </ng-template>
       </div>
 
       <div class="list-editor">
-        <h3>Sucursales</h3>
+        <div class="list-header">
+          <h3>Sucursales</h3>
+          <span class="hint">Relaciona sucursales con su empresa.</span>
+        </div>
         <div class="list-form">
-          <input pInputText placeholder="Id" [(ngModel)]="draftBranch.id" />
           <p-select
-            [options]="companyOptions"
-            optionLabel="label"
-            optionValue="value"
+            [options]="coreSettings.companies"
+            optionLabel="name"
+            optionValue="id"
             placeholder="Empresa"
-            [(ngModel)]="draftBranch.companyId"
             appendTo="body"
+            [(ngModel)]="draftBranchCompanyId"
           ></p-select>
-          <input pInputText placeholder="Nombre" [(ngModel)]="draftBranch.name" />
-          <p-button label="Agregar" (onClick)="addBranch()"></p-button>
+          <input pInputText placeholder="Nombre de la sucursal" [(ngModel)]="draftBranchName" />
+          <p-button label="Agregar" icon="pi pi-plus" (onClick)="addBranch()"></p-button>
         </div>
-        <div class="list-items" *ngIf="coreSettings.branches.length > 0; else emptyBranches">
-          <div class="list-item" *ngFor="let item of coreSettings.branches">
-            <span>{{ item.id }} - {{ item.name || 'Sin nombre' }} ({{ item.companyId }})</span>
-            <p-button label="Quitar" severity="secondary" (onClick)="removeBranch(item.id)"></p-button>
-          </div>
-        </div>
+        <p-table *ngIf="coreSettings.branches.length > 0; else emptyBranches" [value]="coreSettings.branches">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Sucursal</th>
+              <th>Empresa</th>
+              <th class="actions-col"></th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-branch>
+            <tr>
+              <td>{{ branch.name }}</td>
+              <td>{{ getCompanyName(branch.companyId) }}</td>
+              <td class="actions-col">
+                <p-button
+                  icon="pi pi-trash"
+                  [text]="true"
+                  severity="danger"
+                  ariaLabel="Eliminar sucursal"
+                  (onClick)="confirmRemoveBranch(branch.id)"
+                ></p-button>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
         <ng-template #emptyBranches>
           <div class="empty-state">No hay sucursales cargadas.</div>
         </ng-template>
       </div>
 
       <div class="list-editor">
-        <h3>Bodegas</h3>
+        <div class="list-header">
+          <h3>Bodegas</h3>
+          <span class="hint">Relaciona bodegas con sus sucursales.</span>
+        </div>
         <div class="list-form">
-          <input pInputText placeholder="Id" [(ngModel)]="draftWarehouse.id" />
           <p-select
-            [options]="branchOptions"
-            optionLabel="label"
-            optionValue="value"
+            [options]="coreSettings.branches"
+            optionLabel="name"
+            optionValue="id"
             placeholder="Sucursal"
-            [(ngModel)]="draftWarehouse.branchId"
             appendTo="body"
+            [(ngModel)]="draftWarehouseBranchId"
           ></p-select>
-          <input pInputText placeholder="Nombre" [(ngModel)]="draftWarehouse.name" />
-          <p-button label="Agregar" (onClick)="addWarehouse()"></p-button>
+          <input pInputText placeholder="Nombre de la bodega" [(ngModel)]="draftWarehouseName" />
+          <p-button label="Agregar" icon="pi pi-plus" (onClick)="addWarehouse()"></p-button>
         </div>
-        <div class="list-items" *ngIf="coreSettings.warehouses.length > 0; else emptyWarehouses">
-          <div class="list-item" *ngFor="let item of coreSettings.warehouses">
-            <span>{{ item.id }} - {{ item.name || 'Sin nombre' }} ({{ item.branchId }})</span>
-            <p-button label="Quitar" severity="secondary" (onClick)="removeWarehouse(item.id)"></p-button>
-          </div>
-        </div>
+        <p-table *ngIf="coreSettings.warehouses.length > 0; else emptyWarehouses" [value]="coreSettings.warehouses">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Bodega</th>
+              <th>Sucursal</th>
+              <th class="actions-col"></th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-warehouse>
+            <tr>
+              <td>{{ warehouse.name }}</td>
+              <td>{{ getBranchName(warehouse.branchId) }}</td>
+              <td class="actions-col">
+                <p-button
+                  icon="pi pi-trash"
+                  [text]="true"
+                  severity="danger"
+                  ariaLabel="Eliminar bodega"
+                  (onClick)="confirmRemoveWarehouse(warehouse.id)"
+                ></p-button>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
         <ng-template #emptyWarehouses>
           <div class="empty-state">No hay bodegas cargadas.</div>
         </ng-template>
@@ -180,3 +297,55 @@
     </section>
   </p-card>
 </div>
+
+<p-dialog
+  header="Agregar pais"
+  [(visible)]="countryDialogOpen"
+  [modal]="true"
+  [closable]="true"
+  [draggable]="false"
+  [style]="{ width: '420px' }"
+>
+  <div class="dialog-grid">
+    <div class="form-field">
+      <label>Codigo</label>
+      <input pInputText placeholder="GT" [(ngModel)]="draftCountry.code" />
+    </div>
+    <div class="form-field">
+      <label>Nombre</label>
+      <input pInputText placeholder="Guatemala" [(ngModel)]="draftCountry.name" />
+    </div>
+  </div>
+  <ng-template pTemplate="footer">
+    <p-button label="Cancelar" severity="secondary" (onClick)="countryDialogOpen = false"></p-button>
+    <p-button label="Guardar" [disabled]="savingCountry" (onClick)="saveCountry()"></p-button>
+  </ng-template>
+</p-dialog>
+
+<p-dialog
+  header="Agregar moneda"
+  [(visible)]="currencyDialogOpen"
+  [modal]="true"
+  [closable]="true"
+  [draggable]="false"
+  [style]="{ width: '420px' }"
+>
+  <div class="dialog-grid">
+    <div class="form-field">
+      <label>Codigo</label>
+      <input pInputText placeholder="USD" [(ngModel)]="draftCurrency.code" />
+    </div>
+    <div class="form-field">
+      <label>Nombre</label>
+      <input pInputText placeholder="Dolar" [(ngModel)]="draftCurrency.name" />
+    </div>
+    <div class="form-field">
+      <label>Simbolo</label>
+      <input pInputText placeholder="$" [(ngModel)]="draftCurrency.symbol" />
+    </div>
+  </div>
+  <ng-template pTemplate="footer">
+    <p-button label="Cancelar" severity="secondary" (onClick)="currencyDialogOpen = false"></p-button>
+    <p-button label="Guardar" [disabled]="savingCurrency" (onClick)="saveCurrency()"></p-button>
+  </ng-template>
+</p-dialog>

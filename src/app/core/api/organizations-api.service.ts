@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 
 import { APP_CONFIG_TOKEN, AppConfig } from '../config/app-config';
 import { ApiResponse } from '../../shared/models/api-response.model';
-import { IOrganization, IOrganizationOverview, IOrganizationRole } from '../../shared/models/organization.model';
+import { IOrganization, IOrganizationMembership, IOrganizationOverview, IOrganizationRole } from '../../shared/models/organization.model';
 import { Workspace } from '../../shared/models/workspace.model';
 
 @Injectable({ providedIn: 'root' })
@@ -19,12 +19,42 @@ export class OrganizationsService {
     return this.http.get<ApiResponse<IOrganization[]>>(this.baseUrl);
   }
 
+  listMemberships(): Observable<ApiResponse<IOrganizationMembership[]>> {
+    return this.http.get<ApiResponse<IOrganizationMembership[]>>(`${this.baseUrl}/memberships`);
+  }
+
   getById(id: string): Observable<ApiResponse<IOrganization>> {
     return this.http.get<ApiResponse<IOrganization>>(`${this.baseUrl}/${id}`);
   }
 
   create(payload: { name: string }): Observable<ApiResponse<IOrganization>> {
     return this.http.post<ApiResponse<IOrganization>>(this.baseUrl, payload);
+  }
+
+  bootstrap(payload: {
+    name: string;
+    currencyIds: string[];
+    countryIds: string[];
+    companies: Array<{
+      name: string;
+      countryId: string;
+      baseCurrencyId?: string;
+      currencyIds?: string[];
+      branches?: Array<{ name: string; tempKey?: string; countryId?: string; type?: 'retail' | 'wholesale' }>;
+      warehouses?: Array<{ name: string; branchId?: string; branchTempKey?: string; type?: string }>;
+    }>;
+  }): Observable<ApiResponse<{
+    organization: IOrganization;
+    companies: Array<{ id: string; name: string }>;
+    branches: Array<{ id: string; name: string; companyId: string }>;
+    warehouses: Array<{ id: string; name: string; companyId: string; branchId: string }>;
+  }>> {
+    return this.http.post<ApiResponse<{
+      organization: IOrganization;
+      companies: Array<{ id: string; name: string }>;
+      branches: Array<{ id: string; name: string; companyId: string }>;
+      warehouses: Array<{ id: string; name: string; companyId: string; branchId: string }>;
+    }>>(`${this.baseUrl}/bootstrap`, payload);
   }
 
   addMember(
@@ -39,6 +69,10 @@ export class OrganizationsService {
 
   requestJoin(organizationId: string, payload: { roleKey?: string }): Observable<ApiResponse<IOrganization>> {
     return this.http.post<ApiResponse<IOrganization>>(`${this.baseUrl}/${organizationId}/join`, payload);
+  }
+
+  requestJoinByCode(payload: { code?: string; email?: string; organizationId?: string; roleKey?: string }): Observable<ApiResponse<IOrganization>> {
+    return this.http.post<ApiResponse<IOrganization>>(`${this.baseUrl}/join`, payload);
   }
 
   acceptMember(organizationId: string, userId: string): Observable<ApiResponse<IOrganization>> {
@@ -82,6 +116,26 @@ export class OrganizationsService {
 
   listRoles(id: string): Observable<ApiResponse<IOrganizationRole[]>> {
     return this.http.get<ApiResponse<IOrganizationRole[]>>(`${this.baseUrl}/${id}/roles`);
+  }
+
+  getModules(id: string): Observable<ApiResponse<{
+    enabledModules: string[];
+    moduleStates: Record<string, string>;
+  }>> {
+    return this.http.get<ApiResponse<{
+      enabledModules: string[];
+      moduleStates: Record<string, string>;
+    }>>(`${this.baseUrl}/${id}/modules`);
+  }
+
+  updateModules(id: string, payload: { enabledModules: string[] }): Observable<ApiResponse<{
+    enabledModules: string[];
+    moduleStates: Record<string, string>;
+  }>> {
+    return this.http.patch<ApiResponse<{
+      enabledModules: string[];
+      moduleStates: Record<string, string>;
+    }>>(`${this.baseUrl}/${id}/modules`, payload);
   }
 
   createRole(

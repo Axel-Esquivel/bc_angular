@@ -30,3 +30,12 @@ export interface WorkspaceListResult {
   workspaces: Workspace[];
   defaultWorkspaceId?: string;
 }
+
+export interface IWorkspaceCoreSettings {
+  countryId?: string;
+  baseCurrencyId?: string;
+  currencyIds: string[];
+  companies: Array<{ id: string; name: string }>;
+  branches: Array<{ id: string; companyId: string; name: string }>;
+  warehouses: Array<{ id: string; branchId: string; name: string; type?: string }>;
+}

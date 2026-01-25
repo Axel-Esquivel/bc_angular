@@ -3,6 +3,7 @@ import { Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { MessageService } from 'primeng/api';
+import { take } from 'rxjs';
 import { Button } from 'primeng/button';
 import { Card } from 'primeng/card';
 import { InputText } from 'primeng/inputtext';
@@ -57,7 +58,15 @@ export class RegisterPageComponent {
     };
 
     this.authService.register(payload).subscribe({
-      next: (user) => this.resolvePostRegister(user?.defaultWorkspaceId ?? null),
+      next: () => {
+        this.authService.loadMe().pipe(take(1)).subscribe((user) => {
+          if (user?.isFirstTime) {
+            this.router.navigateByUrl('/onboarding');
+            return;
+          }
+          this.resolvePostRegister(user?.defaultWorkspaceId ?? null);
+        });
+      },
       error: (error) => {
         const detail = error?.error?.message ?? 'No se pudo completar el registro.';
         this.messageService.add({ severity: 'error', summary: 'Error', detail });

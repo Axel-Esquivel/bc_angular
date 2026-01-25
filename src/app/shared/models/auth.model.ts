@@ -7,6 +7,7 @@ export interface AuthUser {
   defaultWorkspaceId?: string;
   displayName?: string;
   roles?: string[];
+  isFirstTime?: boolean;
 }
 
 export interface AuthTokens {
@@ -43,6 +44,7 @@ export interface RegisterResult {
 
 export interface MeResult {
   user: AuthUser;
+  isFirstTime?: boolean;
 }
 
 export interface RefreshRequest {

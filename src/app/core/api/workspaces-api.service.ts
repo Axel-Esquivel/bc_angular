@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 
 import { APP_CONFIG_TOKEN, AppConfig } from '../config/app-config';
 import { ApiResponse } from '../../shared/models/api-response.model';
-import { Workspace, WorkspaceListResult } from '../../shared/models/workspace.model';
+import { IWorkspaceCoreSettings, Workspace, WorkspaceListResult } from '../../shared/models/workspace.model';
 import { WorkspaceModulesOverview } from '../../shared/models/workspace-modules.model';
 import { AuthUser } from '../../shared/models/auth.model';
 
@@ -97,17 +97,17 @@ export class WorkspacesApiService {
     );
   }
 
-  getCoreSettings(workspaceId: string): Observable<ApiResponse<Record<string, any>>> {
-    return this.http.get<ApiResponse<Record<string, any>>>(
+  getCoreSettings(workspaceId: string): Observable<ApiResponse<IWorkspaceCoreSettings>> {
+    return this.http.get<ApiResponse<IWorkspaceCoreSettings>>(
       `${this.baseUrl}/${workspaceId}/settings/core`
     );
   }
 
   updateCoreSettings(
     workspaceId: string,
-    settings: Record<string, any>
-  ): Observable<ApiResponse<Record<string, any>>> {
-    return this.http.patch<ApiResponse<Record<string, any>>>(
+    settings: IWorkspaceCoreSettings
+  ): Observable<ApiResponse<IWorkspaceCoreSettings>> {
+    return this.http.patch<ApiResponse<IWorkspaceCoreSettings>>(
       `${this.baseUrl}/${workspaceId}/settings/core`,
       settings
     );

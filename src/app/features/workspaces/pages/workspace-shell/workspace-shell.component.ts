@@ -91,7 +91,7 @@ export class WorkspaceShellComponent implements OnInit, OnDestroy {
   }
 
   canManageModules(): boolean {
-    return this.userRole === 'admin';
+    return this.userRole === 'owner';
   }
 
   private loadModules(workspaceId: string): void {
@@ -130,8 +130,8 @@ export class WorkspaceShellComponent implements OnInit, OnDestroy {
       const setupCompleted = this.companyState.getActiveCompanySetupCompleted() !== false;
       if (!setupCompleted) {
         return [
-          { label: 'Setup', routerLink: ['/company', this.workspaceId, 'setup'] },
-          { label: 'Companies', routerLink: ['/companies/select'] },
+          { label: 'Configuracion', routerLink: ['/company', this.workspaceId, 'setup'] },
+          { label: 'Organizaciones', routerLink: ['/companies/select'] },
         ];
       }
 
@@ -159,7 +159,7 @@ export class WorkspaceShellComponent implements OnInit, OnDestroy {
         }
       });
 
-      if (this.userRole === 'admin') {
+      if (this.userRole === 'owner') {
         settingsItems.push({ label: 'Core Settings', routerLink: ['/company', this.workspaceId, 'settings/core'] });
         settingsItems.push({ label: 'Branches', routerLink: ['/company', this.workspaceId, 'settings/branches'] });
         settingsItems.push({ label: 'Warehouses', routerLink: ['/company', this.workspaceId, 'settings/warehouses'] });
@@ -174,6 +174,6 @@ export class WorkspaceShellComponent implements OnInit, OnDestroy {
       return items;
     }
 
-    return [{ label: 'Companies', routerLink: ['/companies/select'] }];
+    return [{ label: 'Organizaciones', routerLink: ['/companies/select'] }];
   }
 }

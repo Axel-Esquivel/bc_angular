@@ -65,24 +65,31 @@ export class LoginPageComponent {
       )
       .subscribe({
         next: () => {
-          this.workspacesApi
-            .listMine()
-            .pipe(take(1))
-            .subscribe((response) => {
-              const workspaces = response.result?.workspaces ?? [];
-              if (workspaces.length === 0) {
+          this.authService.loadMe().pipe(take(1)).subscribe((user) => {
+            if (user?.isFirstTime) {
+              this.router.navigateByUrl('/onboarding');
+              return;
+            }
+
+            this.workspacesApi
+              .listMine()
+              .pipe(take(1))
+              .subscribe((response) => {
+                const workspaces = response.result?.workspaces ?? [];
+                if (workspaces.length === 0) {
+                  this.router.navigateByUrl('/companies/select');
+                  return;
+                }
+
+                const defaultId = response.result?.defaultWorkspaceId ?? null;
+                if (defaultId) {
+                  this.router.navigateByUrl(`/company/${defaultId}/dashboard`);
+                  return;
+                }
+
                 this.router.navigateByUrl('/companies/select');
-                return;
-              }
-
-              const defaultId = response.result?.defaultWorkspaceId ?? null;
-              if (defaultId) {
-                this.router.navigateByUrl(`/company/${defaultId}/dashboard`);
-                return;
-              }
-
-              this.router.navigateByUrl('/companies/select');
-            });
+              });
+          });
         },
         error: (error) => {
           const detail = error?.error?.message ?? 'No se pudo iniciar sesion.';

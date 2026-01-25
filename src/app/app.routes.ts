@@ -5,24 +5,22 @@ import { RegisterPageComponent } from './features/auth/register-page/register-pa
 import { AuthGuard } from './core/auth/auth.guard';
 import { WorkspaceShellComponent } from './features/workspaces/pages/workspace-shell/workspace-shell.component';
 import { CompanyAccessGuard } from './core/company/company-access.guard';
+import { OnboardingGuard } from './core/onboarding/onboarding.guard';
+import { OrganizationBootstrapGuard } from './core/organization/organization-bootstrap.guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
   { path: 'login', component: LoginPageComponent },
   { path: 'register', component: RegisterPageComponent },
-  { path: 'organizations', canActivate: [AuthGuard], loadChildren: () => import('./features/organizations/organizations.module').then((m) => m.OrganizationsModule) },
-  { path: 'organizations/:orgId/companies', canActivate: [AuthGuard], loadChildren: () => import('./features/companies/companies.module').then((m) => m.CompaniesModule) },
-  { path: 'companies/select', canActivate: [AuthGuard], loadChildren: () => import('./features/companies/company-selector.module').then((m) => m.CompanySelectorModule) },
-  { path: 'workspaces', redirectTo: 'companies/select', pathMatch: 'full' },
+  { path: 'onboarding', canActivate: [AuthGuard, OnboardingGuard], loadChildren: () => import('./features/onboarding/onboarding.module').then((m) => m.OnboardingModule) },
+  { path: 'setup/modules', canActivate: [AuthGuard, OnboardingGuard, OrganizationBootstrapGuard], loadChildren: () => import('./features/organizations/pages/organization-modules-setup/organization-modules-setup.module').then((m) => m.OrganizationModulesSetupModule) },
+  { path: 'organizations', canActivate: [AuthGuard, OnboardingGuard], loadChildren: () => import('./features/organizations/organizations.module').then((m) => m.OrganizationsModule) },
+  { path: 'organizations/:orgId/companies', canActivate: [AuthGuard, OnboardingGuard], loadChildren: () => import('./features/companies/companies.module').then((m) => m.CompaniesModule) },
+  { path: 'companies/select', canActivate: [AuthGuard, OnboardingGuard], loadChildren: () => import('./features/companies/company-selector.module').then((m) => m.CompanySelectorModule) },
   { path: 'settings/countries', canActivate: [AuthGuard], loadChildren: () => import('./features/settings/pages/countries-page/countries-page.module').then((m) => m.CountriesPageModule) },
-  { path: 'workspaces/onboarding', redirectTo: 'companies/select', pathMatch: 'full' },
-  { path: 'workspaces/select', redirectTo: 'companies/select', pathMatch: 'full' },
-  { path: 'workspaces/setup', redirectTo: 'companies/select', pathMatch: 'full' },
-  { path: 'workspaces/:id/setup', redirectTo: 'company/:id/setup', pathMatch: 'full' },
-  { path: 'company/:id/setup', canActivate: [AuthGuard], loadComponent: () => import('./features/workspaces/pages/workspace-setup/workspace-setup.component').then((m) => m.WorkspaceSetupComponent) },
-  { path: 'workspace/:id', redirectTo: 'company/:id', pathMatch: 'full' },
+  { path: 'company/:id/setup', canActivate: [AuthGuard, OnboardingGuard], loadChildren: () => import('./features/workspaces/pages/workspace-setup/workspace-setup.module').then((m) => m.WorkspaceSetupModule) },
   {
-    path: 'company/:id', component: WorkspaceShellComponent, canActivate: [AuthGuard, CompanyAccessGuard], 
+    path: 'company/:id', component: WorkspaceShellComponent, canActivate: [AuthGuard, OnboardingGuard, CompanyAccessGuard], 
     children: [
       { path: 'dashboard', loadComponent: () => import('./features/dashboard/dashboard-page.component').then((m) => m.DashboardPageComponent) },
       { path: 'products/new', loadComponent: () => import('./features/products/pages/product-form-page/product-form-page.component').then((m) => m.ProductFormPageComponent) },

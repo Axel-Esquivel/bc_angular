@@ -34,20 +34,16 @@
     <div class="card-actions">
       <p-button label="Agregar" icon="pi pi-plus" (onClick)="openCurrencyDialog()"></p-button>
     </div>
-    <p-table [value]="settings.currencies" responsiveLayout="scroll">
+    <p-table [value]="settings.currencyIds" responsiveLayout="scroll">
       <ng-template pTemplate="header">
         <tr>
           <th>ID</th>
-          <th>Codigo</th>
-          <th>Nombre</th>
           <th style="width: 1%"></th>
         </tr>
       </ng-template>
       <ng-template pTemplate="body" let-item>
         <tr>
-          <td>{{ item.id }}</td>
-          <td>{{ item.code || '-' }}</td>
-          <td>{{ item.name || '-' }}</td>
+          <td>{{ item }}</td>
           <td class="row-actions">
             <p-button label="Editar" size="small" severity="secondary" (onClick)="openCurrencyDialog(item)"></p-button>
             <p-button label="Eliminar" size="small" severity="danger" (onClick)="removeCurrency(item)"></p-button>
@@ -56,7 +52,7 @@
       </ng-template>
       <ng-template pTemplate="emptymessage">
         <tr>
-          <td colspan="4">No hay monedas cargadas.</td>
+          <td colspan="2">No hay monedas cargadas.</td>
         </tr>
       </ng-template>
     </p-table>
@@ -161,15 +157,7 @@
   <form class="dialog-form" (ngSubmit)="saveCurrency()">
     <div class="form-field">
       <label>ID</label>
-      <input pInputText [(ngModel)]="currencyDraft.id" name="currencyId" />
-    </div>
-    <div class="form-field">
-      <label>Codigo</label>
-      <input pInputText [(ngModel)]="currencyDraft.code" name="currencyCode" />
-    </div>
-    <div class="form-field">
-      <label>Nombre</label>
-      <input pInputText [(ngModel)]="currencyDraft.name" name="currencyName" />
+      <input pInputText [(ngModel)]="currencyDraftId" name="currencyId" />
     </div>
     <div class="dialog-actions">
       <p-button type="button" label="Cancelar" severity="secondary" (onClick)="currencyDialogOpen = false"></p-button>

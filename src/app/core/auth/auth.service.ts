@@ -97,7 +97,13 @@ export class AuthService {
     }
 
     return this.authApi.me().pipe(
-      map((response) => this.mapUser(response.result?.user)),
+      map((response) => {
+        const user = this.mapUser(response.result?.user);
+        if (user && response.result && typeof response.result.isFirstTime === 'boolean') {
+          user.isFirstTime = response.result.isFirstTime;
+        }
+        return user;
+      }),
       tap((user) => {
         this.tokenStorage.setUser(user);
         this.currentUserSubject.next(user);

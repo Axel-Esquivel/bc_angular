@@ -38,3 +38,11 @@ export interface IOrganizationOverview {
     activeModules: Array<{ key: string; status: string }>;
   }>;
 }
+
+export interface IOrganizationMembership {
+  organizationId: string;
+  name: string;
+  code: string;
+  roleKey: string;
+  status: 'pending' | 'active';
+}

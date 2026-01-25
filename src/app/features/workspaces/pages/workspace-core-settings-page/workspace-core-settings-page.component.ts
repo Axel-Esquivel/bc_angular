@@ -4,38 +4,7 @@ import { MessageService } from 'primeng/api';
 import { take } from 'rxjs';
 
 import { WorkspacesApiService } from '../../../../core/api/workspaces-api.service';
-
-interface CoreCurrency {
-  id: string;
-  name?: string;
-  code?: string;
-}
-
-interface CoreCompany {
-  id: string;
-  name?: string;
-}
-
-interface CoreBranch {
-  id: string;
-  companyId: string;
-  name?: string;
-}
-
-interface CoreWarehouse {
-  id: string;
-  branchId: string;
-  name?: string;
-}
-
-interface CoreSettings {
-  countryId?: string;
-  baseCurrencyId?: string;
-  currencies: CoreCurrency[];
-  companies: CoreCompany[];
-  branches: CoreBranch[];
-  warehouses: CoreWarehouse[];
-}
+import { IWorkspaceCoreSettings } from '../../../../shared/models/workspace.model';
 
 @Component({
   selector: 'app-workspace-core-settings-page',
@@ -52,10 +21,10 @@ export class WorkspaceCoreSettingsPageComponent implements OnInit {
   loading = false;
   submitting = false;
 
-  settings: CoreSettings = {
+  settings: IWorkspaceCoreSettings = {
     countryId: '',
     baseCurrencyId: '',
-    currencies: [],
+    currencyIds: [],
     companies: [],
     branches: [],
     warehouses: [],
@@ -66,10 +35,11 @@ export class WorkspaceCoreSettingsPageComponent implements OnInit {
   branchDialogOpen = false;
   warehouseDialogOpen = false;
 
-  currencyDraft: CoreCurrency = { id: '', name: '', code: '' };
-  companyDraft: CoreCompany = { id: '', name: '' };
-  branchDraft: CoreBranch = { id: '', companyId: '', name: '' };
-  warehouseDraft: CoreWarehouse = { id: '', branchId: '', name: '' };
+  currencyDraftId = '';
+  editingCurrencyId: string | null = null;
+  companyDraft = { id: '', name: '' };
+  branchDraft = { id: '', companyId: '', name: '' };
+  warehouseDraft = { id: '', branchId: '', name: '' };
 
   editMode: 'currency' | 'company' | 'branch' | 'warehouse' | null = null;
 
@@ -106,10 +76,10 @@ export class WorkspaceCoreSettingsPageComponent implements OnInit {
   }
 
   get currencyOptions(): Array<{ label: string; value: string }> {
-    if (this.settings.currencies.length > 0) {
-      return this.settings.currencies.map((currency) => ({
-        label: currency.code ? `${currency.code} (${currency.id})` : currency.id,
-        value: currency.id,
+    if (this.settings.currencyIds.length > 0) {
+      return this.settings.currencyIds.map((id) => ({
+        label: id,
+        value: id,
       }));
     }
     return [
@@ -119,30 +89,31 @@ export class WorkspaceCoreSettingsPageComponent implements OnInit {
     ];
   }
 
-  openCurrencyDialog(edit?: CoreCurrency): void {
+  openCurrencyDialog(edit?: string): void {
     this.editMode = 'currency';
-    this.currencyDraft = edit ? { ...edit } : { id: '', name: '', code: '' };
+    this.editingCurrencyId = edit ?? null;
+    this.currencyDraftId = edit ?? '';
     this.currencyDialogOpen = true;
   }
 
-  openCompanyDialog(edit?: CoreCompany): void {
+  openCompanyDialog(edit?: { id: string; name?: string }): void {
     this.editMode = 'company';
-    this.companyDraft = edit ? { ...edit } : { id: '', name: '' };
+    this.companyDraft = edit ? { ...edit, name: edit.name ?? '' } : { id: '', name: '' };
     this.companyDialogOpen = true;
   }
 
-  openBranchDialog(edit?: CoreBranch): void {
+  openBranchDialog(edit?: { id: string; companyId: string; name?: string }): void {
     this.editMode = 'branch';
-    this.branchDraft = edit ? { ...edit } : { id: '', companyId: '', name: '' };
+    this.branchDraft = edit ? { ...edit, name: edit.name ?? '' } : { id: '', companyId: '', name: '' };
     if (!this.branchDraft.companyId && this.companyOptions[0]) {
       this.branchDraft.companyId = this.companyOptions[0].value;
     }
     this.branchDialogOpen = true;
   }
 
-  openWarehouseDialog(edit?: CoreWarehouse): void {
+  openWarehouseDialog(edit?: { id: string; branchId: string; name?: string }): void {
     this.editMode = 'warehouse';
-    this.warehouseDraft = edit ? { ...edit } : { id: '', branchId: '', name: '' };
+    this.warehouseDraft = edit ? { ...edit, name: edit.name ?? '' } : { id: '', branchId: '', name: '' };
     if (!this.warehouseDraft.branchId && this.branchOptions[0]) {
       this.warehouseDraft.branchId = this.branchOptions[0].value;
     }
@@ -150,33 +121,39 @@ export class WorkspaceCoreSettingsPageComponent implements OnInit {
   }
 
   saveCurrency(): void {
-    if (!this.currencyDraft.id) {
+    const id = this.currencyDraftId.trim();
+    if (!id) {
       this.showWarn('Completa el id de moneda.');
       return;
     }
 
-    const exists = this.settings.currencies.find((item) => item.id === this.currencyDraft.id);
-    if (exists) {
-      Object.assign(exists, this.currencyDraft);
-    } else {
-      this.settings.currencies = [...this.settings.currencies, { ...this.currencyDraft }];
+    if (this.editingCurrencyId) {
+      this.settings.currencyIds = this.settings.currencyIds
+        .filter((item) => item !== this.editingCurrencyId)
+        .concat(id);
+    } else if (!this.settings.currencyIds.includes(id)) {
+      this.settings.currencyIds = [...this.settings.currencyIds, id];
     }
 
     this.currencyDialogOpen = false;
+    this.editingCurrencyId = null;
+    this.currencyDraftId = '';
     this.persist();
   }
 
   saveCompany(): void {
-    if (!this.companyDraft.id) {
+    const id = this.companyDraft.id.trim();
+    const name = this.companyDraft.name.trim() || 'Sin nombre';
+    if (!id) {
       this.showWarn('Completa el id de empresa.');
       return;
     }
 
-    const exists = this.settings.companies.find((item) => item.id === this.companyDraft.id);
+    const exists = this.settings.companies.find((item) => item.id === id);
     if (exists) {
-      Object.assign(exists, this.companyDraft);
+      Object.assign(exists, { id, name });
     } else {
-      this.settings.companies = [...this.settings.companies, { ...this.companyDraft }];
+      this.settings.companies = [...this.settings.companies, { id, name }];
     }
 
     this.companyDialogOpen = false;
@@ -184,21 +161,24 @@ export class WorkspaceCoreSettingsPageComponent implements OnInit {
   }
 
   saveBranch(): void {
-    if (!this.branchDraft.id || !this.branchDraft.companyId) {
+    const id = this.branchDraft.id.trim();
+    const companyId = this.branchDraft.companyId.trim();
+    const name = this.branchDraft.name.trim() || 'Sin nombre';
+    if (!id || !companyId) {
       this.showWarn('Completa el id y la empresa.');
       return;
     }
 
-    if (!this.settings.companies.some((item) => item.id === this.branchDraft.companyId)) {
+    if (!this.settings.companies.some((item) => item.id === companyId)) {
       this.showWarn('La empresa seleccionada no existe.');
       return;
     }
 
-    const exists = this.settings.branches.find((item) => item.id === this.branchDraft.id);
+    const exists = this.settings.branches.find((item) => item.id === id);
     if (exists) {
-      Object.assign(exists, this.branchDraft);
+      Object.assign(exists, { id, companyId, name });
     } else {
-      this.settings.branches = [...this.settings.branches, { ...this.branchDraft }];
+      this.settings.branches = [...this.settings.branches, { id, companyId, name }];
     }
 
     this.branchDialogOpen = false;
@@ -206,36 +186,39 @@ export class WorkspaceCoreSettingsPageComponent implements OnInit {
   }
 
   saveWarehouse(): void {
-    if (!this.warehouseDraft.id || !this.warehouseDraft.branchId) {
+    const id = this.warehouseDraft.id.trim();
+    const branchId = this.warehouseDraft.branchId.trim();
+    const name = this.warehouseDraft.name.trim() || 'Sin nombre';
+    if (!id || !branchId) {
       this.showWarn('Completa el id y la sucursal.');
       return;
     }
 
-    if (!this.settings.branches.some((item) => item.id === this.warehouseDraft.branchId)) {
+    if (!this.settings.branches.some((item) => item.id === branchId)) {
       this.showWarn('La sucursal seleccionada no existe.');
       return;
     }
 
-    const exists = this.settings.warehouses.find((item) => item.id === this.warehouseDraft.id);
+    const exists = this.settings.warehouses.find((item) => item.id === id);
     if (exists) {
-      Object.assign(exists, this.warehouseDraft);
+      Object.assign(exists, { id, branchId, name });
     } else {
-      this.settings.warehouses = [...this.settings.warehouses, { ...this.warehouseDraft }];
+      this.settings.warehouses = [...this.settings.warehouses, { id, branchId, name }];
     }
 
     this.warehouseDialogOpen = false;
     this.persist();
   }
 
-  removeCurrency(item: CoreCurrency): void {
-    this.settings.currencies = this.settings.currencies.filter((currency) => currency.id !== item.id);
-    if (this.settings.baseCurrencyId === item.id) {
+  removeCurrency(id: string): void {
+    this.settings.currencyIds = this.settings.currencyIds.filter((currencyId) => currencyId !== id);
+    if (this.settings.baseCurrencyId === id) {
       this.settings.baseCurrencyId = '';
     }
     this.persist();
   }
 
-  removeCompany(item: CoreCompany): void {
+  removeCompany(item: { id: string }): void {
     this.settings.companies = this.settings.companies.filter((company) => company.id !== item.id);
     this.settings.branches = this.settings.branches.filter((branch) => branch.companyId !== item.id);
     const branchIds = new Set(this.settings.branches.map((branch) => branch.id));
@@ -243,18 +226,21 @@ export class WorkspaceCoreSettingsPageComponent implements OnInit {
     this.persist();
   }
 
-  removeBranch(item: CoreBranch): void {
+  removeBranch(item: { id: string }): void {
     this.settings.branches = this.settings.branches.filter((branch) => branch.id !== item.id);
     this.settings.warehouses = this.settings.warehouses.filter((warehouse) => warehouse.branchId !== item.id);
     this.persist();
   }
 
-  removeWarehouse(item: CoreWarehouse): void {
+  removeWarehouse(item: { id: string }): void {
     this.settings.warehouses = this.settings.warehouses.filter((warehouse) => warehouse.id !== item.id);
     this.persist();
   }
 
   updateCoreHeader(): void {
+    if (this.settings.baseCurrencyId && !this.settings.currencyIds.includes(this.settings.baseCurrencyId)) {
+      this.settings.currencyIds = [...this.settings.currencyIds, this.settings.baseCurrencyId];
+    }
     this.persist();
   }
 
@@ -262,15 +248,27 @@ export class WorkspaceCoreSettingsPageComponent implements OnInit {
     this.loading = true;
     this.workspacesApi.getCoreSettings(this.workspaceId).pipe(take(1)).subscribe({
       next: ({ result }) => {
-        if (result) {
-          const payload = result as Partial<CoreSettings>;
+        const payload = result;
+        if (payload) {
           this.settings = {
             countryId: payload.countryId ?? '',
             baseCurrencyId: payload.baseCurrencyId ?? '',
-            currencies: Array.isArray(payload.currencies) ? payload.currencies : [],
-            companies: Array.isArray(payload.companies) ? payload.companies : [],
-            branches: Array.isArray(payload.branches) ? payload.branches : [],
-            warehouses: Array.isArray(payload.warehouses) ? payload.warehouses : [],
+            currencyIds: Array.isArray(payload.currencyIds) ? payload.currencyIds : [],
+            companies: (payload.companies ?? []).map((company) => ({
+              id: company.id,
+              name: company.name ?? 'Sin nombre',
+            })),
+            branches: (payload.branches ?? []).map((branch) => ({
+              id: branch.id,
+              companyId: branch.companyId ?? '',
+              name: branch.name ?? 'Sin nombre',
+            })),
+            warehouses: (payload.warehouses ?? []).map((warehouse) => ({
+              id: warehouse.id,
+              branchId: warehouse.branchId ?? '',
+              name: warehouse.name ?? 'Sin nombre',
+              type: warehouse.type,
+            })),
           };
         }
         this.loading = false;
@@ -294,15 +292,27 @@ export class WorkspaceCoreSettingsPageComponent implements OnInit {
     this.submitting = true;
     this.workspacesApi.updateCoreSettings(this.workspaceId, this.settings).pipe(take(1)).subscribe({
       next: ({ result }) => {
-        if (result) {
-          const payload = result as Partial<CoreSettings>;
+        const payload = result;
+        if (payload) {
           this.settings = {
             countryId: payload.countryId ?? this.settings.countryId,
             baseCurrencyId: payload.baseCurrencyId ?? this.settings.baseCurrencyId,
-            currencies: Array.isArray(payload.currencies) ? payload.currencies : this.settings.currencies,
-            companies: Array.isArray(payload.companies) ? payload.companies : this.settings.companies,
-            branches: Array.isArray(payload.branches) ? payload.branches : this.settings.branches,
-            warehouses: Array.isArray(payload.warehouses) ? payload.warehouses : this.settings.warehouses,
+            currencyIds: Array.isArray(payload.currencyIds) ? payload.currencyIds : this.settings.currencyIds,
+            companies: (payload.companies ?? this.settings.companies).map((company) => ({
+              id: company.id,
+              name: company.name ?? 'Sin nombre',
+            })),
+            branches: (payload.branches ?? this.settings.branches).map((branch) => ({
+              id: branch.id,
+              companyId: branch.companyId ?? '',
+              name: branch.name ?? 'Sin nombre',
+            })),
+            warehouses: (payload.warehouses ?? this.settings.warehouses).map((warehouse) => ({
+              id: warehouse.id,
+              branchId: warehouse.branchId ?? '',
+              name: warehouse.name ?? 'Sin nombre',
+              type: warehouse.type,
+            })),
           };
         }
         this.submitting = false;

@@ -1,44 +1,35 @@
-import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { MessageService } from 'primeng/api';
-import { Card } from 'primeng/card';
-import { Button } from 'primeng/button';
-import { InputText } from 'primeng/inputtext';
-import { Select } from 'primeng/select';
-import { Toast } from 'primeng/toast';
+import { ConfirmationService, MessageService } from 'primeng/api';
 import { catchError, finalize, forkJoin, map, of, switchMap, take, tap } from 'rxjs';
 
+import { CountriesApiService } from '../../../../core/api/countries-api.service';
+import { CurrenciesApiService } from '../../../../core/api/currencies-api.service';
 import { WorkspacesApiService } from '../../../../core/api/workspaces-api.service';
 import { ModuleDefinition, ModulesApiService } from '../../../../core/api/modules-api.service';
 import { LoggerService } from '../../../../core/logging/logger.service';
 import { ModuleDependenciesService } from '../../../../core/workspace/module-dependencies.service';
 import { CompanyStateService } from '../../../../core/company/company-state.service';
-import { Workspace } from '../../../../shared/models/workspace.model';
+import { Country } from '../../../../shared/models/country.model';
+import { Currency } from '../../../../shared/models/currency.model';
+import { IWorkspaceCoreSettings, Workspace } from '../../../../shared/models/workspace.model';
 
 @Component({
   selector: 'app-workspace-setup',
-  standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    Card,
-    Button,
-    InputText,
-    Select,
-    Toast,
-  ],
   templateUrl: './workspace-setup.component.html',
   styleUrl: './workspace-setup.component.scss',
-  providers: [MessageService],
+  standalone: false,
+  providers: [MessageService, ConfirmationService],
 })
 export class WorkspaceSetupComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly workspacesApi = inject(WorkspacesApiService);
   private readonly modulesApi = inject(ModulesApiService);
+  private readonly countriesApi = inject(CountriesApiService);
+  private readonly currenciesApi = inject(CurrenciesApiService);
   private readonly messageService = inject(MessageService);
+  private readonly confirmationService = inject(ConfirmationService);
   private readonly logger = inject(LoggerService);
   private readonly companyState = inject(CompanyStateService);
   private readonly moduleDependencies = inject(ModuleDependenciesService);
@@ -56,33 +47,31 @@ export class WorkspaceSetupComponent implements OnInit {
   submitting = false;
   stepIndex = 0;
 
-  coreSettings = {
+  coreSettings: IWorkspaceCoreSettings = {
     countryId: '',
     baseCurrencyId: '',
-    currencies: [] as Array<{ id: string; name?: string; code?: string }>,
-    companies: [] as Array<{ id: string; name?: string }>,
-    branches: [] as Array<{ id: string; companyId: string; name?: string }>,
-    warehouses: [] as Array<{ id: string; branchId: string; name?: string }>,
+    currencyIds: [],
+    companies: [],
+    branches: [],
+    warehouses: [],
   };
 
-  draftCurrency = { id: '', name: '', code: '' };
-  draftCompany = { id: '', name: '' };
-  draftBranch = { id: '', companyId: '', name: '' };
-  draftWarehouse = { id: '', branchId: '', name: '' };
+  countries: Country[] = [];
+  currencies: Currency[] = [];
 
-  countryOptions: Array<{ label: string; value: string }> = [
-    { label: 'Argentina', value: 'AR' },
-    { label: 'Chile', value: 'CL' },
-    { label: 'Colombia', value: 'CO' },
-    { label: 'Mexico', value: 'MX' },
-    { label: 'Peru', value: 'PE' },
-  ];
+  countryDialogOpen = false;
+  currencyDialogOpen = false;
+  savingCountry = false;
+  savingCurrency = false;
 
-  currencyOptions: Array<{ label: string; value: string }> = [
-    { label: 'USD', value: 'USD' },
-    { label: 'EUR', value: 'EUR' },
-    { label: 'COP', value: 'COP' },
-  ];
+  draftCountry = { code: '', name: '' };
+  draftCurrency = { code: '', name: '', symbol: '' };
+
+  draftCompanyName = '';
+  draftBranchCompanyId = '';
+  draftBranchName = '';
+  draftWarehouseBranchId = '';
+  draftWarehouseName = '';
 
   toggleModule(module: ModuleDefinition): void {
     const isEnabled = this.enabledModules.includes(module.id);
@@ -118,7 +107,7 @@ export class WorkspaceSetupComponent implements OnInit {
       this.messageService.add({
         severity: 'info',
         summary: 'Dependencias',
-        detail: `Se activó ${this.getModuleLabel(module.id)} y también: ${formatted} (dependencias).`,
+        detail: `Se activo ${this.getModuleLabel(module.id)} y tambien: ${formatted} (dependencias).`,
       });
     }
   }
@@ -172,12 +161,16 @@ export class WorkspaceSetupComponent implements OnInit {
         next: () => {
           this.stepIndex = 1;
         },
-        error: () => {
+        error: (error) => {
+          const message = error?.error?.message || 'No se pudo completar el setup.';
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
-            detail: 'No se pudo completar el setup.',
+            detail: message,
           });
+          if (String(message).includes('Pending approval')) {
+            this.router.navigateByUrl('/organizations');
+          }
         },
       });
   }
@@ -187,6 +180,7 @@ export class WorkspaceSetupComponent implements OnInit {
       return;
     }
 
+    this.syncCurrencyIdsWithBase();
     this.submitting = true;
     this.workspacesApi
       .updateCoreSettings(this.workspaceId, this.coreSettings)
@@ -198,9 +192,16 @@ export class WorkspaceSetupComponent implements OnInit {
       )
       .subscribe({
         next: (response) => {
-          const payload = response.result as typeof this.coreSettings | null;
+          const payload = response.result;
           if (payload) {
-            this.coreSettings = payload;
+            this.coreSettings = {
+              countryId: payload.countryId ?? this.coreSettings.countryId ?? '',
+              baseCurrencyId: payload.baseCurrencyId ?? this.coreSettings.baseCurrencyId ?? '',
+              currencyIds: Array.isArray(payload.currencyIds) ? payload.currencyIds : [],
+              companies: payload.companies ?? [],
+              branches: payload.branches ?? [],
+              warehouses: payload.warehouses ?? [],
+            };
           }
           this.stepIndex = 2;
         },
@@ -260,10 +261,12 @@ export class WorkspaceSetupComponent implements OnInit {
       definitions: this.modulesApi.getDefinitions(this.workspaceId),
       overview: this.workspacesApi.getWorkspaceModules(this.workspaceId),
       coreSettings: this.workspacesApi.getCoreSettings(this.workspaceId),
+      countries: this.countriesApi.list().pipe(catchError(() => of({ result: [] }))),
+      currencies: this.currenciesApi.list().pipe(catchError(() => of({ result: [] }))),
     })
       .pipe(take(1))
       .subscribe({
-        next: ({ definitions, overview, coreSettings }) => {
+        next: ({ definitions, overview, coreSettings, countries, currencies }) => {
           const list = definitions.result ?? [];
           this.moduleDefinitions = list;
           this.modules = list.filter(
@@ -271,12 +274,20 @@ export class WorkspaceSetupComponent implements OnInit {
           );
           const enabled = overview.result?.enabledModules ?? [];
           this.enabledModules = enabled.filter((module) => module.enabled).map((module) => module.key);
-          if (coreSettings?.result) {
+          this.countries = countries.result ?? [];
+          this.currencies = currencies.result ?? [];
+          const settings = coreSettings.result;
+          if (settings) {
             this.coreSettings = {
-              ...this.coreSettings,
-              ...coreSettings.result,
+              countryId: settings.countryId ?? '',
+              baseCurrencyId: settings.baseCurrencyId ?? '',
+              currencyIds: Array.isArray(settings.currencyIds) ? settings.currencyIds : [],
+              companies: settings.companies ?? [],
+              branches: settings.branches ?? [],
+              warehouses: settings.warehouses ?? [],
             };
           }
+          this.syncCurrencyIdsWithBase();
         },
         error: () => {
           this.messageService.add({
@@ -286,6 +297,268 @@ export class WorkspaceSetupComponent implements OnInit {
           });
         },
       });
+  }
+
+  get countryOptions(): Array<{ id: string; label: string; code: string }> {
+    return this.countries.map((country) => ({
+      id: country.id ?? country.iso2,
+      label: this.getCountryLabel(country),
+      code: country.iso2,
+    }));
+  }
+
+  get currencyOptions(): Array<{ id: string; label: string; code: string }> {
+    return this.currencies.map((currency) => ({
+      id: currency.id ?? currency.code,
+      label: this.getCurrencyLabel(currency),
+      code: currency.code,
+    }));
+  }
+
+  onBaseCurrencyChange(): void {
+    this.syncCurrencyIdsWithBase();
+  }
+
+  onCurrencyIdsChange(): void {
+    this.syncCurrencyIdsWithBase();
+  }
+
+  openCreateCountryDialog(): void {
+    this.draftCountry = { code: '', name: '' };
+    this.countryDialogOpen = true;
+  }
+
+  openCreateCurrencyDialog(): void {
+    this.draftCurrency = { code: '', name: '', symbol: '' };
+    this.currencyDialogOpen = true;
+  }
+
+  saveCountry(): void {
+    const code = this.draftCountry.code.trim().toUpperCase();
+    const name = this.draftCountry.name.trim();
+    if (!code || !name) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Campos requeridos',
+        detail: 'Ingresa el codigo y el nombre del pais.',
+      });
+      return;
+    }
+    if (this.savingCountry) {
+      return;
+    }
+    this.savingCountry = true;
+    this.countriesApi
+      .create({ code, name })
+      .pipe(
+        take(1),
+        finalize(() => {
+          this.savingCountry = false;
+        })
+      )
+      .subscribe({
+        next: ({ result }) => {
+          if (result) {
+            const id = result.id ?? result.iso2;
+            const exists = this.countries.some((country) => (country.id ?? country.iso2) === id);
+            if (!exists) {
+              this.countries = [result, ...this.countries];
+            }
+            this.coreSettings.countryId = id;
+          }
+          this.countryDialogOpen = false;
+        },
+        error: () => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Paises',
+            detail: 'No se pudo guardar el pais.',
+          });
+        },
+      });
+  }
+
+  saveCurrency(): void {
+    const code = this.draftCurrency.code.trim().toUpperCase();
+    const name = this.draftCurrency.name.trim();
+    const symbol = this.draftCurrency.symbol.trim();
+    if (!code || !name) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Campos requeridos',
+        detail: 'Ingresa el codigo y el nombre de la moneda.',
+      });
+      return;
+    }
+    if (this.savingCurrency) {
+      return;
+    }
+    this.savingCurrency = true;
+    this.currenciesApi
+      .create({ code, name, symbol: symbol || undefined })
+      .pipe(
+        take(1),
+        finalize(() => {
+          this.savingCurrency = false;
+        })
+      )
+      .subscribe({
+        next: ({ result }) => {
+          if (result) {
+            const id = result.id ?? result.code;
+            const exists = this.currencies.some((currency) => (currency.id ?? currency.code) === id);
+            if (!exists) {
+              this.currencies = [result, ...this.currencies];
+            }
+            if (!this.coreSettings.baseCurrencyId) {
+              this.coreSettings.baseCurrencyId = id;
+            }
+            if (!this.coreSettings.currencyIds.includes(id)) {
+              this.coreSettings.currencyIds = [...this.coreSettings.currencyIds, id];
+            }
+            this.syncCurrencyIdsWithBase();
+          }
+          this.currencyDialogOpen = false;
+        },
+        error: () => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Monedas',
+            detail: 'No se pudo guardar la moneda.',
+          });
+        },
+      });
+  }
+
+  addCompany(): void {
+    const name = this.draftCompanyName.trim();
+    if (!name) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Campos requeridos',
+        detail: 'Ingresa el nombre de la empresa.',
+      });
+      return;
+    }
+    const next = { id: this.generateTempId(), name };
+    this.coreSettings.companies = [...this.coreSettings.companies, next];
+    this.draftCompanyName = '';
+  }
+
+  confirmRemoveCompany(companyId: string): void {
+    const company = this.coreSettings.companies.find((item) => item.id === companyId);
+    if (!company) {
+      return;
+    }
+    this.confirmationService.confirm({
+      message: `Eliminar la empresa ${company.name}?`,
+      accept: () => this.removeCompany(companyId),
+    });
+  }
+
+  removeCompany(id: string): void {
+    this.coreSettings.companies = this.coreSettings.companies.filter((company) => company.id !== id);
+    this.coreSettings.branches = this.coreSettings.branches.filter((branch) => branch.companyId !== id);
+    this.coreSettings.warehouses = this.coreSettings.warehouses.filter((warehouse) =>
+      this.coreSettings.branches.some((branch) => branch.id === warehouse.branchId)
+    );
+  }
+
+  addBranch(): void {
+    const name = this.draftBranchName.trim();
+    if (!this.draftBranchCompanyId || !name) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Campos requeridos',
+        detail: 'Selecciona una empresa y escribe el nombre.',
+      });
+      return;
+    }
+    if (!this.coreSettings.companies.some((company) => company.id === this.draftBranchCompanyId)) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Empresa',
+        detail: 'La empresa seleccionada no existe.',
+      });
+      return;
+    }
+    const next = {
+      id: this.generateTempId(),
+      companyId: this.draftBranchCompanyId,
+      name,
+    };
+    this.coreSettings.branches = [...this.coreSettings.branches, next];
+    this.draftBranchCompanyId = '';
+    this.draftBranchName = '';
+  }
+
+  confirmRemoveBranch(branchId: string): void {
+    const branch = this.coreSettings.branches.find((item) => item.id === branchId);
+    if (!branch) {
+      return;
+    }
+    this.confirmationService.confirm({
+      message: `Eliminar la sucursal ${branch.name}?`,
+      accept: () => this.removeBranch(branchId),
+    });
+  }
+
+  removeBranch(id: string): void {
+    this.coreSettings.branches = this.coreSettings.branches.filter((branch) => branch.id !== id);
+    this.coreSettings.warehouses = this.coreSettings.warehouses.filter((warehouse) => warehouse.branchId !== id);
+  }
+
+  addWarehouse(): void {
+    const name = this.draftWarehouseName.trim();
+    if (!this.draftWarehouseBranchId || !name) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Campos requeridos',
+        detail: 'Selecciona una sucursal y escribe el nombre.',
+      });
+      return;
+    }
+    if (!this.coreSettings.branches.some((branch) => branch.id === this.draftWarehouseBranchId)) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Sucursal',
+        detail: 'La sucursal seleccionada no existe.',
+      });
+      return;
+    }
+    const next = {
+      id: this.generateTempId(),
+      branchId: this.draftWarehouseBranchId,
+      name,
+    };
+    this.coreSettings.warehouses = [...this.coreSettings.warehouses, next];
+    this.draftWarehouseBranchId = '';
+    this.draftWarehouseName = '';
+  }
+
+  confirmRemoveWarehouse(warehouseId: string): void {
+    const warehouse = this.coreSettings.warehouses.find((item) => item.id === warehouseId);
+    if (!warehouse) {
+      return;
+    }
+    this.confirmationService.confirm({
+      message: `Eliminar la bodega ${warehouse.name}?`,
+      accept: () => this.removeWarehouse(warehouseId),
+    });
+  }
+
+  removeWarehouse(id: string): void {
+    this.coreSettings.warehouses = this.coreSettings.warehouses.filter((warehouse) => warehouse.id !== id);
+  }
+
+  goBack(): void {
+    if (this.stepIndex > 0) {
+      this.stepIndex -= 1;
+      return;
+    }
+    if (this.workspaceId) {
+      this.router.navigateByUrl(`/company/${this.workspaceId}/setup`);
+    }
   }
 
   private refreshWorkspaceState() {
@@ -331,138 +604,58 @@ export class WorkspaceSetupComponent implements OnInit {
     return this.moduleDefinitions.find((item) => item.id === moduleId)?.name ?? moduleId;
   }
 
-  get companyOptions(): Array<{ label: string; value: string }> {
-    return this.coreSettings.companies.map((company) => ({
-      label: company.name ? `${company.name} (${company.id})` : company.id,
-      value: company.id,
-    }));
+  getCountryLabelById(id: string | null | undefined): string {
+    if (!id) {
+      return '';
+    }
+    const match = this.countryOptions.find((item) => item.id === id);
+    return match?.label ?? '';
   }
 
-  get branchOptions(): Array<{ label: string; value: string }> {
-    return this.coreSettings.branches.map((branch) => ({
-      label: branch.name ? `${branch.name} (${branch.id})` : branch.id,
-      value: branch.id,
-    }));
+  getCurrencyLabelById(id: string | null | undefined): string {
+    if (!id) {
+      return '';
+    }
+    const match = this.currencyOptions.find((item) => item.id === id);
+    return match?.label ?? '';
   }
 
-  get currencySelectOptions(): Array<{ label: string; value: string }> {
-    if (this.coreSettings.currencies.length > 0) {
-      return this.coreSettings.currencies.map((currency) => ({
-        label: currency.code ? `${currency.code} (${currency.id})` : currency.id,
-        value: currency.id,
-      }));
-    }
-    return this.currencyOptions;
+  getCompanyName(companyId: string): string {
+    const company = this.coreSettings.companies.find((item) => item.id === companyId);
+    return company?.name ?? '-';
   }
 
-  addCurrency(): void {
-    if (!this.draftCurrency.id) {
-      this.messageService.add({
-        severity: 'warn',
-        summary: 'Campos requeridos',
-        detail: 'Ingresa un id de moneda.',
-      });
-      return;
-    }
-    if (this.coreSettings.currencies.some((currency) => currency.id === this.draftCurrency.id)) {
-      return;
-    }
-    this.coreSettings.currencies = [...this.coreSettings.currencies, { ...this.draftCurrency }];
-    this.draftCurrency = { id: '', name: '', code: '' };
+  getBranchName(branchId: string): string {
+    const branch = this.coreSettings.branches.find((item) => item.id === branchId);
+    return branch?.name ?? '-';
   }
 
-  removeCurrency(id: string): void {
-    this.coreSettings.currencies = this.coreSettings.currencies.filter((currency) => currency.id !== id);
+  private syncCurrencyIdsWithBase(): void {
+    const baseId = this.coreSettings.baseCurrencyId;
+    if (baseId && !this.coreSettings.currencyIds.includes(baseId)) {
+      this.coreSettings.currencyIds = [...this.coreSettings.currencyIds, baseId];
+    }
   }
 
-  addCompany(): void {
-    if (!this.draftCompany.id) {
-      this.messageService.add({
-        severity: 'warn',
-        summary: 'Campos requeridos',
-        detail: 'Ingresa un id de empresa.',
-      });
-      return;
+  private getCountryLabel(country: Country | undefined): string {
+    if (!country) {
+      return '';
     }
-    if (this.coreSettings.companies.some((company) => company.id === this.draftCompany.id)) {
-      return;
-    }
-    this.coreSettings.companies = [...this.coreSettings.companies, { ...this.draftCompany }];
-    this.draftCompany = { id: '', name: '' };
+    const name = country.nameEs || country.nameEn || country.iso2;
+    return country.iso2 ? `${name} (${country.iso2})` : name;
   }
 
-  removeCompany(id: string): void {
-    this.coreSettings.companies = this.coreSettings.companies.filter((company) => company.id !== id);
-    this.coreSettings.branches = this.coreSettings.branches.filter((branch) => branch.companyId !== id);
-    this.coreSettings.warehouses = this.coreSettings.warehouses.filter(
-      (warehouse) => this.coreSettings.branches.some((branch) => branch.id === warehouse.branchId)
-    );
+  private getCurrencyLabel(currency: Currency | undefined): string {
+    if (!currency) {
+      return '';
+    }
+    return currency.name ? `${currency.code} - ${currency.name}` : currency.code;
   }
 
-  addBranch(): void {
-    if (!this.draftBranch.id || !this.draftBranch.companyId) {
-      this.messageService.add({
-        severity: 'warn',
-        summary: 'Campos requeridos',
-        detail: 'Selecciona una empresa y un id para la sucursal.',
-      });
-      return;
+  private generateTempId(): string {
+    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+      return crypto.randomUUID();
     }
-    if (!this.coreSettings.companies.some((company) => company.id === this.draftBranch.companyId)) {
-      this.messageService.add({
-        severity: 'warn',
-        summary: 'Empresa',
-        detail: 'La empresa seleccionada no existe.',
-      });
-      return;
-    }
-    if (this.coreSettings.branches.some((branch) => branch.id === this.draftBranch.id)) {
-      return;
-    }
-    this.coreSettings.branches = [...this.coreSettings.branches, { ...this.draftBranch }];
-    this.draftBranch = { id: '', companyId: '', name: '' };
-  }
-
-  removeBranch(id: string): void {
-    this.coreSettings.branches = this.coreSettings.branches.filter((branch) => branch.id !== id);
-    this.coreSettings.warehouses = this.coreSettings.warehouses.filter((warehouse) => warehouse.branchId !== id);
-  }
-
-  addWarehouse(): void {
-    if (!this.draftWarehouse.id || !this.draftWarehouse.branchId) {
-      this.messageService.add({
-        severity: 'warn',
-        summary: 'Campos requeridos',
-        detail: 'Selecciona una sucursal y un id para la bodega.',
-      });
-      return;
-    }
-    if (!this.coreSettings.branches.some((branch) => branch.id === this.draftWarehouse.branchId)) {
-      this.messageService.add({
-        severity: 'warn',
-        summary: 'Sucursal',
-        detail: 'La sucursal seleccionada no existe.',
-      });
-      return;
-    }
-    if (this.coreSettings.warehouses.some((warehouse) => warehouse.id === this.draftWarehouse.id)) {
-      return;
-    }
-    this.coreSettings.warehouses = [...this.coreSettings.warehouses, { ...this.draftWarehouse }];
-    this.draftWarehouse = { id: '', branchId: '', name: '' };
-  }
-
-  removeWarehouse(id: string): void {
-    this.coreSettings.warehouses = this.coreSettings.warehouses.filter((warehouse) => warehouse.id !== id);
-  }
-
-  goBack(): void {
-    if (this.stepIndex > 0) {
-      this.stepIndex -= 1;
-      return;
-    }
-    if (this.workspaceId) {
-      this.router.navigateByUrl(`/company/${this.workspaceId}/setup`);
-    }
+    return `tmp_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
   }
 }
