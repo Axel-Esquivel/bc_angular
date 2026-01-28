@@ -1,7 +1,7 @@
 <p-toast></p-toast>
 
 <section class="core-settings">
-  <p-card header="Core settings">
+  <p-card header="Configuracion de la organizacion">
     <div class="header-grid">
       <div class="form-field">
         <label for="country">Pais</label>
@@ -10,7 +10,7 @@
           [options]="countryOptions"
           optionLabel="label"
           optionValue="value"
-          [(ngModel)]="settings.countryId"
+          [(ngModel)]="coreSettings.countryId"
           appendTo="body"
           (onChange)="updateCoreHeader()"
         ></p-select>
@@ -22,7 +22,7 @@
           [options]="currencyOptions"
           optionLabel="label"
           optionValue="value"
-          [(ngModel)]="settings.baseCurrencyId"
+          [(ngModel)]="coreSettings.baseCurrencyId"
           appendTo="body"
           (onChange)="updateCoreHeader()"
         ></p-select>
@@ -34,7 +34,7 @@
     <div class="card-actions">
       <p-button label="Agregar" icon="pi pi-plus" (onClick)="openCurrencyDialog()"></p-button>
     </div>
-    <p-table [value]="settings.currencyIds" responsiveLayout="scroll">
+    <p-table [value]="coreSettings.currencyIds" responsiveLayout="scroll">
       <ng-template pTemplate="header">
         <tr>
           <th>ID</th>
@@ -62,7 +62,7 @@
     <div class="card-actions">
       <p-button label="Agregar" icon="pi pi-plus" (onClick)="openCompanyDialog()"></p-button>
     </div>
-    <p-table [value]="settings.companies" responsiveLayout="scroll">
+    <p-table [value]="structureSettings.companies" responsiveLayout="scroll">
       <ng-template pTemplate="header">
         <tr>
           <th>ID</th>
@@ -92,7 +92,7 @@
     <div class="card-actions">
       <p-button label="Agregar" icon="pi pi-plus" (onClick)="openBranchDialog()"></p-button>
     </div>
-    <p-table [value]="settings.branches" responsiveLayout="scroll">
+    <p-table [value]="structureSettings.branches" responsiveLayout="scroll">
       <ng-template pTemplate="header">
         <tr>
           <th>ID</th>
@@ -124,7 +124,7 @@
     <div class="card-actions">
       <p-button label="Agregar" icon="pi pi-plus" (onClick)="openWarehouseDialog()"></p-button>
     </div>
-    <p-table [value]="settings.warehouses" responsiveLayout="scroll">
+    <p-table [value]="structureSettings.warehouses" responsiveLayout="scroll">
       <ng-template pTemplate="header">
         <tr>
           <th>ID</th>

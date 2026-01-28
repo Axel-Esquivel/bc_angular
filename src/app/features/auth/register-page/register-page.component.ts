@@ -94,14 +94,14 @@ export class RegisterPageComponent {
         }
 
         if (workspaces.length === 0) {
-          this.router.navigate(['/companies/select']);
+          this.router.navigate(['/organizations/setup']);
           return;
         }
 
-        this.router.navigate(['/companies/select']);
+        this.router.navigate(['/organizations/setup']);
       },
       error: () => {
-        this.router.navigate(['/companies/select']);
+        this.router.navigate(['/organizations/setup']);
       },
     });
   }

@@ -53,6 +53,7 @@ export class ModuleMenuService {
   ): MenuItem[] {
     const configItems: MenuItem[] = [];
     if (isOwner) {
+      configItems.push({ label: 'Setup organizacion', routerLink: '/organizations/setup' });
       configItems.push({ label: 'Organizacion', routerLink: '/organizations' });
       const setupItem: MenuItem = { label: 'Instalacion de modulos', routerLink: '/setup/modules' };
       if (organizationId) {

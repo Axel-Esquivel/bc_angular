@@ -2,16 +2,17 @@
 
 <div class="setup">
   <div class="setup-header">
-    <h2>Configurar modulos</h2>
+    <h2>Instalar modulos</h2>
   </div>
 
   <p-card>
+    <p class="setup-subtitle">Modulos a instalar</p>
     <div class="modules-grid" *ngIf="modules.length > 0; else emptyState">
       <div class="module-card" *ngFor="let module of modules">
         <div class="module-head">
           <h3>{{ module.name }}</h3>
           <p-button
-            [label]="isEnabled(module.id) ? 'Activo' : 'Activar'"
+            [label]="isEnabled(module.id) ? 'Instalado' : 'Instalar'"
             [severity]="isEnabled(module.id) ? 'success' : 'secondary'"
             (onClick)="toggleModule(module)"
           ></p-button>
@@ -25,11 +26,11 @@
     </div>
 
     <ng-template #emptyState>
-      <div class="empty-state">No hay modulos disponibles.</div>
+      <div class="empty-state">No hay modulos para instalar.</div>
     </ng-template>
 
     <div class="footer-actions">
-      <p-button label="Guardar y continuar" [disabled]="submitting" (onClick)="save()"></p-button>
+      <p-button label="Instalar y continuar" [disabled]="submitting" (onClick)="save()"></p-button>
     </div>
   </p-card>
 </div>

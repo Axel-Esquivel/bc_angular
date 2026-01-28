@@ -53,7 +53,7 @@ export class OrganizationJoinPageComponent {
         const currentUserId = this.authService.getCurrentUser()?.id ?? null;
         const member = organization?.members?.find((item) => item.userId === currentUserId);
         if (member?.status === 'active') {
-          this.router.navigateByUrl('/companies/select');
+          this.router.navigateByUrl('/organizations/setup');
           return;
         }
         this.router.navigateByUrl('/organizations/pending');

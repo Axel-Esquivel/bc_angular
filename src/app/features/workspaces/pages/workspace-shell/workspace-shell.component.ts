@@ -78,7 +78,7 @@ export class WorkspaceShellComponent implements OnInit, OnDestroy {
   }
 
   goToWorkspaces(): void {
-    this.router.navigate(['/companies/select']);
+    this.router.navigate(['/organizations/setup']);
   }
 
   toggleTheme(): void {
@@ -102,10 +102,10 @@ export class WorkspaceShellComponent implements OnInit, OnDestroy {
       error: (error) => {
         const status = error?.status;
         if (status === 403 || status === 404) {
-          this.router.navigate(['/companies/select']);
+          this.router.navigate(['/organizations/setup']);
           return;
         }
-        this.router.navigate(['/companies/select']);
+        this.router.navigate(['/organizations/setup']);
       },
     });
   }
@@ -131,7 +131,7 @@ export class WorkspaceShellComponent implements OnInit, OnDestroy {
       if (!setupCompleted) {
         return [
           { label: 'Configuracion', routerLink: ['/company', this.workspaceId, 'setup'] },
-          { label: 'Organizaciones', routerLink: ['/companies/select'] },
+          { label: 'Organizaciones', routerLink: ['/organizations/setup'] },
         ];
       }
 
@@ -174,6 +174,6 @@ export class WorkspaceShellComponent implements OnInit, OnDestroy {
       return items;
     }
 
-    return [{ label: 'Organizaciones', routerLink: ['/companies/select'] }];
+    return [{ label: 'Organizaciones', routerLink: ['/organizations/setup'] }];
   }
 }

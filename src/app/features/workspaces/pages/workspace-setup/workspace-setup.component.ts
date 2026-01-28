@@ -7,12 +7,16 @@ import { CountriesApiService } from '../../../../core/api/countries-api.service'
 import { CurrenciesApiService } from '../../../../core/api/currencies-api.service';
 import { WorkspacesApiService } from '../../../../core/api/workspaces-api.service';
 import { ModuleDefinition, ModulesApiService } from '../../../../core/api/modules-api.service';
+import { OrganizationSettingsApiService } from '../../../../core/api/organization-settings-api.service';
 import { LoggerService } from '../../../../core/logging/logger.service';
 import { ModuleDependenciesService } from '../../../../core/workspace/module-dependencies.service';
 import { CompanyStateService } from '../../../../core/company/company-state.service';
 import { Country } from '../../../../shared/models/country.model';
 import { Currency } from '../../../../shared/models/currency.model';
-import { IWorkspaceCoreSettings, Workspace } from '../../../../shared/models/workspace.model';
+import { Workspace } from '../../../../shared/models/workspace.model';
+import { ApiResponse } from '../../../../shared/models/api-response.model';
+import { OrganizationCoreSettings, OrganizationCoreSettingsUpdate } from '../../../../shared/models/organization-core-settings.model';
+import { OrganizationStructureSettings, OrganizationStructureSettingsUpdate } from '../../../../shared/models/organization-structure-settings.model';
 
 @Component({
   selector: 'app-workspace-setup',
@@ -26,6 +30,7 @@ export class WorkspaceSetupComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly workspacesApi = inject(WorkspacesApiService);
   private readonly modulesApi = inject(ModulesApiService);
+  private readonly organizationSettingsApi = inject(OrganizationSettingsApiService);
   private readonly countriesApi = inject(CountriesApiService);
   private readonly currenciesApi = inject(CurrenciesApiService);
   private readonly messageService = inject(MessageService);
@@ -40,6 +45,7 @@ export class WorkspaceSetupComponent implements OnInit {
     this.router.getCurrentNavigation()?.extras.state?.['workspaceId'] ??
     this.companyState.getActiveCompanyId() ??
     '';
+  organizationId = '';
   modules: ModuleDefinition[] = [];
   moduleDefinitions: ModuleDefinition[] = [];
 
@@ -47,10 +53,12 @@ export class WorkspaceSetupComponent implements OnInit {
   submitting = false;
   stepIndex = 0;
 
-  coreSettings: IWorkspaceCoreSettings = {
+  coreSettings: OrganizationCoreSettings = {
     countryId: '',
     baseCurrencyId: '',
     currencyIds: [],
+  };
+  structureSettings: OrganizationStructureSettings = {
     companies: [],
     branches: [],
     warehouses: [],
@@ -179,11 +187,32 @@ export class WorkspaceSetupComponent implements OnInit {
     if (!this.workspaceId || this.submitting) {
       return;
     }
+    if (!this.organizationId) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Organizacion',
+        detail: 'No se pudo identificar la organizacion.',
+      });
+      return;
+    }
 
     this.syncCurrencyIdsWithBase();
     this.submitting = true;
-    this.workspacesApi
-      .updateCoreSettings(this.workspaceId, this.coreSettings)
+    const corePayload: OrganizationCoreSettingsUpdate = {
+      countryId: this.coreSettings.countryId || undefined,
+      baseCurrencyId: this.coreSettings.baseCurrencyId || undefined,
+      currencyIds: this.coreSettings.currencyIds,
+    };
+    const structurePayload: OrganizationStructureSettingsUpdate = {
+      companies: this.structureSettings.companies,
+      branches: this.structureSettings.branches,
+      warehouses: this.structureSettings.warehouses,
+    };
+
+    forkJoin({
+      core: this.organizationSettingsApi.updateCoreSettings(this.organizationId, corePayload),
+      structure: this.organizationSettingsApi.updateStructureSettings(this.organizationId, structurePayload),
+    })
       .pipe(
         take(1),
         finalize(() => {
@@ -191,16 +220,21 @@ export class WorkspaceSetupComponent implements OnInit {
         })
       )
       .subscribe({
-        next: (response) => {
-          const payload = response.result;
-          if (payload) {
+        next: ({ core, structure }) => {
+          const corePayload = core.result;
+          const structurePayload = structure.result;
+          if (corePayload) {
             this.coreSettings = {
-              countryId: payload.countryId ?? this.coreSettings.countryId ?? '',
-              baseCurrencyId: payload.baseCurrencyId ?? this.coreSettings.baseCurrencyId ?? '',
-              currencyIds: Array.isArray(payload.currencyIds) ? payload.currencyIds : [],
-              companies: payload.companies ?? [],
-              branches: payload.branches ?? [],
-              warehouses: payload.warehouses ?? [],
+              countryId: corePayload.countryId ?? this.coreSettings.countryId ?? '',
+              baseCurrencyId: corePayload.baseCurrencyId ?? this.coreSettings.baseCurrencyId ?? '',
+              currencyIds: Array.isArray(corePayload.currencyIds) ? corePayload.currencyIds : [],
+            };
+          }
+          if (structurePayload) {
+            this.structureSettings = {
+              companies: structurePayload.companies ?? [],
+              branches: structurePayload.branches ?? [],
+              warehouses: structurePayload.warehouses ?? [],
             };
           }
           this.stepIndex = 2;
@@ -257,16 +291,33 @@ export class WorkspaceSetupComponent implements OnInit {
       return;
     }
 
-    forkJoin({
-      definitions: this.modulesApi.getDefinitions(this.workspaceId),
-      overview: this.workspacesApi.getWorkspaceModules(this.workspaceId),
-      coreSettings: this.workspacesApi.getCoreSettings(this.workspaceId),
-      countries: this.countriesApi.list().pipe(catchError(() => of({ result: [] }))),
-      currencies: this.currenciesApi.list().pipe(catchError(() => of({ result: [] }))),
-    })
-      .pipe(take(1))
+    this.workspacesApi
+      .listMine()
+      .pipe(
+        take(1),
+        map((response) => {
+          const workspaces = response.result?.workspaces ?? [];
+          const workspace = workspaces.find((item) => this.getWorkspaceId(item) === this.workspaceId);
+          this.organizationId = workspace?.organizationId ?? '';
+          return this.organizationId;
+        }),
+        switchMap((organizationId) =>
+          forkJoin({
+            definitions: this.modulesApi.getDefinitions(this.workspaceId),
+            overview: this.workspacesApi.getWorkspaceModules(this.workspaceId),
+            coreSettings: organizationId
+              ? this.organizationSettingsApi.getCoreSettings(organizationId)
+              : of(this.getEmptyCoreResponse()),
+            structureSettings: organizationId
+              ? this.organizationSettingsApi.getStructureSettings(organizationId)
+              : of(this.getEmptyStructureResponse()),
+            countries: this.countriesApi.list().pipe(catchError(() => of({ result: [] }))),
+            currencies: this.currenciesApi.list().pipe(catchError(() => of({ result: [] }))),
+          })
+        )
+      )
       .subscribe({
-        next: ({ definitions, overview, coreSettings, countries, currencies }) => {
+        next: ({ definitions, overview, coreSettings, structureSettings, countries, currencies }) => {
           const list = definitions.result ?? [];
           this.moduleDefinitions = list;
           this.modules = list.filter(
@@ -276,15 +327,20 @@ export class WorkspaceSetupComponent implements OnInit {
           this.enabledModules = enabled.filter((module) => module.enabled).map((module) => module.key);
           this.countries = countries.result ?? [];
           this.currencies = currencies.result ?? [];
-          const settings = coreSettings.result;
-          if (settings) {
+          const core = coreSettings.result;
+          if (core) {
             this.coreSettings = {
-              countryId: settings.countryId ?? '',
-              baseCurrencyId: settings.baseCurrencyId ?? '',
-              currencyIds: Array.isArray(settings.currencyIds) ? settings.currencyIds : [],
-              companies: settings.companies ?? [],
-              branches: settings.branches ?? [],
-              warehouses: settings.warehouses ?? [],
+              countryId: core.countryId ?? '',
+              baseCurrencyId: core.baseCurrencyId ?? '',
+              currencyIds: Array.isArray(core.currencyIds) ? core.currencyIds : [],
+            };
+          }
+          const structure = structureSettings.result;
+          if (structure) {
+            this.structureSettings = {
+              companies: structure.companies ?? [],
+              branches: structure.branches ?? [],
+              warehouses: structure.warehouses ?? [],
             };
           }
           this.syncCurrencyIdsWithBase();
@@ -441,12 +497,12 @@ export class WorkspaceSetupComponent implements OnInit {
       return;
     }
     const next = { id: this.generateTempId(), name };
-    this.coreSettings.companies = [...this.coreSettings.companies, next];
+    this.structureSettings.companies = [...this.structureSettings.companies, next];
     this.draftCompanyName = '';
   }
 
   confirmRemoveCompany(companyId: string): void {
-    const company = this.coreSettings.companies.find((item) => item.id === companyId);
+    const company = this.structureSettings.companies.find((item) => item.id === companyId);
     if (!company) {
       return;
     }
@@ -457,10 +513,10 @@ export class WorkspaceSetupComponent implements OnInit {
   }
 
   removeCompany(id: string): void {
-    this.coreSettings.companies = this.coreSettings.companies.filter((company) => company.id !== id);
-    this.coreSettings.branches = this.coreSettings.branches.filter((branch) => branch.companyId !== id);
-    this.coreSettings.warehouses = this.coreSettings.warehouses.filter((warehouse) =>
-      this.coreSettings.branches.some((branch) => branch.id === warehouse.branchId)
+    this.structureSettings.companies = this.structureSettings.companies.filter((company) => company.id !== id);
+    this.structureSettings.branches = this.structureSettings.branches.filter((branch) => branch.companyId !== id);
+    this.structureSettings.warehouses = this.structureSettings.warehouses.filter((warehouse) =>
+      this.structureSettings.branches.some((branch) => branch.id === warehouse.branchId)
     );
   }
 
@@ -474,7 +530,7 @@ export class WorkspaceSetupComponent implements OnInit {
       });
       return;
     }
-    if (!this.coreSettings.companies.some((company) => company.id === this.draftBranchCompanyId)) {
+    if (!this.structureSettings.companies.some((company) => company.id === this.draftBranchCompanyId)) {
       this.messageService.add({
         severity: 'warn',
         summary: 'Empresa',
@@ -487,13 +543,13 @@ export class WorkspaceSetupComponent implements OnInit {
       companyId: this.draftBranchCompanyId,
       name,
     };
-    this.coreSettings.branches = [...this.coreSettings.branches, next];
+    this.structureSettings.branches = [...this.structureSettings.branches, next];
     this.draftBranchCompanyId = '';
     this.draftBranchName = '';
   }
 
   confirmRemoveBranch(branchId: string): void {
-    const branch = this.coreSettings.branches.find((item) => item.id === branchId);
+    const branch = this.structureSettings.branches.find((item) => item.id === branchId);
     if (!branch) {
       return;
     }
@@ -504,8 +560,8 @@ export class WorkspaceSetupComponent implements OnInit {
   }
 
   removeBranch(id: string): void {
-    this.coreSettings.branches = this.coreSettings.branches.filter((branch) => branch.id !== id);
-    this.coreSettings.warehouses = this.coreSettings.warehouses.filter((warehouse) => warehouse.branchId !== id);
+    this.structureSettings.branches = this.structureSettings.branches.filter((branch) => branch.id !== id);
+    this.structureSettings.warehouses = this.structureSettings.warehouses.filter((warehouse) => warehouse.branchId !== id);
   }
 
   addWarehouse(): void {
@@ -518,7 +574,7 @@ export class WorkspaceSetupComponent implements OnInit {
       });
       return;
     }
-    if (!this.coreSettings.branches.some((branch) => branch.id === this.draftWarehouseBranchId)) {
+    if (!this.structureSettings.branches.some((branch) => branch.id === this.draftWarehouseBranchId)) {
       this.messageService.add({
         severity: 'warn',
         summary: 'Sucursal',
@@ -531,13 +587,13 @@ export class WorkspaceSetupComponent implements OnInit {
       branchId: this.draftWarehouseBranchId,
       name,
     };
-    this.coreSettings.warehouses = [...this.coreSettings.warehouses, next];
+    this.structureSettings.warehouses = [...this.structureSettings.warehouses, next];
     this.draftWarehouseBranchId = '';
     this.draftWarehouseName = '';
   }
 
   confirmRemoveWarehouse(warehouseId: string): void {
-    const warehouse = this.coreSettings.warehouses.find((item) => item.id === warehouseId);
+    const warehouse = this.structureSettings.warehouses.find((item) => item.id === warehouseId);
     if (!warehouse) {
       return;
     }
@@ -548,7 +604,7 @@ export class WorkspaceSetupComponent implements OnInit {
   }
 
   removeWarehouse(id: string): void {
-    this.coreSettings.warehouses = this.coreSettings.warehouses.filter((warehouse) => warehouse.id !== id);
+    this.structureSettings.warehouses = this.structureSettings.warehouses.filter((warehouse) => warehouse.id !== id);
   }
 
   goBack(): void {
@@ -596,6 +652,32 @@ export class WorkspaceSetupComponent implements OnInit {
     return null;
   }
 
+  private getEmptyCoreResponse(): ApiResponse<OrganizationCoreSettings> {
+    return {
+      status: 'success',
+      message: '',
+      result: {
+        countryId: '',
+        baseCurrencyId: '',
+        currencyIds: [],
+      },
+      error: null,
+    };
+  }
+
+  private getEmptyStructureResponse(): ApiResponse<OrganizationStructureSettings> {
+    return {
+      status: 'success',
+      message: '',
+      result: {
+        companies: [],
+        branches: [],
+        warehouses: [],
+      },
+      error: null,
+    };
+  }
+
   private getWorkspaceId(workspace: Workspace | null | undefined): string | null {
     return workspace?.id ?? workspace?._id ?? null;
   }
@@ -621,12 +703,12 @@ export class WorkspaceSetupComponent implements OnInit {
   }
 
   getCompanyName(companyId: string): string {
-    const company = this.coreSettings.companies.find((item) => item.id === companyId);
+    const company = this.structureSettings.companies.find((item) => item.id === companyId);
     return company?.name ?? '-';
   }
 
   getBranchName(branchId: string): string {
-    const branch = this.coreSettings.branches.find((item) => item.id === branchId);
+    const branch = this.structureSettings.branches.find((item) => item.id === branchId);
     return branch?.name ?? '-';
   }
 

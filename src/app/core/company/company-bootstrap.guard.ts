@@ -22,13 +22,13 @@ export const CompanyBootstrapGuard: CanActivateFn = (_route, state) => {
       const currentUrl = state.url;
 
       if (count === 0) {
-        if (currentUrl.startsWith('/companies/select')) {
+        if (currentUrl.startsWith('/organizations/setup')) {
           return true;
         }
-        return router.parseUrl('/companies/select');
+        return router.parseUrl('/organizations/setup');
       }
 
-      if (currentUrl.startsWith('/companies/select')) {
+      if (currentUrl.startsWith('/organizations/setup')) {
         return true;
       }
 
@@ -55,8 +55,8 @@ export const CompanyBootstrapGuard: CanActivateFn = (_route, state) => {
         return router.parseUrl(`/company/${targetCompanyId}/dashboard`);
       }
 
-      return router.parseUrl('/companies/select');
+      return router.parseUrl('/organizations/setup');
     }),
-    catchError(() => of(router.parseUrl('/companies/select'))),
+    catchError(() => of(router.parseUrl('/organizations/setup'))),
   );
 };

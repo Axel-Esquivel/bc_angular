@@ -77,7 +77,7 @@ export class LoginPageComponent {
               .subscribe((response) => {
                 const workspaces = response.result?.workspaces ?? [];
                 if (workspaces.length === 0) {
-                  this.router.navigateByUrl('/companies/select');
+                  this.router.navigateByUrl('/organizations/setup');
                   return;
                 }
 
@@ -87,7 +87,7 @@ export class LoginPageComponent {
                   return;
                 }
 
-                this.router.navigateByUrl('/companies/select');
+                this.router.navigateByUrl('/organizations/setup');
               });
           });
         },

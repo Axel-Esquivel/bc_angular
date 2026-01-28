@@ -1,4 +1,6 @@
 import { WorkspaceModuleState } from './workspace-modules.model';
+import { OrganizationCoreSettings } from './organization-core-settings.model';
+import { OrganizationStructureSettings } from './organization-structure-settings.model';
 
 export interface Workspace {
   _id?: string;
@@ -31,11 +33,4 @@ export interface WorkspaceListResult {
   defaultWorkspaceId?: string;
 }
 
-export interface IWorkspaceCoreSettings {
-  countryId?: string;
-  baseCurrencyId?: string;
-  currencyIds: string[];
-  companies: Array<{ id: string; name: string }>;
-  branches: Array<{ id: string; companyId: string; name: string }>;
-  warehouses: Array<{ id: string; branchId: string; name: string; type?: string }>;
-}
+export type IWorkspaceCoreSettings = OrganizationCoreSettings & OrganizationStructureSettings;

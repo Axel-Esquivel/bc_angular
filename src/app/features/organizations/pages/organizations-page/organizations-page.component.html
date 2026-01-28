@@ -84,14 +84,19 @@
       <tr>
         <td>{{ getMemberLabel(member) }}</td>
         <td>
-          <p-select
-            [options]="rolesOptions"
-            [ngModel]="getMemberRoleKey(member)"
-            (onChange)="updateMemberRole(member, $event.value)"
-            placeholder="Rol"
-            appendTo="body"
-            [disabled]="isMemberPending(member) || !canEditMember(member)"
-          ></p-select>
+          <ng-container *ngIf="!isOwner(member); else ownerRole">
+            <p-select
+              [options]="rolesOptions"
+              [ngModel]="getMemberRoleKey(member)"
+              (onChange)="updateMemberRole(member, $event.value)"
+              placeholder="Rol"
+              appendTo="body"
+              [disabled]="isMemberPending(member) || !canEditMember(member)"
+            ></p-select>
+          </ng-container>
+          <ng-template #ownerRole>
+            <span>{{ getMemberRoleLabel(member) }}</span>
+          </ng-template>
         </td>
         <td>{{ getMemberStatusLabel(member) }}</td>
         <td>
@@ -156,7 +161,7 @@
             [text]="true"
             severity="danger"
             icon="pi pi-trash"
-            [disabled]="role.system"
+            [disabled]="role.isSystem"
             (onClick)="deleteRole(role)"
           ></p-button>
         </td>
@@ -172,7 +177,10 @@
   [style]="{ width: '720px' }"
 >
   <form class="dialog-form">
-    <label>Key</label>
+    <label>
+      Key
+      <i class="pi pi-info-circle" pTooltip="Identificador interno (slug)." tooltipPosition="top"></i>
+    </label>
     <input pInputText [(ngModel)]="roleDraft.key" name="roleKey" [disabled]="roleMode === 'edit'" />
 
     <label>Nombre</label>

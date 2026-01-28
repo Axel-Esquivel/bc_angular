@@ -5,7 +5,12 @@ import { MessageService } from 'primeng/api';
 import { AuthService } from '../../../../core/auth/auth.service';
 import { OrganizationsService } from '../../../../core/api/organizations-api.service';
 import { UsersApiService } from '../../../../core/api/users-api.service';
-import { IOrganization, IOrganizationMember, IOrganizationRole } from '../../../../shared/models/organization.model';
+import {
+  IOrganization,
+  IOrganizationMember,
+  IOrganizationRole,
+  OWNER_ROLE_KEY,
+} from '../../../../shared/models/organization.model';
 
 @Component({
   selector: 'app-organizations-page',
@@ -368,7 +373,10 @@ export class OrganizationsPageComponent implements OnInit {
   }
 
   private resolveMemberEmails(members: IOrganizationMember[]): void {
-    const ids = members.map((member) => member.userId).filter(Boolean);
+    const ids = members
+      .filter((member) => !member.email)
+      .map((member) => member.userId)
+      .filter(Boolean);
     if (ids.length === 0) {
       this.memberEmails.clear();
       return;
@@ -389,11 +397,16 @@ export class OrganizationsPageComponent implements OnInit {
   }
 
   getMemberLabel(member: IOrganizationMember): string {
-    return this.memberEmails.get(member.userId) ?? member.userId;
+    return member.email ?? this.memberEmails.get(member.userId) ?? member.userId;
   }
 
   getMemberRoleKey(member: IOrganizationMember): string {
     return member.roleKey;
+  }
+
+  getMemberRoleLabel(member: IOrganizationMember): string {
+    const match = this.rolesOptions.find((role) => role.value === member.roleKey);
+    return match?.label ?? this.formatRoleLabel(member.roleKey);
   }
 
   getMemberStatusLabel(member: IOrganizationMember): string {
@@ -413,7 +426,7 @@ export class OrganizationsPageComponent implements OnInit {
   }
 
   isOwner(member: IOrganizationMember): boolean {
-    return member.roleKey === 'owner';
+    return member.roleKey === OWNER_ROLE_KEY;
   }
 
   canEditMember(member: IOrganizationMember): boolean {

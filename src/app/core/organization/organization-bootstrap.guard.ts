@@ -18,10 +18,10 @@ export const OrganizationBootstrapGuard: CanActivateFn = () => {
         return router.parseUrl('/organizations/pending');
       }
       if (!hasActive) {
-        return router.parseUrl('/onboarding');
+        return router.parseUrl('/organizations/entry');
       }
       return true;
     }),
-    catchError(() => of(router.parseUrl('/onboarding')))
+    catchError(() => of(router.parseUrl('/organizations/entry')))
   );
 };

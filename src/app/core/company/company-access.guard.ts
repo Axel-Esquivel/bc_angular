@@ -18,7 +18,7 @@ export const CompanyAccessGuard: CanActivateFn = (route, state) => {
   const companyId = route.paramMap.get('id') ?? route.paramMap.get('companyId');
 
   if (!companyId) {
-    return router.createUrlTree(['/companies/select']);
+    return router.createUrlTree(['/organizations/setup']);
   }
 
   return workspacesApi.listMine().pipe(
@@ -32,17 +32,17 @@ export const CompanyAccessGuard: CanActivateFn = (route, state) => {
           logger.debug('[guard access] allow stored', { companyId, url: state.url });
           return true;
         }
-        const redirect = router.createUrlTree(['/companies/select']);
+        const redirect = router.createUrlTree(['/organizations/setup']);
         logger.debug('[guard access] deny no companies', { companyId, url: state.url, redirect: redirect.toString() });
-        return router.createUrlTree(['/companies/select']);
+        return router.createUrlTree(['/organizations/setup']);
       }
 
       const currentUrl = state.url;
       const company = companies.find((item) => getCompanyId(item) === companyId);
       if (!company) {
-        const redirect = router.createUrlTree(['/companies/select']);
+        const redirect = router.createUrlTree(['/organizations/setup']);
         logger.debug('[guard access] deny missing company', { companyId, url: state.url, redirect: redirect.toString() });
-        return router.createUrlTree(['/companies/select']);
+        return router.createUrlTree(['/organizations/setup']);
       }
 
       const storedActive = companyState.getActiveCompanyId();
@@ -80,7 +80,7 @@ export const CompanyAccessGuard: CanActivateFn = (route, state) => {
       logger.debug('[guard access] allow', { companyId, url: state.url, setupCompleted });
       return true;
     }),
-    catchError(() => of(router.createUrlTree(['/companies/select']))),
+    catchError(() => of(router.createUrlTree(['/organizations/setup']))),
   );
 };
 

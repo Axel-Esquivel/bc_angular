@@ -16,11 +16,13 @@ import { Toast } from 'primeng/toast';
 import { OrganizationsPageComponent } from './pages/organizations-page/organizations-page.component';
 import { OrganizationCreatePageComponent } from './pages/organization-create-page/organization-create-page.component';
 import { OrganizationCreateWizardComponent } from './pages/organization-create-wizard/organization-create-wizard.component';
+import { OrganizationEntryPageComponent } from './pages/organization-entry-page/organization-entry-page.component';
 import { OrganizationJoinPageComponent } from './pages/organization-join-page/organization-join-page.component';
 import { OrganizationPendingPageComponent } from './pages/organization-pending-page/organization-pending-page.component';
 
 const routes: Routes = [
   { path: '', component: OrganizationsPageComponent },
+  { path: 'entry', component: OrganizationEntryPageComponent },
   { path: 'create', component: OrganizationCreateWizardComponent },
   { path: 'join', component: OrganizationJoinPageComponent },
   { path: 'pending', component: OrganizationPendingPageComponent },
@@ -31,6 +33,7 @@ const routes: Routes = [
     OrganizationsPageComponent,
     OrganizationCreatePageComponent,
     OrganizationCreateWizardComponent,
+    OrganizationEntryPageComponent,
     OrganizationJoinPageComponent,
     OrganizationPendingPageComponent,
   ],

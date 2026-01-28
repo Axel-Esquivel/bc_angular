@@ -4,17 +4,17 @@
 <div class="workspace-setup">
   <p-card>
     <ng-template pTemplate="header">
-      <h2>Setup de la compania</h2>
+      <h2>Setup de la organizacion</h2>
     </ng-template>
 
     <div class="setup-steps">
       <div class="setup-step" [class.is-active]="stepIndex === 0">1. Modulos</div>
-      <div class="setup-step" [class.is-active]="stepIndex === 1">2. Core settings</div>
+      <div class="setup-step" [class.is-active]="stepIndex === 1">2. Configuracion base</div>
       <div class="setup-step" [class.is-active]="stepIndex === 2">3. Roles</div>
     </div>
 
     <section *ngIf="stepIndex === 0">
-      <p class="subtitle">Selecciona los modulos que deseas habilitar en esta compania.</p>
+      <p class="subtitle">Selecciona los modulos que deseas habilitar en esta organizacion.</p>
 
       <div class="modules-grid" *ngIf="modules.length > 0; else emptyState">
         <button
@@ -47,7 +47,7 @@
     </section>
 
     <section *ngIf="stepIndex === 1">
-      <p class="subtitle">Configura los datos base de la compania para continuar.</p>
+      <p class="subtitle">Configura los datos base de la organizacion para continuar.</p>
 
       <div class="form-grid">
         <div class="form-field">
@@ -160,7 +160,7 @@
           <input pInputText placeholder="Nombre de la empresa" [(ngModel)]="draftCompanyName" />
           <p-button label="Agregar" icon="pi pi-plus" (onClick)="addCompany()"></p-button>
         </div>
-        <p-table *ngIf="coreSettings.companies.length > 0; else emptyCompanies" [value]="coreSettings.companies">
+        <p-table *ngIf="structureSettings.companies.length > 0; else emptyCompanies" [value]="structureSettings.companies">
           <ng-template pTemplate="header">
             <tr>
               <th>Nombre</th>
@@ -194,7 +194,7 @@
         </div>
         <div class="list-form">
           <p-select
-            [options]="coreSettings.companies"
+            [options]="structureSettings.companies"
             optionLabel="name"
             optionValue="id"
             placeholder="Empresa"
@@ -204,7 +204,7 @@
           <input pInputText placeholder="Nombre de la sucursal" [(ngModel)]="draftBranchName" />
           <p-button label="Agregar" icon="pi pi-plus" (onClick)="addBranch()"></p-button>
         </div>
-        <p-table *ngIf="coreSettings.branches.length > 0; else emptyBranches" [value]="coreSettings.branches">
+        <p-table *ngIf="structureSettings.branches.length > 0; else emptyBranches" [value]="structureSettings.branches">
           <ng-template pTemplate="header">
             <tr>
               <th>Sucursal</th>
@@ -240,7 +240,7 @@
         </div>
         <div class="list-form">
           <p-select
-            [options]="coreSettings.branches"
+            [options]="structureSettings.branches"
             optionLabel="name"
             optionValue="id"
             placeholder="Sucursal"
@@ -250,7 +250,7 @@
           <input pInputText placeholder="Nombre de la bodega" [(ngModel)]="draftWarehouseName" />
           <p-button label="Agregar" icon="pi pi-plus" (onClick)="addWarehouse()"></p-button>
         </div>
-        <p-table *ngIf="coreSettings.warehouses.length > 0; else emptyWarehouses" [value]="coreSettings.warehouses">
+        <p-table *ngIf="structureSettings.warehouses.length > 0; else emptyWarehouses" [value]="structureSettings.warehouses">
           <ng-template pTemplate="header">
             <tr>
               <th>Bodega</th>
@@ -288,7 +288,7 @@
     <section *ngIf="stepIndex === 2">
       <p class="subtitle">Configura roles y permisos si lo necesitas. Este paso es opcional.</p>
       <div class="roles-placeholder">
-        <p>Podras administrar roles desde la configuracion de la compania.</p>
+        <p>Podras administrar roles desde la configuracion de la organizacion.</p>
       </div>
       <div class="actions">
         <p-button label="Volver" severity="secondary" (onClick)="goBack()"></p-button>

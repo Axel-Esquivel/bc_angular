@@ -1,0 +1,79 @@
+<p-toast></p-toast>
+
+<div class="organization-locations-setup">
+  <div class="page-header">
+    <div>
+      <h1>Setup de locations</h1>
+      <div class="subtitle">Configura sucursales y bodegas por compania.</div>
+    </div>
+  </div>
+
+  <p-card>
+    <ng-template pTemplate="title">Compania</ng-template>
+    <div class="field">
+      <label>Compania</label>
+      <p-select
+        class="w-full"
+        [options]="companyOptions"
+        [(ngModel)]="selectedCompany"
+        optionLabel="name"
+        [showClear]="true"
+        [filter]="true"
+        placeholder="Seleccionar compania"
+        appendTo="body"
+        (onChange)="onCompanyChange()"
+      >
+        <ng-template pTemplate="dropdownicon">
+          <i class="pi pi-briefcase"></i>
+        </ng-template>
+        <ng-template pTemplate="selectedItem" let-company>
+          <span *ngIf="company">{{ company.name }}</span>
+          <span *ngIf="!company">Seleccionar compania</span>
+        </ng-template>
+        <ng-template pTemplate="item" let-company>
+          <span>{{ company.name }}</span>
+        </ng-template>
+      </p-select>
+      <small class="hint" *ngIf="companyOptions.length === 0">No hay companias registradas.</small>
+    </div>
+  </p-card>
+
+  <div class="setup-grid">
+    <p-card>
+      <ng-template pTemplate="title">Sucursales</ng-template>
+      <form [formGroup]="branchForm" class="inline-form">
+        <input pInputText formControlName="name" placeholder="Nombre de sucursal" />
+        <p-button label="Agregar" icon="pi pi-plus" (onClick)="createBranch()"></p-button>
+      </form>
+      <div class="list" *ngIf="branchLocations.length > 0; else emptyBranches">
+        <div class="list-item" *ngFor="let item of branchLocations">{{ item.name }}</div>
+      </div>
+      <ng-template #emptyBranches>
+        <small class="hint">No hay sucursales registradas.</small>
+      </ng-template>
+    </p-card>
+
+    <p-card>
+      <ng-template pTemplate="title">Bodegas</ng-template>
+      <form [formGroup]="warehouseForm" class="inline-form">
+        <input pInputText formControlName="name" placeholder="Nombre de bodega" />
+        <p-button label="Agregar" icon="pi pi-plus" (onClick)="createWarehouse()"></p-button>
+      </form>
+      <div class="list" *ngIf="warehouseLocations.length > 0; else emptyWarehouses">
+        <div class="list-item" *ngFor="let item of warehouseLocations">{{ item.name }}</div>
+      </div>
+      <ng-template #emptyWarehouses>
+        <small class="hint">No hay bodegas registradas.</small>
+      </ng-template>
+    </p-card>
+  </div>
+
+  <div class="actions">
+    <p-button
+      label="Guardar y continuar"
+      icon="pi pi-arrow-right"
+      [disabled]="!companyId || submitting || loading"
+      (onClick)="saveAndContinue()"
+    ></p-button>
+  </div>
+</div>

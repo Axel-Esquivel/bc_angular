@@ -11,6 +11,6 @@ export class OrganizationPendingPageComponent {
   constructor(private readonly router: Router) {}
 
   goBack(): void {
-    this.router.navigateByUrl('/organizations');
+    this.router.navigateByUrl('/organizations/entry');
   }
 }

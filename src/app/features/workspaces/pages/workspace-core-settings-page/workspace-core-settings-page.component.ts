@@ -1,10 +1,14 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { MessageService } from 'primeng/api';
-import { take } from 'rxjs';
+import { forkJoin, map, of, switchMap, take } from 'rxjs';
 
 import { WorkspacesApiService } from '../../../../core/api/workspaces-api.service';
-import { IWorkspaceCoreSettings } from '../../../../shared/models/workspace.model';
+import { OrganizationSettingsApiService } from '../../../../core/api/organization-settings-api.service';
+import { ApiResponse } from '../../../../shared/models/api-response.model';
+import { OrganizationCoreSettings, OrganizationCoreSettingsUpdate } from '../../../../shared/models/organization-core-settings.model';
+import { OrganizationStructureSettings, OrganizationStructureSettingsUpdate } from '../../../../shared/models/organization-structure-settings.model';
+import { Workspace } from '../../../../shared/models/workspace.model';
 
 @Component({
   selector: 'app-workspace-core-settings-page',
@@ -15,16 +19,20 @@ import { IWorkspaceCoreSettings } from '../../../../shared/models/workspace.mode
 export class WorkspaceCoreSettingsPageComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly workspacesApi = inject(WorkspacesApiService);
+  private readonly organizationSettingsApi = inject(OrganizationSettingsApiService);
   private readonly messageService = inject(MessageService);
 
   workspaceId = this.route.parent?.snapshot.paramMap.get('id') ?? '';
+  organizationId = '';
   loading = false;
   submitting = false;
 
-  settings: IWorkspaceCoreSettings = {
+  coreSettings: OrganizationCoreSettings = {
     countryId: '',
     baseCurrencyId: '',
     currencyIds: [],
+  };
+  structureSettings: OrganizationStructureSettings = {
     companies: [],
     branches: [],
     warehouses: [],
@@ -62,22 +70,22 @@ export class WorkspaceCoreSettingsPageComponent implements OnInit {
   }
 
   get companyOptions(): Array<{ label: string; value: string }> {
-    return this.settings.companies.map((company) => ({
+    return this.structureSettings.companies.map((company) => ({
       label: company.name ? `${company.name} (${company.id})` : company.id,
       value: company.id,
     }));
   }
 
   get branchOptions(): Array<{ label: string; value: string }> {
-    return this.settings.branches.map((branch) => ({
+    return this.structureSettings.branches.map((branch) => ({
       label: branch.name ? `${branch.name} (${branch.id})` : branch.id,
       value: branch.id,
     }));
   }
 
   get currencyOptions(): Array<{ label: string; value: string }> {
-    if (this.settings.currencyIds.length > 0) {
-      return this.settings.currencyIds.map((id) => ({
+    if (this.coreSettings.currencyIds.length > 0) {
+      return this.coreSettings.currencyIds.map((id) => ({
         label: id,
         value: id,
       }));
@@ -128,11 +136,11 @@ export class WorkspaceCoreSettingsPageComponent implements OnInit {
     }
 
     if (this.editingCurrencyId) {
-      this.settings.currencyIds = this.settings.currencyIds
+      this.coreSettings.currencyIds = this.coreSettings.currencyIds
         .filter((item) => item !== this.editingCurrencyId)
         .concat(id);
-    } else if (!this.settings.currencyIds.includes(id)) {
-      this.settings.currencyIds = [...this.settings.currencyIds, id];
+    } else if (!this.coreSettings.currencyIds.includes(id)) {
+      this.coreSettings.currencyIds = [...this.coreSettings.currencyIds, id];
     }
 
     this.currencyDialogOpen = false;
@@ -149,11 +157,11 @@ export class WorkspaceCoreSettingsPageComponent implements OnInit {
       return;
     }
 
-    const exists = this.settings.companies.find((item) => item.id === id);
+    const exists = this.structureSettings.companies.find((item) => item.id === id);
     if (exists) {
       Object.assign(exists, { id, name });
     } else {
-      this.settings.companies = [...this.settings.companies, { id, name }];
+      this.structureSettings.companies = [...this.structureSettings.companies, { id, name }];
     }
 
     this.companyDialogOpen = false;
@@ -169,16 +177,16 @@ export class WorkspaceCoreSettingsPageComponent implements OnInit {
       return;
     }
 
-    if (!this.settings.companies.some((item) => item.id === companyId)) {
+    if (!this.structureSettings.companies.some((item) => item.id === companyId)) {
       this.showWarn('La empresa seleccionada no existe.');
       return;
     }
 
-    const exists = this.settings.branches.find((item) => item.id === id);
+    const exists = this.structureSettings.branches.find((item) => item.id === id);
     if (exists) {
       Object.assign(exists, { id, companyId, name });
     } else {
-      this.settings.branches = [...this.settings.branches, { id, companyId, name }];
+      this.structureSettings.branches = [...this.structureSettings.branches, { id, companyId, name }];
     }
 
     this.branchDialogOpen = false;
@@ -194,16 +202,16 @@ export class WorkspaceCoreSettingsPageComponent implements OnInit {
       return;
     }
 
-    if (!this.settings.branches.some((item) => item.id === branchId)) {
+    if (!this.structureSettings.branches.some((item) => item.id === branchId)) {
       this.showWarn('La sucursal seleccionada no existe.');
       return;
     }
 
-    const exists = this.settings.warehouses.find((item) => item.id === id);
+    const exists = this.structureSettings.warehouses.find((item) => item.id === id);
     if (exists) {
       Object.assign(exists, { id, branchId, name });
     } else {
-      this.settings.warehouses = [...this.settings.warehouses, { id, branchId, name }];
+      this.structureSettings.warehouses = [...this.structureSettings.warehouses, { id, branchId, name }];
     }
 
     this.warehouseDialogOpen = false;
@@ -211,121 +219,214 @@ export class WorkspaceCoreSettingsPageComponent implements OnInit {
   }
 
   removeCurrency(id: string): void {
-    this.settings.currencyIds = this.settings.currencyIds.filter((currencyId) => currencyId !== id);
-    if (this.settings.baseCurrencyId === id) {
-      this.settings.baseCurrencyId = '';
+    this.coreSettings.currencyIds = this.coreSettings.currencyIds.filter((currencyId) => currencyId !== id);
+    if (this.coreSettings.baseCurrencyId === id) {
+      this.coreSettings.baseCurrencyId = '';
     }
     this.persist();
   }
 
   removeCompany(item: { id: string }): void {
-    this.settings.companies = this.settings.companies.filter((company) => company.id !== item.id);
-    this.settings.branches = this.settings.branches.filter((branch) => branch.companyId !== item.id);
-    const branchIds = new Set(this.settings.branches.map((branch) => branch.id));
-    this.settings.warehouses = this.settings.warehouses.filter((warehouse) => branchIds.has(warehouse.branchId));
+    this.structureSettings.companies = this.structureSettings.companies.filter((company) => company.id !== item.id);
+    this.structureSettings.branches = this.structureSettings.branches.filter((branch) => branch.companyId !== item.id);
+    const branchIds = new Set(this.structureSettings.branches.map((branch) => branch.id));
+    this.structureSettings.warehouses = this.structureSettings.warehouses.filter((warehouse) =>
+      branchIds.has(warehouse.branchId)
+    );
     this.persist();
   }
 
   removeBranch(item: { id: string }): void {
-    this.settings.branches = this.settings.branches.filter((branch) => branch.id !== item.id);
-    this.settings.warehouses = this.settings.warehouses.filter((warehouse) => warehouse.branchId !== item.id);
+    this.structureSettings.branches = this.structureSettings.branches.filter((branch) => branch.id !== item.id);
+    this.structureSettings.warehouses = this.structureSettings.warehouses.filter(
+      (warehouse) => warehouse.branchId !== item.id
+    );
     this.persist();
   }
 
   removeWarehouse(item: { id: string }): void {
-    this.settings.warehouses = this.settings.warehouses.filter((warehouse) => warehouse.id !== item.id);
+    this.structureSettings.warehouses = this.structureSettings.warehouses.filter(
+      (warehouse) => warehouse.id !== item.id
+    );
     this.persist();
   }
 
   updateCoreHeader(): void {
-    if (this.settings.baseCurrencyId && !this.settings.currencyIds.includes(this.settings.baseCurrencyId)) {
-      this.settings.currencyIds = [...this.settings.currencyIds, this.settings.baseCurrencyId];
+    if (this.coreSettings.baseCurrencyId && !this.coreSettings.currencyIds.includes(this.coreSettings.baseCurrencyId)) {
+      this.coreSettings.currencyIds = [...this.coreSettings.currencyIds, this.coreSettings.baseCurrencyId];
     }
     this.persist();
   }
 
   private loadSettings(): void {
     this.loading = true;
-    this.workspacesApi.getCoreSettings(this.workspaceId).pipe(take(1)).subscribe({
-      next: ({ result }) => {
-        const payload = result;
-        if (payload) {
-          this.settings = {
-            countryId: payload.countryId ?? '',
-            baseCurrencyId: payload.baseCurrencyId ?? '',
-            currencyIds: Array.isArray(payload.currencyIds) ? payload.currencyIds : [],
-            companies: (payload.companies ?? []).map((company) => ({
-              id: company.id,
-              name: company.name ?? 'Sin nombre',
-            })),
-            branches: (payload.branches ?? []).map((branch) => ({
-              id: branch.id,
-              companyId: branch.companyId ?? '',
-              name: branch.name ?? 'Sin nombre',
-            })),
-            warehouses: (payload.warehouses ?? []).map((warehouse) => ({
-              id: warehouse.id,
-              branchId: warehouse.branchId ?? '',
-              name: warehouse.name ?? 'Sin nombre',
-              type: warehouse.type,
-            })),
-          };
-        }
-        this.loading = false;
-      },
-      error: () => {
-        this.loading = false;
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: 'No se pudieron cargar los settings base.',
-        });
-      },
-    });
+    this.workspacesApi
+      .listMine()
+      .pipe(
+        take(1),
+        map((response) => {
+          const workspaces = response.result?.workspaces ?? [];
+          const workspace = workspaces.find((item) => this.getWorkspaceId(item) === this.workspaceId);
+          this.organizationId = workspace?.organizationId ?? '';
+          return this.organizationId;
+        }),
+        switchMap((organizationId) => {
+          if (!organizationId) {
+            return of({
+              core: this.getEmptyCoreResponse(),
+              structure: this.getEmptyStructureResponse(),
+            });
+          }
+          return forkJoin({
+            core: this.organizationSettingsApi.getCoreSettings(organizationId),
+            structure: this.organizationSettingsApi.getStructureSettings(organizationId),
+          });
+        })
+      )
+      .subscribe({
+        next: ({ core, structure }) => {
+          const corePayload = core.result;
+          if (corePayload) {
+            this.coreSettings = {
+              countryId: corePayload.countryId ?? '',
+              baseCurrencyId: corePayload.baseCurrencyId ?? '',
+              currencyIds: Array.isArray(corePayload.currencyIds) ? corePayload.currencyIds : [],
+            };
+          }
+          const structurePayload = structure.result;
+          if (structurePayload) {
+            this.structureSettings = {
+              companies: (structurePayload.companies ?? []).map((company) => ({
+                id: company.id,
+                name: company.name ?? 'Sin nombre',
+              })),
+              branches: (structurePayload.branches ?? []).map((branch) => ({
+                id: branch.id,
+                companyId: branch.companyId ?? '',
+                name: branch.name ?? 'Sin nombre',
+              })),
+              warehouses: (structurePayload.warehouses ?? []).map((warehouse) => ({
+                id: warehouse.id,
+                branchId: warehouse.branchId ?? '',
+                name: warehouse.name ?? 'Sin nombre',
+                type: warehouse.type,
+              })),
+            };
+          }
+          this.loading = false;
+        },
+        error: () => {
+          this.loading = false;
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'No se pudieron cargar los settings base.',
+          });
+        },
+      });
   }
 
   private persist(): void {
     if (!this.workspaceId || this.submitting) {
       return;
     }
+    if (!this.organizationId) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Organizacion',
+        detail: 'No se pudo identificar la organizacion.',
+      });
+      return;
+    }
 
     this.submitting = true;
-    this.workspacesApi.updateCoreSettings(this.workspaceId, this.settings).pipe(take(1)).subscribe({
-      next: ({ result }) => {
-        const payload = result;
-        if (payload) {
-          this.settings = {
-            countryId: payload.countryId ?? this.settings.countryId,
-            baseCurrencyId: payload.baseCurrencyId ?? this.settings.baseCurrencyId,
-            currencyIds: Array.isArray(payload.currencyIds) ? payload.currencyIds : this.settings.currencyIds,
-            companies: (payload.companies ?? this.settings.companies).map((company) => ({
-              id: company.id,
-              name: company.name ?? 'Sin nombre',
-            })),
-            branches: (payload.branches ?? this.settings.branches).map((branch) => ({
-              id: branch.id,
-              companyId: branch.companyId ?? '',
-              name: branch.name ?? 'Sin nombre',
-            })),
-            warehouses: (payload.warehouses ?? this.settings.warehouses).map((warehouse) => ({
-              id: warehouse.id,
-              branchId: warehouse.branchId ?? '',
-              name: warehouse.name ?? 'Sin nombre',
-              type: warehouse.type,
-            })),
-          };
-        }
-        this.submitting = false;
+    const corePayload: OrganizationCoreSettingsUpdate = {
+      countryId: this.coreSettings.countryId || undefined,
+      baseCurrencyId: this.coreSettings.baseCurrencyId || undefined,
+      currencyIds: this.coreSettings.currencyIds,
+    };
+    const structurePayload: OrganizationStructureSettingsUpdate = {
+      companies: this.structureSettings.companies,
+      branches: this.structureSettings.branches,
+      warehouses: this.structureSettings.warehouses,
+    };
+
+    forkJoin({
+      core: this.organizationSettingsApi.updateCoreSettings(this.organizationId, corePayload),
+      structure: this.organizationSettingsApi.updateStructureSettings(this.organizationId, structurePayload),
+    })
+      .pipe(take(1))
+      .subscribe({
+        next: ({ core, structure }) => {
+          const coreResult = core.result;
+          if (coreResult) {
+            this.coreSettings = {
+              countryId: coreResult.countryId ?? this.coreSettings.countryId,
+              baseCurrencyId: coreResult.baseCurrencyId ?? this.coreSettings.baseCurrencyId,
+              currencyIds: Array.isArray(coreResult.currencyIds) ? coreResult.currencyIds : this.coreSettings.currencyIds,
+            };
+          }
+          const structureResult = structure.result;
+          if (structureResult) {
+            this.structureSettings = {
+              companies: (structureResult.companies ?? this.structureSettings.companies).map((company) => ({
+                id: company.id,
+                name: company.name ?? 'Sin nombre',
+              })),
+              branches: (structureResult.branches ?? this.structureSettings.branches).map((branch) => ({
+                id: branch.id,
+                companyId: branch.companyId ?? '',
+                name: branch.name ?? 'Sin nombre',
+              })),
+              warehouses: (structureResult.warehouses ?? this.structureSettings.warehouses).map((warehouse) => ({
+                id: warehouse.id,
+                branchId: warehouse.branchId ?? '',
+                name: warehouse.name ?? 'Sin nombre',
+                type: warehouse.type,
+              })),
+            };
+          }
+          this.submitting = false;
+        },
+        error: () => {
+          this.submitting = false;
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'No se pudieron guardar los settings base.',
+          });
+        },
+      });
+  }
+
+  private getWorkspaceId(workspace: Workspace | null | undefined): string | null {
+    return workspace?.id ?? workspace?._id ?? null;
+  }
+
+  private getEmptyCoreResponse(): ApiResponse<OrganizationCoreSettings> {
+    return {
+      status: 'success',
+      message: '',
+      result: {
+        countryId: '',
+        baseCurrencyId: '',
+        currencyIds: [],
       },
-      error: () => {
-        this.submitting = false;
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: 'No se pudieron guardar los settings base.',
-        });
+      error: null,
+    };
+  }
+
+  private getEmptyStructureResponse(): ApiResponse<OrganizationStructureSettings> {
+    return {
+      status: 'success',
+      message: '',
+      result: {
+        companies: [],
+        branches: [],
+        warehouses: [],
       },
-    });
+      error: null,
+    };
   }
 
   private showWarn(detail: string): void {

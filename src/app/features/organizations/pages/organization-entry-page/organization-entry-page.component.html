@@ -1,0 +1,34 @@
+<p-toast></p-toast>
+
+<section class="org-entry">
+  <div class="header">
+    <h1>Crear o unirse a una organizacion</h1>
+    <p>Elige como quieres continuar con tu primera organizacion.</p>
+  </div>
+
+  <div class="cards">
+    <p-card>
+      <ng-template pTemplate="title">Crear organizacion</ng-template>
+      <p>Crea una organizacion nueva para comenzar el setup.</p>
+      <p-button label="Crear organizacion" icon="pi pi-plus" (onClick)="goToCreate()"></p-button>
+    </p-card>
+
+    <p-card>
+      <ng-template pTemplate="title">Unirse a organizacion</ng-template>
+      <p>Envia una solicitud de acceso con el correo y el codigo.</p>
+      <form [formGroup]="joinForm" class="join-form">
+        <label>Correo</label>
+        <input pInputText type="email" formControlName="email" placeholder="correo@dominio.com" />
+
+        <label>Codigo de organizacion</label>
+        <input pInputText formControlName="orgCode" placeholder="ABCD-1234" />
+      </form>
+      <p-button
+        label="Enviar solicitud"
+        icon="pi pi-send"
+        [disabled]="submitting"
+        (onClick)="submitJoinRequest()"
+      ></p-button>
+    </p-card>
+  </div>
+</section>

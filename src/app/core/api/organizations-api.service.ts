@@ -75,6 +75,10 @@ export class OrganizationsService {
     return this.http.post<ApiResponse<IOrganization>>(`${this.baseUrl}/join`, payload);
   }
 
+  joinRequest(payload: { email: string; orgCode?: string }): Observable<ApiResponse<IOrganization>> {
+    return this.http.post<ApiResponse<IOrganization>>(`${this.baseUrl}/join-request`, payload);
+  }
+
   acceptMember(organizationId: string, userId: string): Observable<ApiResponse<IOrganization>> {
     return this.http.post<ApiResponse<IOrganization>>(
       `${this.baseUrl}/${organizationId}/members/${encodeURIComponent(userId)}/accept`,

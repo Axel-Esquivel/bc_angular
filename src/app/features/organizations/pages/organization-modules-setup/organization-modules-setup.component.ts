@@ -3,9 +3,10 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
 
 import { ModulesApiService, ModuleDefinition } from '../../../../core/api/modules-api.service';
-import { OrganizationsService } from '../../../../core/api/organizations-api.service';
+import { CompaniesApiService } from '../../../../core/api/companies-api.service';
 import { CompanyStateService } from '../../../../core/company/company-state.service';
 import { ModuleDependenciesService } from '../../../../core/workspace/module-dependencies.service';
+import { OrganizationModulesApiService } from '../../services/organization-modules-api.service';
 
 @Component({
   selector: 'app-organization-modules-setup',
@@ -27,7 +28,8 @@ export class OrganizationModulesSetupComponent implements OnInit {
     private readonly route: ActivatedRoute,
     private readonly router: Router,
     private readonly modulesApi: ModulesApiService,
-    private readonly organizationsApi: OrganizationsService,
+    private readonly organizationModulesApi: OrganizationModulesApiService,
+    private readonly companiesApi: CompaniesApiService,
     private readonly moduleDependencies: ModuleDependenciesService,
     private readonly companyState: CompanyStateService,
     private readonly messageService: MessageService,
@@ -116,14 +118,14 @@ export class OrganizationModulesSetupComponent implements OnInit {
       return;
     }
     this.submitting = true;
-    this.organizationsApi.updateModules(this.orgId, { enabledModules: this.enabledModules }).subscribe({
+    this.organizationModulesApi.updateModules(this.orgId, { modules: this.enabledModules }).subscribe({
       next: () => {
         this.submitting = false;
         if (this.companyId) {
           this.router.navigateByUrl(`/company/${this.companyId}/dashboard`);
           return;
         }
-        this.router.navigateByUrl('/companies/select');
+        this.redirectToDashboardFromOrganization();
       },
       error: (error) => {
         this.submitting = false;
@@ -137,10 +139,30 @@ export class OrganizationModulesSetupComponent implements OnInit {
     });
   }
 
-  private loadOrganizationModules(): void {
-    this.organizationsApi.getModules(this.orgId).subscribe({
+  private redirectToDashboardFromOrganization(): void {
+    this.companiesApi.listByOrganization(this.orgId).subscribe({
       next: (res) => {
-        this.enabledModules = res.result?.enabledModules ?? [];
+        const companies = res?.result ?? [];
+        const targetCompanyId = companies[0]?.id ?? '';
+        if (targetCompanyId) {
+          this.router.navigateByUrl(`/company/${targetCompanyId}/dashboard`);
+          return;
+        }
+        this.router.navigateByUrl('/organizations');
+      },
+      error: () => {
+        this.router.navigateByUrl('/organizations');
+      },
+    });
+  }
+
+  private loadOrganizationModules(): void {
+    this.organizationModulesApi.getOverview(this.orgId).subscribe({
+      next: (res) => {
+        const overview = res.result?.modules ?? [];
+        this.enabledModules = overview
+          .filter((module) => module.state.status !== 'disabled')
+          .map((module) => module.key);
         this.loading = false;
       },
       error: (error) => {

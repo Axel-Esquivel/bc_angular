@@ -1,5 +1,6 @@
 export interface IOrganizationMember {
   userId: string;
+  email?: string;
   roleKey: string;
   status: 'pending' | 'active';
   invitedBy?: string;
@@ -7,13 +8,16 @@ export interface IOrganizationMember {
   invitedAt?: string;
   requestedAt?: string;
   activatedAt?: string;
+  createdAt?: string;
 }
+
+export const OWNER_ROLE_KEY = 'owner' as const;
 
 export interface IOrganizationRole {
   key: string;
   name: string;
   permissions?: string[];
-  system?: boolean;
+  isSystem?: boolean;
 }
 
 export interface IOrganization {

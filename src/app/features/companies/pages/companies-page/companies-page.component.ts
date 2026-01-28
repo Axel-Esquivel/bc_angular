@@ -110,12 +110,13 @@ export class CompaniesPageComponent implements OnInit {
           this.createForm.reset();
           this.submitting = false;
         },
-        error: () => {
+        error: (error) => {
           this.submitting = false;
+          const message = error?.error?.message;
           this.messageService.add({
             severity: 'error',
             summary: 'Companias',
-            detail: 'No se pudo crear la compania.',
+            detail: typeof message === 'string' ? message : 'No se pudo crear la compania.',
           });
         },
       });

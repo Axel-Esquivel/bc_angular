@@ -90,7 +90,7 @@ export class WorkspaceModulesPageComponent implements OnInit, OnDestroy {
     if (this.workspaceId) {
       this.router.navigate(['/company', this.workspaceId, 'dashboard']);
     } else {
-      this.router.navigate(['/companies/select']);
+      this.router.navigate(['/organizations/setup']);
     }
   }
 

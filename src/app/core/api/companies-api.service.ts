@@ -5,6 +5,7 @@ import { Observable } from 'rxjs';
 import { APP_CONFIG_TOKEN, AppConfig } from '../config/app-config';
 import { ApiResponse } from '../../shared/models/api-response.model';
 import { Company } from '../../shared/models/company.model';
+import { CreateOrganizationCompanyDto } from '../../shared/models/organization-company.model';
 import { WorkspaceModulesOverview } from '../../shared/models/workspace-modules.model';
 
 @Injectable({ providedIn: 'root' })
@@ -19,14 +20,7 @@ export class CompaniesApiService {
     return this.http.get<ApiResponse<Company[]>>(`${this.baseUrl}/organizations/${orgId}/companies`);
   }
 
-  create(orgId: string, payload: {
-    name: string;
-    legalName?: string;
-    taxId?: string;
-    baseCountryId: string;
-    baseCurrencyId: string;
-    currencies?: string[];
-  }): Observable<ApiResponse<Company>> {
+  create(orgId: string, payload: CreateOrganizationCompanyDto): Observable<ApiResponse<Company>> {
     return this.http.post<ApiResponse<Company>>(`${this.baseUrl}/organizations/${orgId}/companies`, payload);
   }
 

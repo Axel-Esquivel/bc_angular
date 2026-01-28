@@ -14,9 +14,12 @@ export const routes: Routes = [
   { path: 'register', component: RegisterPageComponent },
   { path: 'onboarding', canActivate: [AuthGuard, OnboardingGuard], loadChildren: () => import('./features/onboarding/onboarding.module').then((m) => m.OnboardingModule) },
   { path: 'setup/modules', canActivate: [AuthGuard, OnboardingGuard, OrganizationBootstrapGuard], loadChildren: () => import('./features/organizations/pages/organization-modules-setup/organization-modules-setup.module').then((m) => m.OrganizationModulesSetupModule) },
+  { path: 'organizations/modules', canActivate: [AuthGuard, OnboardingGuard, OrganizationBootstrapGuard], loadChildren: () => import('./features/organizations/pages/organization-modules-setup/organization-modules-setup.module').then((m) => m.OrganizationModulesSetupModule) },
+  { path: 'organizations/modules/locations/setup', canActivate: [AuthGuard, OnboardingGuard, OrganizationBootstrapGuard], loadChildren: () => import('./features/organizations/pages/organization-locations-setup-page/organization-locations-setup-page.module').then((m) => m.OrganizationLocationsSetupPageModule) },
+  { path: 'organizations/setup', canActivate: [AuthGuard, OnboardingGuard], loadChildren: () => import('./features/organizations/pages/organization-setup-page/organization-setup-page.module').then((m) => m.OrganizationSetupPageModule) },
   { path: 'organizations', canActivate: [AuthGuard, OnboardingGuard], loadChildren: () => import('./features/organizations/organizations.module').then((m) => m.OrganizationsModule) },
   { path: 'organizations/:orgId/companies', canActivate: [AuthGuard, OnboardingGuard], loadChildren: () => import('./features/companies/companies.module').then((m) => m.CompaniesModule) },
-  { path: 'companies/select', canActivate: [AuthGuard, OnboardingGuard], loadChildren: () => import('./features/companies/company-selector.module').then((m) => m.CompanySelectorModule) },
+  { path: 'companies/select', redirectTo: 'organizations/setup', pathMatch: 'full' },
   { path: 'settings/countries', canActivate: [AuthGuard], loadChildren: () => import('./features/settings/pages/countries-page/countries-page.module').then((m) => m.CountriesPageModule) },
   { path: 'company/:id/setup', canActivate: [AuthGuard, OnboardingGuard], loadChildren: () => import('./features/workspaces/pages/workspace-setup/workspace-setup.module').then((m) => m.WorkspaceSetupModule) },
   {

@@ -43,13 +43,17 @@ export const OnboardingGuard: CanActivateFn = (_route, state) => {
           }
 
           if (!hasActive) {
-            if (state.url.startsWith('/onboarding')) {
+            if (state.url.startsWith('/organizations/entry')) {
               return of(true);
             }
-            return of(router.parseUrl('/onboarding'));
+            return of(router.parseUrl('/organizations/entry'));
           }
 
-          if (state.url.startsWith('/onboarding')) {
+          if (
+            state.url.startsWith('/onboarding') ||
+            state.url.startsWith('/organizations/entry') ||
+            state.url.startsWith('/organizations/pending')
+          ) {
             return workspacesApi.listMine().pipe(
               map((res) => {
                 const companies = res.result?.workspaces ?? [];
@@ -60,15 +64,15 @@ export const OnboardingGuard: CanActivateFn = (_route, state) => {
                     : null;
                 return resolvedDefault
                   ? router.parseUrl(`/company/${resolvedDefault}/dashboard`)
-                  : router.parseUrl('/companies/select');
+                  : router.parseUrl('/organizations/setup');
               }),
-              catchError(() => of(router.parseUrl('/companies/select'))),
+              catchError(() => of(router.parseUrl('/organizations/setup'))),
             );
           }
 
           return of(true);
         }),
-        catchError(() => of(router.parseUrl('/onboarding'))),
+        catchError(() => of(router.parseUrl('/organizations/entry'))),
       );
     }),
     catchError(() => of(router.parseUrl('/login'))),
