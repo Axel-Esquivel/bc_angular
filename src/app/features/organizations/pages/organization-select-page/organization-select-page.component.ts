@@ -5,6 +5,8 @@ import { forkJoin, take } from 'rxjs';
 import { MessageService } from 'primeng/api';
 
 import { AuthService } from '../../../../core/auth/auth.service';
+import { CountriesApiService } from '../../../../core/api/countries-api.service';
+import { CurrenciesApiService } from '../../../../core/api/currencies-api.service';
 import { OrganizationsService } from '../../../../core/api/organizations-api.service';
 import { ActiveContextStateService } from '../../../../core/context/active-context-state.service';
 import {
@@ -19,6 +21,15 @@ interface OrganizationSelectionState {
   active: OrganizationSelectionRow[];
   invitations: OrganizationSelectionRow[];
 }
+
+interface SelectOption {
+  id: string;
+  name: string;
+}
+
+type IdObject = { _id: string };
+type IdLike = string | IdObject | null | undefined;
+type IdLikeList = IdLike | IdLike[];
 
 @Component({
   selector: 'app-organization-select-page',
@@ -38,12 +49,35 @@ export class OrganizationSelectPageComponent implements OnInit {
   deleteDialogOpen = false;
   selectedOrganization: OrganizationSelectionRow | null = null;
 
+  countryOptions: SelectOption[] = [];
+  currencyOptions: SelectOption[] = [];
+
+  createCountryDialogOpen = false;
+  createCurrencyDialogOpen = false;
+  savingCountry = false;
+  savingCurrency = false;
+
   editForm: FormGroup<{
     name: FormControl<string>;
+    countryIds: FormControl<string[]>;
+    currencyIds: FormControl<string[]>;
+  }>;
+
+  createCountryForm: FormGroup<{
+    code: FormControl<string>;
+    name: FormControl<string>;
+  }>;
+
+  createCurrencyForm: FormGroup<{
+    code: FormControl<string>;
+    name: FormControl<string>;
+    symbol: FormControl<string>;
   }>;
 
   constructor(
     private readonly organizationsApi: OrganizationsService,
+    private readonly countriesApi: CountriesApiService,
+    private readonly currenciesApi: CurrenciesApiService,
     private readonly authService: AuthService,
     private readonly activeContextState: ActiveContextStateService,
     private readonly router: Router,
@@ -52,6 +86,19 @@ export class OrganizationSelectPageComponent implements OnInit {
   ) {
     this.editForm = this.fb.nonNullable.group({
       name: ['', [Validators.required, Validators.minLength(2)]],
+      countryIds: this.fb.nonNullable.control<string[]>([]),
+      currencyIds: this.fb.nonNullable.control<string[]>([]),
+    });
+
+    this.createCountryForm = this.fb.nonNullable.group({
+      code: ['', [Validators.required, Validators.minLength(2)]],
+      name: ['', [Validators.required, Validators.minLength(2)]],
+    });
+
+    this.createCurrencyForm = this.fb.nonNullable.group({
+      code: ['', [Validators.required, Validators.minLength(2)]],
+      name: ['', [Validators.required, Validators.minLength(2)]],
+      symbol: [''],
     });
   }
 
@@ -60,6 +107,8 @@ export class OrganizationSelectPageComponent implements OnInit {
     this.currentUserId = user?.id ?? null;
     this.defaultOrganizationId = user?.defaultOrganizationId ?? null;
     this.loadOrganizations();
+    this.loadCountries();
+    this.loadCurrencies();
   }
 
   loadOrganizations(): void {
@@ -138,7 +187,11 @@ export class OrganizationSelectPageComponent implements OnInit {
 
   openEdit(row: OrganizationSelectionRow): void {
     this.selectedOrganization = row;
-    this.editForm.reset({ name: row.name });
+    this.editForm.reset({
+      name: row.name,
+      countryIds: row.countryIds ?? [],
+      currencyIds: row.currencyIds ?? [],
+    });
     this.editDialogOpen = true;
   }
 
@@ -151,6 +204,8 @@ export class OrganizationSelectPageComponent implements OnInit {
     const payload = this.editForm.getRawValue();
     const request: UpdateOrganizationRequest = {
       name: payload.name.trim(),
+      countryIds: this.normalizeIdList(payload.countryIds),
+      currencyIds: this.normalizeIdList(payload.currencyIds),
     };
     this.organizationsApi.updateOrganization(this.selectedOrganization.id, request).subscribe({
       next: (res) => {
@@ -218,6 +273,77 @@ export class OrganizationSelectPageComponent implements OnInit {
     return row.isOwner;
   }
 
+  openCreateCountryDialog(): void {
+    this.createCountryForm.reset({ code: '', name: '' });
+    this.createCountryDialogOpen = true;
+  }
+
+  saveCountry(): void {
+    if (this.createCountryForm.invalid || this.savingCountry) {
+      this.createCountryForm.markAllAsTouched();
+      return;
+    }
+
+    this.savingCountry = true;
+    const payload = this.createCountryForm.getRawValue();
+    this.countriesApi.create({
+      code: payload.code.trim().toUpperCase(),
+      name: payload.name.trim(),
+    }).subscribe({
+      next: (res) => {
+        const country = res?.result;
+        const id = country?.id ?? country?.iso2 ?? payload.code.trim().toUpperCase();
+        this.loadCountries(id);
+        this.createCountryDialogOpen = false;
+        this.savingCountry = false;
+      },
+      error: () => {
+        this.savingCountry = false;
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Paises',
+          detail: 'No se pudo crear el pais.',
+        });
+      },
+    });
+  }
+
+  openCreateCurrencyDialog(): void {
+    this.createCurrencyForm.reset({ code: '', name: '', symbol: '' });
+    this.createCurrencyDialogOpen = true;
+  }
+
+  saveCurrency(): void {
+    if (this.createCurrencyForm.invalid || this.savingCurrency) {
+      this.createCurrencyForm.markAllAsTouched();
+      return;
+    }
+
+    this.savingCurrency = true;
+    const payload = this.createCurrencyForm.getRawValue();
+    this.currenciesApi.create({
+      code: payload.code.trim().toUpperCase(),
+      name: payload.name.trim(),
+      symbol: payload.symbol.trim() || undefined,
+    }).subscribe({
+      next: (res) => {
+        const currency = res?.result;
+        const id = currency?.id ?? currency?.code ?? payload.code.trim().toUpperCase();
+        this.loadCurrencies(id);
+        this.createCurrencyDialogOpen = false;
+        this.savingCurrency = false;
+      },
+      error: () => {
+        this.savingCurrency = false;
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Monedas',
+          detail: 'No se pudo crear la moneda.',
+        });
+      },
+    });
+  }
+
   private buildSelectionState(
     organizations: IOrganization[],
     memberships: IOrganizationMembership[],
@@ -254,6 +380,8 @@ export class OrganizationSelectPageComponent implements OnInit {
       id: organization.id,
       name: organization.name,
       code: organization.code,
+      countryIds: organization.countryIds,
+      currencyIds: organization.currencyIds,
       roleKey: membership.roleKey,
       status: membership.status,
       isDefault: organization.id === this.defaultOrganizationId,
@@ -309,6 +437,80 @@ export class OrganizationSelectPageComponent implements OnInit {
       ...row,
       name,
     };
+  }
+
+  private loadCountries(selectId?: string): void {
+    const current = this.editForm.controls.countryIds.value;
+    this.countriesApi.list().subscribe({
+      next: ({ result }) => {
+        const countries = result ?? [];
+        this.countryOptions = countries.map((country) => {
+          const label = country.nameEs || country.nameEn || country.iso2;
+          const suffix = country.iso2 && label !== country.iso2 ? ` (${country.iso2})` : '';
+          return {
+            id: country.id ?? country.iso2,
+            name: `${label}${suffix}`,
+          };
+        });
+        if (selectId) {
+          const next = this.normalizeIdList([...current, selectId]);
+          this.editForm.controls.countryIds.setValue(next);
+        }
+      },
+      error: () => {
+        this.countryOptions = [];
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Paises',
+          detail: 'No se pudieron cargar los paises.',
+        });
+      },
+    });
+  }
+
+  private loadCurrencies(selectId?: string): void {
+    const current = this.editForm.controls.currencyIds.value;
+    this.currenciesApi.list().subscribe({
+      next: ({ result }) => {
+        const currencies = result ?? [];
+        this.currencyOptions = currencies.map((currency) => ({
+          id: currency.id ?? currency.code,
+          name: currency.code && currency.name ? `${currency.code} - ${currency.name}` : currency.code || currency.name,
+        }));
+        if (selectId) {
+          const next = this.normalizeIdList([...current, selectId]);
+          this.editForm.controls.currencyIds.setValue(next);
+        }
+      },
+      error: () => {
+        this.currencyOptions = [];
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Monedas',
+          detail: 'No se pudieron cargar las monedas.',
+        });
+      },
+    });
+  }
+
+  private normalizeIdList(input: IdLikeList): string[] {
+    if (!input) {
+      return [];
+    }
+    const list = Array.isArray(input) ? input : [input];
+    const normalized = list
+      .map((item) => {
+        if (typeof item === 'string') {
+          return item.trim();
+        }
+        if (item && typeof item === 'object' && '_id' in item) {
+          const value = item._id;
+          return typeof value === 'string' ? value.trim() : '';
+        }
+        return '';
+      })
+      .filter((item) => item.length > 0);
+    return Array.from(new Set(normalized));
   }
 
   private syncUserAndContext(shouldRedirect: boolean): void {

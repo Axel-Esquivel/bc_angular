@@ -30,106 +30,156 @@
 </div>
 
 <p-dialog header="Crear compania" [(visible)]="createDialogOpen" [modal]="true" [style]="{ width: '760px' }">
-  <form [formGroup]="createForm" class="dialog-form">
-    <label>Nombre</label>
-    <input pInputText formControlName="name" />
+  <form [formGroup]="createForm" class="dialog-form p-fluid flex flex-column gap-3">
+    <div class="form-field">
+      <label>Nombre</label>
+      <input pInputText class="w-full" formControlName="name" />
+    </div>
 
-    <label>Nombre legal</label>
-    <input pInputText formControlName="legalName" />
+    <div class="form-field">
+      <label>Nombre legal</label>
+      <input pInputText class="w-full" formControlName="legalName" />
+    </div>
 
-    <label>Tax ID</label>
-    <input pInputText formControlName="taxId" />
+    <div class="form-field">
+      <label>Tax ID</label>
+      <input pInputText class="w-full" formControlName="taxId" />
+    </div>
 
-    <label>Pais donde opera</label>
-    <div class="inline-row">
-      <p-select
+    <div class="form-field">
+      <label>Paises donde opera</label>
+      <p-multiselect
+        class="w-full"
         [options]="countryOptions"
-        [formControl]="operatingCountryControl"
+        optionLabel="name"
+        optionValue="_id"
+        formControlName="operatingCountryIds"
+        placeholder="Seleccionar paises"
+        display="chip"
+        [filter]="true"
+        emptyMessage="No results found"
+        appendTo="body"
+      ></p-multiselect>
+    </div>
+
+    <div class="form-field">
+      <label>Monedas permitidas</label>
+      <p-multiselect
+        class="w-full"
+        [options]="currencyOptions"
+        optionLabel="name"
+        optionValue="_id"
+        formControlName="allowedCurrencyIds"
+        placeholder="Seleccionar monedas"
+        display="chip"
+        [filter]="true"
+        emptyMessage="No results found"
+        appendTo="body"
+      ></p-multiselect>
+    </div>
+
+    <div class="form-field">
+      <label>Moneda por defecto</label>
+      <p-select
+        class="w-full"
+        [options]="defaultCurrencyOptions"
+        optionLabel="name"
+        optionValue="_id"
+        formControlName="defaultCurrencyId"
         placeholder="Seleccionar"
         appendTo="body"
       ></p-select>
-      <p-button label="Agregar" icon="pi pi-plus" severity="secondary" (onClick)="addOperatingCountry()"></p-button>
-    </div>
-    <div class="tag-list" *ngIf="createForm.controls.operatingCountryIds.value.length > 0">
-      <span class="tag" *ngFor="let countryId of createForm.controls.operatingCountryIds.value">
-        {{ getEnterpriseCountryLabel(countryId) }}
-        <button type="button" class="tag-remove" (click)="removeOperatingCountry(countryId)">x</button>
-      </span>
     </div>
 
-    <div class="section">
-      <h4>Empresas</h4>
-      <div class="empty-state" *ngIf="enterpriseDrafts.length === 0">No hay empresas agregadas.</div>
-      <div class="enterprise-list" *ngIf="enterpriseDrafts.length > 0">
-        <div class="enterprise-item" *ngFor="let enterprise of enterpriseDrafts">
-          <div>
-            <div class="option-title">{{ enterprise.name }}</div>
-            <small class="option-meta">{{ getEnterpriseCountryLabel(enterprise.countryId) }}</small>
-          </div>
-          <div class="option-meta">{{ getEnterpriseCurrencyLabel(enterprise.defaultCurrencyId) }}</div>
-          <p-button icon="pi pi-times" [text]="true" severity="danger" (onClick)="removeEnterprise(enterprise.id)"></p-button>
-        </div>
-      </div>
-
-      <div class="enterprise-form" [formGroup]="enterpriseForm">
-        <label>Nombre de empresa</label>
-        <input pInputText formControlName="name" />
-
-        <label>Pais</label>
-        <p-select
-          [options]="countryOptions"
-          formControlName="countryId"
-          placeholder="Seleccionar"
-          appendTo="body"
-        ></p-select>
-
-        <label>Moneda permitida</label>
-        <div class="inline-row">
-          <p-select
-            [options]="currencyOptions"
-            [formControl]="enterpriseCurrencyControl"
-            placeholder="Seleccionar"
-            appendTo="body"
-          ></p-select>
-          <p-button label="Agregar" icon="pi pi-plus" severity="secondary" (onClick)="addEnterpriseCurrency()"></p-button>
-        </div>
-        <div class="tag-list" *ngIf="enterpriseForm.controls.currencyIds.value.length > 0">
-          <span class="tag" *ngFor="let currencyId of enterpriseForm.controls.currencyIds.value">
-            {{ getEnterpriseCurrencyLabel(currencyId) }}
-            <button type="button" class="tag-remove" (click)="removeEnterpriseCurrency(currencyId)">x</button>
-          </span>
-        </div>
-
-        <label>Moneda base de la empresa</label>
-        <p-select
-          [options]="enterpriseDefaultCurrencyOptions"
-          formControlName="defaultCurrencyId"
-          placeholder="Seleccionar"
-          appendTo="body"
-        ></p-select>
-
-        <p-button label="Agregar empresa" icon="pi pi-plus" severity="secondary" (onClick)="addEnterprise()"></p-button>
-      </div>
+    <div class="form-field">
+      <label>Empresa por defecto</label>
+      <p-select
+        class="w-full"
+        [options]="unitOptions"
+        optionLabel="name"
+        optionValue="id"
+        formControlName="defaultEnterpriseId"
+        placeholder="Seleccionar"
+        appendTo="body"
+        (onChange)="onDefaultEnterpriseChange()"
+      ></p-select>
     </div>
 
-    <label>Empresa por defecto</label>
-    <p-select
-      [options]="enterpriseDrafts"
-      formControlName="defaultEnterpriseId"
-      optionLabel="name"
-      optionValue="id"
-      placeholder="Seleccionar"
-      appendTo="body"
-      (onChange)="onDefaultEnterpriseChange()"
-    ></p-select>
+    <div class="accordion-section" *ngIf="selectedCountries.length > 0">
+      <h4>Empresas por pais</h4>
+      <p-accordion [multiple]="true">
+        <p-accordion-panel *ngFor="let country of selectedCountries">
+          <p-accordion-header>
+            <div class="accordion-header">
+              <div class="accordion-title">
+                <span>{{ country.name }}</span>
+                <small *ngIf="country.code">({{ country.code }})</small>
+              </div>
+              <p-button
+                icon="pi pi-plus"
+                text
+                rounded
+                severity="secondary"
+                (onClick)="onAddUnitClick($event, country._id)"
+              ></p-button>
+            </div>
+          </p-accordion-header>
+          <p-accordion-content>
+            <div class="country-units" [formGroup]="getCountryGroup(country._id)">
+              <div class="empty-state" *ngIf="getCountryUnits(country._id).length === 0">
+                No hay empresas agregadas.
+              </div>
+              <div class="unit-list" *ngIf="getCountryUnits(country._id).length > 0">
+                <div class="unit-card" *ngFor="let unit of getCountryUnits(country._id)" [formGroup]="unit">
+                  <div class="form-field">
+                    <label>Nombre de empresa</label>
+                    <input pInputText class="w-full" formControlName="name" />
+                  </div>
 
-    <label>Moneda por defecto</label>
-    <p-select
-      [options]="defaultCurrencyOptions"
-      formControlName="defaultCurrencyId"
-      placeholder="Seleccionar"
-      appendTo="body"
-    ></p-select>
+                  <div class="form-field">
+                    <label>Monedas permitidas</label>
+                    <p-multiselect
+                      class="w-full"
+                      [options]="allowedCurrencies"
+                      optionLabel="name"
+                      optionValue="_id"
+                      formControlName="currencyIds"
+                      placeholder="Seleccionar monedas"
+                      display="chip"
+                      [filter]="true"
+                      emptyMessage="No results found"
+                      appendTo="body"
+                    ></p-multiselect>
+                  </div>
+
+                  <div class="form-field">
+                    <label>Moneda base</label>
+                    <p-select
+                      class="w-full"
+                      [options]="allowedCurrencies"
+                      optionLabel="name"
+                      optionValue="_id"
+                      formControlName="defaultCurrencyId"
+                      placeholder="Seleccionar"
+                      appendTo="body"
+                    ></p-select>
+                  </div>
+
+                  <div class="unit-actions">
+                    <p-button
+                      icon="pi pi-trash"
+                      text
+                      severity="danger"
+                      (onClick)="removeCompanyUnit(country._id, unit.controls.id.value)"
+                    ></p-button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </p-accordion-content>
+        </p-accordion-panel>
+      </p-accordion>
+    </div>
   </form>
   <ng-template pTemplate="footer">
     <p-button label="Cancelar" [text]="true" (onClick)="createDialogOpen=false"></p-button>

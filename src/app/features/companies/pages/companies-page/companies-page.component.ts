@@ -1,28 +1,58 @@
-import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { Component, DestroyRef, OnInit, inject } from '@angular/core';
+import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { CompaniesApiService } from '../../../../core/api/companies-api.service';
 import { OrganizationsService } from '../../../../core/api/organizations-api.service';
 import { Company } from '../../../../shared/models/company.model';
 import { IOrganization } from '../../../../shared/models/organization.model';
-import { CreateOrganizationCompanyDto } from '../../../../shared/models/organization-company.model';
+import { CreateOrganizationCompanyDto, OrganizationCompanyEnterpriseInput } from '../../../../shared/models/organization-company.model';
 import { OrganizationCoreApiService } from '../../../organizations/services/organization-core-api.service';
 import { CoreCountry, CoreCurrency } from '../../../organizations/models/organization-core.models';
 
-interface SelectOption {
-  label: string;
-  value: string;
+interface ICountry {
+  _id: string;
+  name: string;
+  code?: string;
 }
 
-interface EnterpriseDraft {
+interface ICurrency {
+  _id: string;
+  name: string;
+  code: string;
+  symbol?: string;
+}
+
+interface UnitOption {
   id: string;
   name: string;
   countryId: string;
-  currencyIds: string[];
-  defaultCurrencyId: string;
 }
+
+type CompanyUnitForm = FormGroup<{
+  id: FormControl<string>;
+  name: FormControl<string>;
+  currencyIds: FormControl<string[]>;
+  defaultCurrencyId: FormControl<string>;
+}>;
+
+type CountryUnitsForm = FormGroup<{
+  countryId: FormControl<string>;
+  units: FormArray<CompanyUnitForm>;
+}>;
+
+type CompanyCreateForm = FormGroup<{
+  name: FormControl<string>;
+  legalName: FormControl<string>;
+  taxId: FormControl<string>;
+  operatingCountryIds: FormControl<string[]>;
+  allowedCurrencyIds: FormControl<string[]>;
+  defaultEnterpriseId: FormControl<string>;
+  defaultCurrencyId: FormControl<string>;
+  companiesByCountry: FormArray<CountryUnitsForm>;
+}>;
 
 @Component({
   selector: 'app-companies-page',
@@ -32,6 +62,8 @@ interface EnterpriseDraft {
   standalone: false,
 })
 export class CompaniesPageComponent implements OnInit {
+  private readonly destroyRef = inject(DestroyRef);
+
   companies: Company[] = [];
   organization: IOrganization | null = null;
   loading = false;
@@ -39,28 +71,10 @@ export class CompaniesPageComponent implements OnInit {
   createDialogOpen = false;
   submitting = false;
 
-  countryOptions: SelectOption[] = [];
-  currencyOptions: SelectOption[] = [];
-  enterpriseDrafts: EnterpriseDraft[] = [];
+  countryOptions: ICountry[] = [];
+  currencyOptions: ICurrency[] = [];
 
-  operatingCountryControl: FormControl<string>;
-  enterpriseCurrencyControl: FormControl<string>;
-
-  createForm: FormGroup<{
-    name: FormControl<string>;
-    legalName: FormControl<string>;
-    taxId: FormControl<string>;
-    operatingCountryIds: FormControl<string[]>;
-    defaultEnterpriseId: FormControl<string>;
-    defaultCurrencyId: FormControl<string>;
-  }>;
-
-  enterpriseForm: FormGroup<{
-    name: FormControl<string>;
-    countryId: FormControl<string>;
-    currencyIds: FormControl<string[]>;
-    defaultCurrencyId: FormControl<string>;
-  }>;
+  createForm: CompanyCreateForm;
 
   constructor(
     private readonly companiesApi: CompaniesApiService,
@@ -76,19 +90,11 @@ export class CompaniesPageComponent implements OnInit {
       legalName: [''],
       taxId: [''],
       operatingCountryIds: this.fb.nonNullable.control<string[]>([]),
+      allowedCurrencyIds: this.fb.nonNullable.control<string[]>([]),
       defaultEnterpriseId: this.fb.nonNullable.control<string>(''),
       defaultCurrencyId: this.fb.nonNullable.control<string>(''),
+      companiesByCountry: new FormArray<CountryUnitsForm>([]),
     });
-
-    this.enterpriseForm = this.fb.nonNullable.group({
-      name: ['', [Validators.required, Validators.minLength(2)]],
-      countryId: ['', [Validators.required]],
-      currencyIds: this.fb.nonNullable.control<string[]>([]),
-      defaultCurrencyId: this.fb.nonNullable.control<string>(''),
-    });
-
-    this.operatingCountryControl = this.fb.nonNullable.control<string>('');
-    this.enterpriseCurrencyControl = this.fb.nonNullable.control<string>('');
   }
 
   ngOnInit(): void {
@@ -101,6 +107,53 @@ export class CompaniesPageComponent implements OnInit {
     this.loadOrganization(orgId);
     this.loadCompanies(orgId);
     this.loadCoreSettings(orgId);
+
+    this.createForm.controls.operatingCountryIds.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((countryIds) => {
+        this.syncCountryGroups(countryIds);
+      });
+
+    this.createForm.controls.allowedCurrencyIds.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((currencyIds) => {
+        this.syncCurrencySelections(currencyIds);
+      });
+  }
+
+  get companiesByCountryArray(): FormArray<CountryUnitsForm> {
+    return this.createForm.controls.companiesByCountry;
+  }
+
+  get selectedCountries(): ICountry[] {
+    const ids = this.createForm.controls.operatingCountryIds.value;
+    return ids
+      .map((id) => this.countryOptions.find((country) => country._id === id))
+      .filter((country): country is ICountry => Boolean(country));
+  }
+
+  get allowedCurrencies(): ICurrency[] {
+    const ids = this.createForm.controls.allowedCurrencyIds.value;
+    return ids
+      .map((id) => this.currencyOptions.find((currency) => currency._id === id))
+      .filter((currency): currency is ICurrency => Boolean(currency));
+  }
+
+  get defaultCurrencyOptions(): ICurrency[] {
+    return this.allowedCurrencies;
+  }
+
+  get unitOptions(): UnitOption[] {
+    const items: UnitOption[] = [];
+    this.companiesByCountryArray.controls.forEach((countryGroup) => {
+      const countryId = countryGroup.controls.countryId.value;
+      countryGroup.controls.units.controls.forEach((unit) => {
+        const id = unit.controls.id.value;
+        const name = unit.controls.name.value || 'Empresa';
+        items.push({ id, name, countryId });
+      });
+    });
+    return items;
   }
 
   openCreateDialog(): void {
@@ -108,96 +161,33 @@ export class CompaniesPageComponent implements OnInit {
     this.createDialogOpen = true;
   }
 
-  addOperatingCountry(): void {
-    const countryId = this.operatingCountryControl.value;
-    if (!countryId) {
-      return;
-    }
-    const current = this.createForm.controls.operatingCountryIds.value;
-    const updated = this.normalizeIdList([...current, countryId]);
-    this.createForm.controls.operatingCountryIds.setValue(updated);
+  onAddUnitClick(event: Event, countryId: string): void {
+    event.stopPropagation();
+    this.addCompanyUnit(countryId);
   }
 
-  removeOperatingCountry(countryId: string): void {
-    const current = this.createForm.controls.operatingCountryIds.value;
-    const updated = current.filter((item) => item !== countryId);
-    this.createForm.controls.operatingCountryIds.setValue(updated);
+  addCompanyUnit(countryId: string): void {
+    const group = this.ensureCountryGroup(countryId);
+    group.controls.units.push(this.createUnitForm());
+    this.syncDefaultEnterprise();
   }
 
-  addEnterpriseCurrency(): void {
-    const currencyId = this.enterpriseCurrencyControl.value;
-    if (!currencyId) {
-      return;
+  removeCompanyUnit(countryId: string, unitId: string): void {
+    const group = this.ensureCountryGroup(countryId);
+    const units = group.controls.units;
+    const index = units.controls.findIndex((unit) => unit.controls.id.value === unitId);
+    if (index >= 0) {
+      units.removeAt(index);
+      this.syncDefaultEnterprise();
     }
-    const current = this.enterpriseForm.controls.currencyIds.value;
-    const updated = this.normalizeIdList([...current, currencyId]);
-    this.enterpriseForm.controls.currencyIds.setValue(updated);
-    this.syncEnterpriseDefaultCurrency();
   }
 
-  removeEnterpriseCurrency(currencyId: string): void {
-    const current = this.enterpriseForm.controls.currencyIds.value;
-    const updated = current.filter((item) => item !== currencyId);
-    this.enterpriseForm.controls.currencyIds.setValue(updated);
-    this.syncEnterpriseDefaultCurrency();
+  getCountryGroup(countryId: string): CountryUnitsForm {
+    return this.ensureCountryGroup(countryId);
   }
 
-  addEnterprise(): void {
-    if (this.enterpriseForm.invalid) {
-      this.enterpriseForm.markAllAsTouched();
-      return;
-    }
-
-    const payload = this.enterpriseForm.getRawValue();
-    const currencyIds = this.normalizeIdList(payload.currencyIds);
-    if (currencyIds.length === 0) {
-      this.messageService.add({
-        severity: 'warn',
-        summary: 'Empresas',
-        detail: 'Selecciona al menos una moneda permitida.',
-      });
-      return;
-    }
-
-    const defaultCurrencyId =
-      payload.defaultCurrencyId && currencyIds.includes(payload.defaultCurrencyId)
-        ? payload.defaultCurrencyId
-        : currencyIds[0];
-
-    const enterprise: EnterpriseDraft = {
-      id: this.generateTempId(),
-      name: payload.name.trim(),
-      countryId: payload.countryId,
-      currencyIds,
-      defaultCurrencyId,
-    };
-
-    this.enterpriseDrafts = [...this.enterpriseDrafts, enterprise];
-    this.enterpriseForm.reset({
-      name: '',
-      countryId: payload.countryId,
-      currencyIds: currencyIds,
-      defaultCurrencyId,
-    });
-
-    if (!this.createForm.controls.defaultEnterpriseId.value) {
-      this.createForm.controls.defaultEnterpriseId.setValue(enterprise.id);
-    }
-
-    this.syncDefaultCurrency();
-  }
-
-  removeEnterprise(id: string): void {
-    this.enterpriseDrafts = this.enterpriseDrafts.filter((item) => item.id !== id);
-    if (this.createForm.controls.defaultEnterpriseId.value === id) {
-      const nextDefault = this.enterpriseDrafts[0]?.id ?? '';
-      this.createForm.controls.defaultEnterpriseId.setValue(nextDefault);
-    }
-    this.syncDefaultCurrency();
-  }
-
-  onDefaultEnterpriseChange(): void {
-    this.syncDefaultCurrency();
+  getCountryUnits(countryId: string): CompanyUnitForm[] {
+    return this.ensureCountryGroup(countryId).controls.units.controls;
   }
 
   createCompany(): void {
@@ -206,43 +196,58 @@ export class CompaniesPageComponent implements OnInit {
       return;
     }
 
-    if (this.enterpriseDrafts.length === 0) {
+    const formPayload = this.createForm.getRawValue();
+    const operatingCountryIds = this.normalizeIdList(formPayload.operatingCountryIds);
+    const allowedCurrencyIds = this.normalizeIdList(formPayload.allowedCurrencyIds);
+
+    const enterprises: OrganizationCompanyEnterpriseInput[] = [];
+    this.companiesByCountryArray.controls.forEach((countryGroup) => {
+      const countryId = countryGroup.controls.countryId.value;
+      countryGroup.controls.units.controls.forEach((unit) => {
+        const unitPayload = unit.getRawValue();
+        const normalizedCurrencies = this.normalizeIdList(unitPayload.currencyIds);
+        const currencyIds = normalizedCurrencies.length > 0 ? normalizedCurrencies : allowedCurrencyIds;
+        const defaultCurrencyId = this.resolveDefaultCurrencyId(currencyIds, unitPayload.defaultCurrencyId);
+        enterprises.push({
+          id: unitPayload.id,
+          name: unitPayload.name.trim(),
+          countryId,
+          currencyIds,
+          defaultCurrencyId,
+        });
+      });
+    });
+
+    if (enterprises.length === 0) {
       this.messageService.add({
         severity: 'warn',
-        summary: 'Empresas',
+        summary: 'Companias',
         detail: 'Agrega al menos una empresa.',
       });
       return;
     }
 
+    const baseCountryId = operatingCountryIds[0] ?? enterprises[0]?.countryId ?? '';
+    const baseCurrencyId = this.resolveDefaultCurrencyId(
+      allowedCurrencyIds,
+      formPayload.defaultCurrencyId || enterprises[0]?.defaultCurrencyId || ''
+    );
+
+    const defaultEnterpriseId = this.resolveDefaultEnterpriseId(enterprises, formPayload.defaultEnterpriseId);
+    const defaultCurrencyId = this.resolveDefaultCurrencyId(allowedCurrencyIds, formPayload.defaultCurrencyId);
+
     this.submitting = true;
-    const formPayload = this.createForm.getRawValue();
-    const defaultEnterpriseId = formPayload.defaultEnterpriseId || this.enterpriseDrafts[0].id;
-    const defaultEnterprise =
-      this.enterpriseDrafts.find((item) => item.id === defaultEnterpriseId) ?? this.enterpriseDrafts[0];
-    const defaultCurrencyId = this.resolveDefaultCurrencyId(defaultEnterprise, formPayload.defaultCurrencyId);
-
-    const operatingCountryIds = this.normalizeIdList([
-      ...formPayload.operatingCountryIds,
-      ...this.enterpriseDrafts.map((enterprise) => enterprise.countryId),
-    ]);
-
     const payload: CreateOrganizationCompanyDto = {
       name: formPayload.name.trim(),
       legalName: formPayload.legalName.trim() || undefined,
       taxId: formPayload.taxId.trim() || undefined,
-      baseCountryId: defaultEnterprise.countryId,
-      baseCurrencyId: defaultCurrencyId,
+      baseCountryId,
+      baseCurrencyId,
       operatingCountryIds,
-      enterprises: this.enterpriseDrafts.map((enterprise) => ({
-        id: enterprise.id,
-        name: enterprise.name,
-        countryId: enterprise.countryId,
-        currencyIds: enterprise.currencyIds,
-        defaultCurrencyId: enterprise.defaultCurrencyId,
-      })),
+      currencies: allowedCurrencyIds,
+      enterprises,
       defaultEnterpriseId,
-      defaultCurrencyId,
+      defaultCurrencyId: defaultCurrencyId || baseCurrencyId || null,
     };
 
     this.companiesApi
@@ -268,65 +273,128 @@ export class CompaniesPageComponent implements OnInit {
       });
   }
 
-  getEnterpriseCountryLabel(countryId: string): string {
-    const match = this.countryOptions.find((item) => item.value === countryId);
-    return match?.label ?? countryId;
+  onDefaultEnterpriseChange(): void {
+    this.syncDefaultCurrency();
   }
 
-  getEnterpriseCurrencyLabel(currencyId: string): string {
-    const match = this.currencyOptions.find((item) => item.value === currencyId);
-    return match?.label ?? currencyId;
-  }
-
-  get defaultCurrencyOptions(): SelectOption[] {
-    const defaultEnterpriseId = this.createForm.controls.defaultEnterpriseId.value;
-    const enterprise = this.enterpriseDrafts.find((item) => item.id === defaultEnterpriseId);
-    if (!enterprise) {
-      return [];
+  private ensureCountryGroup(countryId: string): CountryUnitsForm {
+    let group = this.companiesByCountryArray.controls.find(
+      (item) => item.controls.countryId.value === countryId
+    );
+    if (!group) {
+      group = this.fb.nonNullable.group({
+        countryId: this.fb.nonNullable.control<string>(countryId),
+        units: new FormArray<CompanyUnitForm>([]),
+      });
+      this.companiesByCountryArray.push(group);
     }
-    return enterprise.currencyIds.map((id) => ({
-      label: this.getEnterpriseCurrencyLabel(id),
-      value: id,
-    }));
+    return group;
   }
 
-  get enterpriseDefaultCurrencyOptions(): SelectOption[] {
-    return this.enterpriseForm.controls.currencyIds.value.map((id) => ({
-      label: this.getEnterpriseCurrencyLabel(id),
-      value: id,
-    }));
+  private createUnitForm(): CompanyUnitForm {
+    const allowedCurrencyIds = this.createForm.controls.allowedCurrencyIds.value;
+    const defaultCurrencyId = allowedCurrencyIds[0] ?? '';
+    return this.fb.nonNullable.group({
+      id: this.fb.nonNullable.control<string>(this.generateTempId()),
+      name: ['', [Validators.required, Validators.minLength(2)]],
+      currencyIds: this.fb.nonNullable.control<string[]>([...allowedCurrencyIds]),
+      defaultCurrencyId: this.fb.nonNullable.control<string>(defaultCurrencyId),
+    });
+  }
+
+  private syncCountryGroups(countryIds: string[]): void {
+    const normalized = this.normalizeIdList(countryIds);
+    const toRemove = this.companiesByCountryArray.controls.filter(
+      (group) => !normalized.includes(group.controls.countryId.value)
+    );
+    toRemove.forEach((group) => {
+      const index = this.companiesByCountryArray.controls.indexOf(group);
+      if (index >= 0) {
+        this.companiesByCountryArray.removeAt(index);
+      }
+    });
+    normalized.forEach((countryId) => {
+      this.ensureCountryGroup(countryId);
+    });
+    this.syncDefaultEnterprise();
+  }
+
+  private syncCurrencySelections(currencyIds: string[]): void {
+    const normalized = this.normalizeIdList(currencyIds);
+    const defaultCurrencyId = this.createForm.controls.defaultCurrencyId.value;
+    if (!normalized.includes(defaultCurrencyId)) {
+      this.createForm.controls.defaultCurrencyId.setValue(normalized[0] ?? '', { emitEvent: false });
+    }
+
+    this.companiesByCountryArray.controls.forEach((countryGroup) => {
+      countryGroup.controls.units.controls.forEach((unit) => {
+        const unitCurrencyIds = this.normalizeIdList(unit.controls.currencyIds.value);
+        const filtered = unitCurrencyIds.filter((id) => normalized.includes(id));
+        const nextCurrencies = filtered.length > 0 ? filtered : normalized;
+        unit.controls.currencyIds.setValue(nextCurrencies, { emitEvent: false });
+        const unitDefault = unit.controls.defaultCurrencyId.value;
+        if (!nextCurrencies.includes(unitDefault)) {
+          unit.controls.defaultCurrencyId.setValue(nextCurrencies[0] ?? '', { emitEvent: false });
+        }
+      });
+    });
+    this.syncDefaultCurrency();
   }
 
   private syncDefaultCurrency(): void {
     const defaultEnterpriseId = this.createForm.controls.defaultEnterpriseId.value;
-    const enterprise = this.enterpriseDrafts.find((item) => item.id === defaultEnterpriseId) ?? this.enterpriseDrafts[0];
-    if (!enterprise) {
-      this.createForm.controls.defaultCurrencyId.setValue('');
+    const unit = this.findUnitById(defaultEnterpriseId);
+    if (!unit) {
       return;
     }
-
-    const current = this.createForm.controls.defaultCurrencyId.value;
-    const next = this.resolveDefaultCurrencyId(enterprise, current);
-    this.createForm.controls.defaultCurrencyId.setValue(next);
+    const currencyIds = this.normalizeIdList(unit.controls.currencyIds.value);
+    const defaultCurrencyId = this.resolveDefaultCurrencyId(
+      currencyIds,
+      unit.controls.defaultCurrencyId.value
+    );
+    this.createForm.controls.defaultCurrencyId.setValue(defaultCurrencyId, { emitEvent: false });
   }
 
-  private syncEnterpriseDefaultCurrency(): void {
-    const current = this.enterpriseForm.controls.defaultCurrencyId.value;
-    const currencyIds = this.enterpriseForm.controls.currencyIds.value;
-    if (current && currencyIds.includes(current)) {
+  private syncDefaultEnterprise(): void {
+    const current = this.createForm.controls.defaultEnterpriseId.value;
+    const available = this.unitOptions.map((item) => item.id);
+    if (available.length === 0) {
+      this.createForm.controls.defaultEnterpriseId.setValue('', { emitEvent: false });
       return;
     }
-    this.enterpriseForm.controls.defaultCurrencyId.setValue(currencyIds[0] ?? '');
+    if (!current || !available.includes(current)) {
+      this.createForm.controls.defaultEnterpriseId.setValue(available[0], { emitEvent: false });
+    }
   }
 
-  private resolveDefaultCurrencyId(enterprise: EnterpriseDraft, requested: string): string {
-    if (requested && enterprise.currencyIds.includes(requested)) {
+  private findUnitById(id: string): CompanyUnitForm | null {
+    if (!id) {
+      return null;
+    }
+    for (const countryGroup of this.companiesByCountryArray.controls) {
+      const unit = countryGroup.controls.units.controls.find((item) => item.controls.id.value === id);
+      if (unit) {
+        return unit;
+      }
+    }
+    return null;
+  }
+
+  private resolveDefaultEnterpriseId(
+    enterprises: OrganizationCompanyEnterpriseInput[],
+    requested: string,
+  ): string | null {
+    if (requested && enterprises.some((item) => item.id === requested)) {
       return requested;
     }
-    if (enterprise.defaultCurrencyId && enterprise.currencyIds.includes(enterprise.defaultCurrencyId)) {
-      return enterprise.defaultCurrencyId;
+    return enterprises[0]?.id ?? null;
+  }
+
+  private resolveDefaultCurrencyId(currencyIds: string[], requested: string): string {
+    if (requested && currencyIds.includes(requested)) {
+      return requested;
     }
-    return enterprise.currencyIds[0] ?? '';
+    return currencyIds[0] ?? '';
   }
 
   private loadOrganization(orgId: string): void {
@@ -369,14 +437,18 @@ export class CompaniesPageComponent implements OnInit {
         const countries = result?.countries ?? [];
         const currencies = result?.currencies ?? [];
         this.countryOptions = countries.map((country: CoreCountry) => ({
-          label: country.code ? `${country.name} (${country.code})` : country.name,
-          value: country.id,
+          _id: country.id,
+          name: country.name,
+          code: country.code,
         }));
         this.currencyOptions = currencies.map((currency: CoreCurrency) => ({
-          label: currency.code ? `${currency.code} - ${currency.name}` : currency.name,
-          value: currency.id,
+          _id: currency.id,
+          name: currency.name,
+          code: currency.code,
+          symbol: currency.symbol,
         }));
-        this.seedEnterpriseDefaults();
+        this.syncCountryGroups(this.createForm.controls.operatingCountryIds.value);
+        this.syncCurrencySelections(this.createForm.controls.allowedCurrencyIds.value);
       },
       error: () => {
         this.countryOptions = [];
@@ -396,32 +468,12 @@ export class CompaniesPageComponent implements OnInit {
       legalName: '',
       taxId: '',
       operatingCountryIds: [],
+      allowedCurrencyIds: [],
       defaultEnterpriseId: '',
       defaultCurrencyId: '',
     });
-    this.operatingCountryControl.setValue('');
-    this.enterpriseCurrencyControl.setValue('');
-    this.enterpriseForm.reset({
-      name: '',
-      countryId: this.countryOptions[0]?.value ?? '',
-      currencyIds: this.currencyOptions.length > 0 ? [this.currencyOptions[0].value] : [],
-      defaultCurrencyId: this.currencyOptions[0]?.value ?? '',
-    });
-    this.enterpriseDrafts = [];
-  }
-
-  private seedEnterpriseDefaults(): void {
-    if (this.countryOptions.length === 0 || this.currencyOptions.length === 0) {
-      return;
-    }
-    if (!this.enterpriseForm.controls.countryId.value) {
-      this.enterpriseForm.controls.countryId.setValue(this.countryOptions[0].value);
-    }
-    if (this.enterpriseForm.controls.currencyIds.value.length === 0) {
-      this.enterpriseForm.controls.currencyIds.setValue([this.currencyOptions[0].value]);
-    }
-    if (!this.enterpriseForm.controls.defaultCurrencyId.value) {
-      this.enterpriseForm.controls.defaultCurrencyId.setValue(this.currencyOptions[0].value);
+    while (this.companiesByCountryArray.length > 0) {
+      this.companiesByCountryArray.removeAt(0);
     }
   }
 

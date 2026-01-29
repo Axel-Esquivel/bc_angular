@@ -30,6 +30,8 @@ export interface IOrganization {
   code?: string;
   ownerUserId?: string;
   createdBy?: string;
+  countryIds?: string[];
+  currencyIds?: string[];
   members?: IOrganizationMember[];
   roles?: IOrganizationRole[];
   createdAt?: string;
@@ -57,10 +59,14 @@ export interface IOrganizationMembership {
 
 export interface CreateOrganizationRequest {
   name: string;
+  countryIds?: string[];
+  currencyIds?: string[];
 }
 
 export interface UpdateOrganizationRequest {
   name?: string;
+  countryIds?: string[];
+  currencyIds?: string[];
 }
 
 export interface OrganizationDefaultResult {

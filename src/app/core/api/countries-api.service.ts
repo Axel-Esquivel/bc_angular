@@ -1,6 +1,6 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
-import { Observable, of, tap } from 'rxjs';
+import { Observable, of, tap, throwError, timer, mergeMap, retryWhen } from 'rxjs';
 
 import { APP_CONFIG_TOKEN, AppConfig } from '../config/app-config';
 import { ApiResponse } from '../../shared/models/api-response.model';
@@ -29,6 +29,23 @@ export class CountriesApiService {
       params = params.set('q', query);
     }
     return this.http.get<ApiResponse<Country[]>>(this.baseUrl, { params }).pipe(
+      retryWhen((errors) =>
+        errors.pipe(
+          mergeMap((error, retryIndex) => {
+            const attempt = retryIndex + 1;
+            if (!(error instanceof HttpErrorResponse)) {
+              return throwError(() => error);
+            }
+            const status = error.status;
+            const retryable =
+              attempt <= 1 && status >= 500 && status !== 502 && status !== 503 && status !== 0;
+            if (!retryable) {
+              return throwError(() => error);
+            }
+            return timer(250 * attempt);
+          })
+        )
+      ),
       tap((response) => {
         if (!query && Array.isArray(response?.result)) {
           this.cachedList = response.result;

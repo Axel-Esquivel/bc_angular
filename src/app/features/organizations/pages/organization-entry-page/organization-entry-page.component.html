@@ -40,12 +40,97 @@
   appendTo="body"
   [style]="{ width: '420px' }"
 >
-  <form [formGroup]="createForm" class="dialog-form">
+  <form [formGroup]="createForm" class="dialog-form p-fluid flex flex-column gap-3">
     <label>Nombre</label>
     <input pInputText formControlName="name" />
+
+    <label>Paises</label>
+    <p-select
+      class="w-full"
+      [options]="countryOptions"
+      optionLabel="name"
+      optionValue="id"
+      formControlName="countryIds"
+      multiple
+      [filter]="true"
+      appendTo="body"
+      placeholder="Seleccionar paises"
+    >
+      <ng-template pTemplate="footer">
+        <div class="select-footer">
+          <p-button
+            label="Add New"
+            icon="pi pi-plus"
+            size="small"
+            severity="secondary"
+            [text]="true"
+            [fluid]="true"
+            (onClick)="openCreateCountryDialog()"
+          ></p-button>
+        </div>
+      </ng-template>
+    </p-select>
+
+    <label>Monedas</label>
+    <p-select
+      class="w-full"
+      [options]="currencyOptions"
+      optionLabel="name"
+      optionValue="id"
+      formControlName="currencyIds"
+      multiple
+      [filter]="true"
+      appendTo="body"
+      placeholder="Seleccionar monedas"
+    >
+      <ng-template pTemplate="footer">
+        <div class="select-footer">
+          <p-button
+            label="Add New"
+            icon="pi pi-plus"
+            size="small"
+            severity="secondary"
+            [text]="true"
+            [fluid]="true"
+            (onClick)="openCreateCurrencyDialog()"
+          ></p-button>
+        </div>
+      </ng-template>
+    </p-select>
   </form>
   <ng-template pTemplate="footer">
     <p-button label="Cancelar" [text]="true" (onClick)="createDialogOpen=false"></p-button>
     <p-button label="Crear" icon="pi pi-check" [disabled]="submitting" (onClick)="createOrganization()"></p-button>
+  </ng-template>
+</p-dialog>
+
+<p-dialog header="Agregar pais" [(visible)]="createCountryDialogOpen" [modal]="true" [style]="{ width: '420px' }">
+  <form [formGroup]="createCountryForm" class="dialog-form">
+    <label>Codigo</label>
+    <input pInputText formControlName="code" />
+
+    <label>Nombre</label>
+    <input pInputText formControlName="name" />
+  </form>
+  <ng-template pTemplate="footer">
+    <p-button label="Cancelar" [text]="true" (onClick)="createCountryDialogOpen=false"></p-button>
+    <p-button label="Guardar" icon="pi pi-check" (onClick)="saveCountry()"></p-button>
+  </ng-template>
+</p-dialog>
+
+<p-dialog header="Agregar moneda" [(visible)]="createCurrencyDialogOpen" [modal]="true" [style]="{ width: '420px' }">
+  <form [formGroup]="createCurrencyForm" class="dialog-form">
+    <label>Codigo</label>
+    <input pInputText formControlName="code" />
+
+    <label>Nombre</label>
+    <input pInputText formControlName="name" />
+
+    <label>Simbolo</label>
+    <input pInputText formControlName="symbol" />
+  </form>
+  <ng-template pTemplate="footer">
+    <p-button label="Cancelar" [text]="true" (onClick)="createCurrencyDialogOpen=false"></p-button>
+    <p-button label="Guardar" icon="pi pi-check" (onClick)="saveCurrency()"></p-button>
   </ng-template>
 </p-dialog>
