@@ -12,6 +12,7 @@ import { Select } from 'primeng/select';
 import { MultiSelect } from 'primeng/multiselect';
 import { TableModule } from 'primeng/table';
 import { Toast } from 'primeng/toast';
+import { Tag } from 'primeng/tag';
 
 import { OrganizationsPageComponent } from './pages/organizations-page/organizations-page.component';
 import { OrganizationCreatePageComponent } from './pages/organization-create-page/organization-create-page.component';
@@ -19,9 +20,11 @@ import { OrganizationCreateWizardComponent } from './pages/organization-create-w
 import { OrganizationEntryPageComponent } from './pages/organization-entry-page/organization-entry-page.component';
 import { OrganizationJoinPageComponent } from './pages/organization-join-page/organization-join-page.component';
 import { OrganizationPendingPageComponent } from './pages/organization-pending-page/organization-pending-page.component';
+import { OrganizationSelectPageComponent } from './pages/organization-select-page/organization-select-page.component';
 
 const routes: Routes = [
   { path: '', component: OrganizationsPageComponent },
+  { path: 'select', component: OrganizationSelectPageComponent },
   { path: 'entry', component: OrganizationEntryPageComponent },
   { path: 'create', component: OrganizationCreateWizardComponent },
   { path: 'join', component: OrganizationJoinPageComponent },
@@ -31,6 +34,7 @@ const routes: Routes = [
 @NgModule({
   declarations: [
     OrganizationsPageComponent,
+    OrganizationSelectPageComponent,
     OrganizationCreatePageComponent,
     OrganizationCreateWizardComponent,
     OrganizationEntryPageComponent,
@@ -51,6 +55,7 @@ const routes: Routes = [
     MultiSelect,
     TableModule,
     Toast,
+    Tag,
   ],
   providers: [MessageService],
 })

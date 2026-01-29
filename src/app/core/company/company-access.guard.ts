@@ -18,7 +18,7 @@ export const CompanyAccessGuard: CanActivateFn = (route, state) => {
 
   const activeContext = activeContextState.getActiveContext();
   if (!activeContextState.isComplete(activeContext)) {
-    const redirect = activeContext.organizationId ? '/organizations/setup' : '/organizations/entry';
+    const redirect = activeContext.organizationId ? '/companies/select' : '/organizations/entry';
     logger.debug('[guard access] deny missing context', { companyId, url: state.url, redirect });
     return router.parseUrl(redirect);
   }

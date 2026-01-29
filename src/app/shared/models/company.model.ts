@@ -14,6 +14,14 @@ export interface CompanyModuleStates {
   [moduleKey: string]: 'inactive' | 'enabled' | 'pendingConfig' | 'ready' | 'error';
 }
 
+export interface CompanyEnterprise {
+  id: string;
+  name: string;
+  countryId: string;
+  currencyIds: string[];
+  defaultCurrencyId: string;
+}
+
 export interface Company {
   id?: string;
   organizationId: string;
@@ -23,9 +31,13 @@ export interface Company {
   baseCountryId: string;
   baseCurrencyId: string;
   currencies?: string[];
+  operatingCountryIds?: string[];
+  enterprises?: CompanyEnterprise[];
+  defaultEnterpriseId?: string | null;
+  defaultCurrencyId?: string | null;
   members?: CompanyMember[];
   roles?: CompanyRole[];
   moduleStates?: CompanyModuleStates;
-  moduleSettings?: Record<string, any>;
+  moduleSettings?: Record<string, unknown>;
   createdAt?: string;
 }

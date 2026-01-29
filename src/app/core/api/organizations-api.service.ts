@@ -4,7 +4,16 @@ import { Observable } from 'rxjs';
 
 import { APP_CONFIG_TOKEN, AppConfig } from '../config/app-config';
 import { ApiResponse } from '../../shared/models/api-response.model';
-import { IOrganization, IOrganizationMembership, IOrganizationOverview, IOrganizationRole } from '../../shared/models/organization.model';
+import {
+  CreateOrganizationRequest,
+  IOrganization,
+  IOrganizationMembership,
+  IOrganizationOverview,
+  IOrganizationRole,
+  OrganizationDefaultResult,
+  OrganizationDeleteResult,
+  UpdateOrganizationRequest,
+} from '../../shared/models/organization.model';
 import { Workspace } from '../../shared/models/workspace.model';
 
 @Injectable({ providedIn: 'root' })
@@ -27,7 +36,7 @@ export class OrganizationsService {
     return this.http.get<ApiResponse<IOrganization>>(`${this.baseUrl}/${id}`);
   }
 
-  create(payload: { name: string }): Observable<ApiResponse<IOrganization>> {
+  create(payload: CreateOrganizationRequest): Observable<ApiResponse<IOrganization>> {
     return this.http.post<ApiResponse<IOrganization>>(this.baseUrl, payload);
   }
 
@@ -112,6 +121,23 @@ export class OrganizationsService {
 
   listWorkspaces(id: string): Observable<ApiResponse<Workspace[]>> {
     return this.http.get<ApiResponse<Workspace[]>>(`${this.baseUrl}/${id}/workspaces`);
+  }
+
+  updateOrganization(id: string, payload: UpdateOrganizationRequest): Observable<ApiResponse<IOrganization>> {
+    return this.http.patch<ApiResponse<IOrganization>>(`${this.baseUrl}/${id}`, payload);
+  }
+
+  setDefaultOrganization(id: string): Observable<ApiResponse<OrganizationDefaultResult>> {
+    const payload: Record<string, never> = {};
+    return this.http.patch<ApiResponse<OrganizationDefaultResult>>(`${this.baseUrl}/${id}/default`, payload);
+  }
+
+  leaveOrganization(id: string): Observable<ApiResponse<IOrganization>> {
+    return this.http.delete<ApiResponse<IOrganization>>(`${this.baseUrl}/${id}/leave`);
+  }
+
+  deleteOrganization(id: string): Observable<ApiResponse<OrganizationDeleteResult>> {
+    return this.http.delete<ApiResponse<OrganizationDeleteResult>>(`${this.baseUrl}/${id}`);
   }
 
   getOverview(id: string): Observable<ApiResponse<IOrganizationOverview>> {

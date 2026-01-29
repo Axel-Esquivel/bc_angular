@@ -5,8 +5,11 @@ import { MessageService } from 'primeng/api';
 
 import { CompaniesApiService } from '../../../../core/api/companies-api.service';
 import { OrganizationsService } from '../../../../core/api/organizations-api.service';
-import { IOrganization } from '../../../../shared/models/organization.model';
-import { CreateOrganizationCompanyDto } from '../../../../shared/models/organization-company.model';
+import { ActiveContextStateService } from '../../../../core/context/active-context-state.service';
+import {
+  CreateOrganizationCompanyDto,
+  OrganizationCompanyEnterpriseInput,
+} from '../../../../shared/models/organization-company.model';
 import { OrganizationCoreApiService } from '../../services/organization-core-api.service';
 import {
   CoreCompany,
@@ -24,8 +27,8 @@ import {
   providers: [MessageService],
 })
 export class OrganizationSetupPageComponent implements OnInit {
-  organizations: IOrganization[] = [];
-  selectedOrganization: IOrganization | null = null;
+  organizationId: string | null = null;
+  organizationName: string | null = null;
   coreSettings: OrganizationCoreSettings = {
     countries: [],
     currencies: [],
@@ -35,18 +38,13 @@ export class OrganizationSetupPageComponent implements OnInit {
   selectedCurrency: CoreCurrency | null = null;
   selectedCompany: CoreCompany | null = null;
 
-  loadingOrganizations = false;
+  loadingOrganization = false;
   loadingCoreSettings = false;
 
-  createOrganizationDialogOpen = false;
   createCountryDialogOpen = false;
   createCurrencyDialogOpen = false;
   createCompanyDialogOpen = false;
   submitting = false;
-
-  createOrganizationForm: FormGroup<{
-    name: FormControl<string>;
-  }>;
 
   createCountryForm: FormGroup<{
     code: FormControl<string>;
@@ -69,14 +67,11 @@ export class OrganizationSetupPageComponent implements OnInit {
     private readonly companiesApi: CompaniesApiService,
     private readonly organizationsApi: OrganizationsService,
     private readonly organizationCoreApi: OrganizationCoreApiService,
+    private readonly activeContextState: ActiveContextStateService,
     private readonly router: Router,
     private readonly fb: FormBuilder,
     private readonly messageService: MessageService,
   ) {
-    this.createOrganizationForm = this.fb.nonNullable.group({
-      name: ['', [Validators.required, Validators.minLength(2)]],
-    });
-
     this.createCountryForm = this.fb.nonNullable.group({
       code: ['', [Validators.required, Validators.minLength(2)]],
       name: ['', [Validators.required, Validators.minLength(2)]],
@@ -96,50 +91,15 @@ export class OrganizationSetupPageComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.loadOrganizations();
-  }
-
-  onOrganizationChange(): void {
-    if (this.selectedOrganization?.id) {
-      this.loadCoreSettings(this.selectedOrganization.id);
-      return;
-    }
-    this.resetCoreSettings();
-  }
-
-  openCreateOrganizationDialog(): void {
-    this.createOrganizationForm.reset();
-    this.createOrganizationDialogOpen = true;
-  }
-
-  createOrganization(): void {
-    if (this.createOrganizationForm.invalid || this.submitting) {
-      this.createOrganizationForm.markAllAsTouched();
+    const context = this.activeContextState.getActiveContext();
+    this.organizationId = context.organizationId;
+    if (!this.organizationId) {
+      this.router.navigateByUrl('/organizations/select');
       return;
     }
 
-    this.submitting = true;
-    const payload = this.createOrganizationForm.getRawValue();
-    this.organizationsApi.create({ name: payload.name }).subscribe({
-      next: (res) => {
-        const result = res?.result;
-        if (result) {
-          this.organizations = [result, ...this.organizations];
-          this.selectedOrganization = result;
-          this.onOrganizationChange();
-        }
-        this.createOrganizationDialogOpen = false;
-        this.submitting = false;
-      },
-      error: () => {
-        this.submitting = false;
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Organizaciones',
-          detail: 'No se pudo crear la organizacion.',
-        });
-      },
-    });
+    this.loadOrganization(this.organizationId);
+    this.loadCoreSettings(this.organizationId);
   }
 
   openCreateCountryDialog(): void {
@@ -148,14 +108,14 @@ export class OrganizationSetupPageComponent implements OnInit {
   }
 
   saveCountry(): void {
-    if (this.createCountryForm.invalid || this.submitting || !this.selectedOrganization?.id) {
+    if (this.createCountryForm.invalid || this.submitting || !this.organizationId) {
       this.createCountryForm.markAllAsTouched();
       return;
     }
 
     this.submitting = true;
     const payload = this.createCountryForm.getRawValue();
-    this.organizationCoreApi.addCountry(this.selectedOrganization.id, {
+    this.organizationCoreApi.addCountry(this.organizationId, {
       code: payload.code.trim().toUpperCase(),
       name: payload.name.trim(),
     }).subscribe({
@@ -188,14 +148,14 @@ export class OrganizationSetupPageComponent implements OnInit {
   }
 
   saveCurrency(): void {
-    if (this.createCurrencyForm.invalid || this.submitting || !this.selectedOrganization?.id) {
+    if (this.createCurrencyForm.invalid || this.submitting || !this.organizationId) {
       this.createCurrencyForm.markAllAsTouched();
       return;
     }
 
     this.submitting = true;
     const payload = this.createCurrencyForm.getRawValue();
-    this.organizationCoreApi.addCurrency(this.selectedOrganization.id, {
+    this.organizationCoreApi.addCurrency(this.organizationId, {
       code: payload.code.trim().toUpperCase(),
       name: payload.name.trim(),
       symbol: payload.symbol?.trim() || undefined,
@@ -224,7 +184,7 @@ export class OrganizationSetupPageComponent implements OnInit {
   }
 
   openCreateCompanyDialog(): void {
-    if (!this.selectedOrganization?.id) {
+    if (!this.organizationId) {
       return;
     }
     const baseCountryId = this.selectedCountry?.id ?? this.coreSettings.countries[0]?.id ?? '';
@@ -238,19 +198,27 @@ export class OrganizationSetupPageComponent implements OnInit {
   }
 
   createCompany(): void {
-    if (this.createCompanyForm.invalid || this.submitting || !this.selectedOrganization?.id) {
+    if (this.createCompanyForm.invalid || this.submitting || !this.organizationId) {
       this.createCompanyForm.markAllAsTouched();
       return;
     }
 
     this.submitting = true;
     const payload = this.createCompanyForm.getRawValue();
+    const enterprisePayload: OrganizationCompanyEnterpriseInput = {
+      name: payload.name.trim(),
+      countryId: payload.countryId,
+      currencyIds: [payload.baseCurrencyId],
+      defaultCurrencyId: payload.baseCurrencyId,
+    };
     const companyPayload: CreateOrganizationCompanyDto = {
       name: payload.name.trim(),
       baseCountryId: payload.countryId,
       baseCurrencyId: payload.baseCurrencyId,
+      operatingCountryIds: [payload.countryId],
+      enterprises: [enterprisePayload],
     };
-    this.companiesApi.create(this.selectedOrganization.id, companyPayload).subscribe({
+    this.companiesApi.create(this.organizationId, companyPayload).subscribe({
       next: (res) => {
         const result = res?.result;
         if (result) {
@@ -283,17 +251,17 @@ export class OrganizationSetupPageComponent implements OnInit {
   }
 
   saveAndContinue(): void {
-    if (!this.selectedOrganization?.id || this.submitting) {
+    if (!this.organizationId || this.submitting) {
       return;
     }
 
     this.submitting = true;
     const payload = this.buildCoreUpdatePayload();
-    this.organizationCoreApi.updateCoreSettings(this.selectedOrganization.id, payload).subscribe({
+    this.organizationCoreApi.updateCoreSettings(this.organizationId, payload).subscribe({
       next: () => {
         this.submitting = false;
         this.router.navigate(['/organizations/modules'], {
-          queryParams: { orgId: this.selectedOrganization?.id },
+          queryParams: { orgId: this.organizationId ?? '' },
         });
       },
       error: () => {
@@ -332,26 +300,19 @@ export class OrganizationSetupPageComponent implements OnInit {
     return match ? match.name : company.countryId;
   }
 
-  private loadOrganizations(): void {
-    this.loadingOrganizations = true;
-    this.organizationsApi.list().subscribe({
+  private loadOrganization(organizationId: string): void {
+    this.loadingOrganization = true;
+    this.organizationsApi.getById(organizationId).subscribe({
       next: (res) => {
-        const result = res?.result ?? [];
-        this.organizations = result;
-        this.loadingOrganizations = false;
-        this.selectedOrganization = this.organizations[0] ?? null;
-        if (this.selectedOrganization?.id) {
-          this.loadCoreSettings(this.selectedOrganization.id);
-        } else {
-          this.resetCoreSettings();
-        }
+        this.organizationName = res?.result?.name ?? null;
+        this.loadingOrganization = false;
       },
       error: () => {
-        this.loadingOrganizations = false;
+        this.loadingOrganization = false;
         this.messageService.add({
           severity: 'error',
           summary: 'Organizaciones',
-          detail: 'No se pudieron cargar las organizaciones.',
+          detail: 'No se pudo cargar la organizacion.',
         });
       },
     });

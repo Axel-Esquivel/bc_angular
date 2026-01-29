@@ -26,7 +26,9 @@ export class ActiveContextStateService {
   }
 
   isComplete(context: ActiveContext): boolean {
-    return Boolean(context.organizationId && context.companyId && context.currencyId);
+    return Boolean(
+      context.organizationId && context.companyId && context.enterpriseId && context.currencyId,
+    );
   }
 
   private restore(): ActiveContext {

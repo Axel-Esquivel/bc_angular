@@ -1,8 +1,12 @@
+import { AuthUser } from './auth.model';
+
+export type OrganizationMembershipStatus = 'pending' | 'active';
+
 export interface IOrganizationMember {
   userId: string;
   email?: string;
   roleKey: string;
-  status: 'pending' | 'active';
+  status: OrganizationMembershipStatus;
   invitedBy?: string;
   requestedBy?: string;
   invitedAt?: string;
@@ -48,5 +52,21 @@ export interface IOrganizationMembership {
   name: string;
   code: string;
   roleKey: string;
-  status: 'pending' | 'active';
+  status: OrganizationMembershipStatus;
+}
+
+export interface CreateOrganizationRequest {
+  name: string;
+}
+
+export interface UpdateOrganizationRequest {
+  name?: string;
+}
+
+export interface OrganizationDefaultResult {
+  user: AuthUser;
+}
+
+export interface OrganizationDeleteResult {
+  success: true;
 }

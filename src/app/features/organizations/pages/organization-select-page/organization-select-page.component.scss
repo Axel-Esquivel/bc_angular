@@ -1,0 +1,41 @@
+.organization-select {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 1.5rem;
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+
+  h1 {
+    margin: 0;
+  }
+
+  .subtitle {
+    color: var(--text-color-secondary);
+  }
+}
+
+.actions-col {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.invites-card {
+  margin-top: 0.5rem;
+}
+
+.dialog-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.dialog-body {
+  color: var(--text-color-secondary);
+}

@@ -53,15 +53,15 @@ export class CompaniesApiService {
     );
   }
 
-  enableModule(companyId: string, moduleKey: string): Observable<ApiResponse<Record<string, any>>> {
-    return this.http.post<ApiResponse<Record<string, any>>>(
+  enableModule(companyId: string, moduleKey: string): Observable<ApiResponse<Record<string, unknown>>> {
+    return this.http.post<ApiResponse<Record<string, unknown>>>(
       `${this.baseUrl}/companies/${companyId}/modules/${encodeURIComponent(moduleKey)}/enable`,
       {},
     );
   }
 
-  configureModule(companyId: string, moduleKey: string): Observable<ApiResponse<Record<string, any>>> {
-    return this.http.post<ApiResponse<Record<string, any>>>(
+  configureModule(companyId: string, moduleKey: string): Observable<ApiResponse<Record<string, unknown>>> {
+    return this.http.post<ApiResponse<Record<string, unknown>>>(
       `${this.baseUrl}/companies/${companyId}/modules/${encodeURIComponent(moduleKey)}/configure`,
       {},
     );

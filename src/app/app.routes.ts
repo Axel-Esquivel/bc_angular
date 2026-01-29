@@ -19,7 +19,7 @@ export const routes: Routes = [
   { path: 'organizations/setup', canActivate: [AuthGuard, OnboardingGuard], loadChildren: () => import('./features/organizations/pages/organization-setup-page/organization-setup-page.module').then((m) => m.OrganizationSetupPageModule) },
   { path: 'organizations', canActivate: [AuthGuard, OnboardingGuard], loadChildren: () => import('./features/organizations/organizations.module').then((m) => m.OrganizationsModule) },
   { path: 'organizations/:orgId/companies', canActivate: [AuthGuard, OnboardingGuard], loadChildren: () => import('./features/companies/companies.module').then((m) => m.CompaniesModule) },
-  { path: 'companies/select', redirectTo: 'organizations/setup', pathMatch: 'full' },
+  { path: 'companies/select', canActivate: [AuthGuard, OnboardingGuard], loadChildren: () => import('./features/companies/company-selector.module').then((m) => m.CompanySelectorModule) },
   { path: 'settings/countries', canActivate: [AuthGuard], loadChildren: () => import('./features/settings/pages/countries-page/countries-page.module').then((m) => m.CountriesPageModule) },
   { path: 'company/:id/setup', canActivate: [AuthGuard, OnboardingGuard], loadChildren: () => import('./features/workspaces/pages/workspace-setup/workspace-setup.module').then((m) => m.WorkspaceSetupModule) },
   {

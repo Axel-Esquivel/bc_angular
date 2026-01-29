@@ -1,28 +1,19 @@
 <p-toast></p-toast>
 
-<div class="companies-page">
-  <p-card>
-    <ng-template pTemplate="title">Companias</ng-template>
-    <ng-template pTemplate="subtitle">
-      {{ organization?.name || 'Selecciona una organizacion' }}
-    </ng-template>
-    <div class="actions">
-      <p-button label="Crear compania" icon="pi pi-plus" (onClick)="openCreateDialog()"></p-button>
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h1>Companias</h1>
+      <div class="breadcrumbs">Organizacion &gt; Companias</div>
     </div>
-  </p-card>
-
-  <p-card *ngIf="companies.length === 0">
-    <ng-template pTemplate="title">Sin companias</ng-template>
-    <p>No tienes companias registradas en esta organizacion.</p>
     <p-button label="Crear compania" icon="pi pi-plus" (onClick)="openCreateDialog()"></p-button>
-  </p-card>
+  </div>
 
-  <p-card *ngIf="companies.length > 0">
-    <ng-template pTemplate="title">Lista de companias</ng-template>
-    <p-table [value]="companies" [loading]="loading" dataKey="id">
+  <p-card>
+    <p-table [value]="companies" [loading]="loading">
       <ng-template pTemplate="header">
         <tr>
-          <th>Nombre</th>
+          <th>Compania</th>
           <th>Pais base</th>
           <th>Moneda base</th>
         </tr>
@@ -38,33 +29,110 @@
   </p-card>
 </div>
 
-<p-dialog header="Crear compania" [(visible)]="createDialogOpen" [modal]="true" [style]="{ width: '520px' }">
+<p-dialog header="Crear compania" [(visible)]="createDialogOpen" [modal]="true" [style]="{ width: '760px' }">
   <form [formGroup]="createForm" class="dialog-form">
     <label>Nombre</label>
     <input pInputText formControlName="name" />
 
-    <label>Razon social</label>
+    <label>Nombre legal</label>
     <input pInputText formControlName="legalName" />
 
-    <label>NIT / Tax ID</label>
+    <label>Tax ID</label>
     <input pInputText formControlName="taxId" />
 
-    <label>Pais base</label>
+    <label>Pais donde opera</label>
+    <div class="inline-row">
+      <p-select
+        [options]="countryOptions"
+        [formControl]="operatingCountryControl"
+        placeholder="Seleccionar"
+        appendTo="body"
+      ></p-select>
+      <p-button label="Agregar" icon="pi pi-plus" severity="secondary" (onClick)="addOperatingCountry()"></p-button>
+    </div>
+    <div class="tag-list" *ngIf="createForm.controls.operatingCountryIds.value.length > 0">
+      <span class="tag" *ngFor="let countryId of createForm.controls.operatingCountryIds.value">
+        {{ getEnterpriseCountryLabel(countryId) }}
+        <button type="button" class="tag-remove" (click)="removeOperatingCountry(countryId)">x</button>
+      </span>
+    </div>
+
+    <div class="section">
+      <h4>Empresas</h4>
+      <div class="empty-state" *ngIf="enterpriseDrafts.length === 0">No hay empresas agregadas.</div>
+      <div class="enterprise-list" *ngIf="enterpriseDrafts.length > 0">
+        <div class="enterprise-item" *ngFor="let enterprise of enterpriseDrafts">
+          <div>
+            <div class="option-title">{{ enterprise.name }}</div>
+            <small class="option-meta">{{ getEnterpriseCountryLabel(enterprise.countryId) }}</small>
+          </div>
+          <div class="option-meta">{{ getEnterpriseCurrencyLabel(enterprise.defaultCurrencyId) }}</div>
+          <p-button icon="pi pi-times" [text]="true" severity="danger" (onClick)="removeEnterprise(enterprise.id)"></p-button>
+        </div>
+      </div>
+
+      <div class="enterprise-form" [formGroup]="enterpriseForm">
+        <label>Nombre de empresa</label>
+        <input pInputText formControlName="name" />
+
+        <label>Pais</label>
+        <p-select
+          [options]="countryOptions"
+          formControlName="countryId"
+          placeholder="Seleccionar"
+          appendTo="body"
+        ></p-select>
+
+        <label>Moneda permitida</label>
+        <div class="inline-row">
+          <p-select
+            [options]="currencyOptions"
+            [formControl]="enterpriseCurrencyControl"
+            placeholder="Seleccionar"
+            appendTo="body"
+          ></p-select>
+          <p-button label="Agregar" icon="pi pi-plus" severity="secondary" (onClick)="addEnterpriseCurrency()"></p-button>
+        </div>
+        <div class="tag-list" *ngIf="enterpriseForm.controls.currencyIds.value.length > 0">
+          <span class="tag" *ngFor="let currencyId of enterpriseForm.controls.currencyIds.value">
+            {{ getEnterpriseCurrencyLabel(currencyId) }}
+            <button type="button" class="tag-remove" (click)="removeEnterpriseCurrency(currencyId)">x</button>
+          </span>
+        </div>
+
+        <label>Moneda base de la empresa</label>
+        <p-select
+          [options]="enterpriseDefaultCurrencyOptions"
+          formControlName="defaultCurrencyId"
+          placeholder="Seleccionar"
+          appendTo="body"
+        ></p-select>
+
+        <p-button label="Agregar empresa" icon="pi pi-plus" severity="secondary" (onClick)="addEnterprise()"></p-button>
+      </div>
+    </div>
+
+    <label>Empresa por defecto</label>
     <p-select
-      [options]="countryOptions"
-      formControlName="baseCountryId"
-      [filter]="true"
-      filterPlaceholder="Buscar pais"
-     appendTo="body"></p-select>
+      [options]="enterpriseDrafts"
+      formControlName="defaultEnterpriseId"
+      optionLabel="name"
+      optionValue="id"
+      placeholder="Seleccionar"
+      appendTo="body"
+      (onChange)="onDefaultEnterpriseChange()"
+    ></p-select>
 
-    <label>Moneda base</label>
-    <p-select [options]="currencyOptions" formControlName="baseCurrencyId" appendTo="body"></p-select>
-
-    <label>Monedas (comma separated)</label>
-    <input pInputText formControlName="currencies" placeholder="COP, USD" />
+    <label>Moneda por defecto</label>
+    <p-select
+      [options]="defaultCurrencyOptions"
+      formControlName="defaultCurrencyId"
+      placeholder="Seleccionar"
+      appendTo="body"
+    ></p-select>
   </form>
   <ng-template pTemplate="footer">
     <p-button label="Cancelar" [text]="true" (onClick)="createDialogOpen=false"></p-button>
-    <p-button label="Crear" icon="pi pi-check" (onClick)="createCompany()"></p-button>
+    <p-button label="Crear" icon="pi pi-check" [disabled]="submitting" (onClick)="createCompany()"></p-button>
   </ng-template>
 </p-dialog>

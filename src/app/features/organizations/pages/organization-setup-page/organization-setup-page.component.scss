@@ -71,6 +71,10 @@
   color: var(--text-color-secondary, #6b7280);
 }
 
+.organization-name {
+  font-weight: 600;
+}
+
 @media (max-width: 900px) {
   .setup-grid {
     grid-template-columns: 1fr;

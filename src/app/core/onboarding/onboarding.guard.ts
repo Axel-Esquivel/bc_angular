@@ -45,12 +45,22 @@ export const OnboardingGuard: CanActivateFn = (_route, state) => {
             return of(router.parseUrl('/organizations/entry'));
           }
 
+          const defaultOrganizationId = user.defaultOrganizationId ?? null;
+          if (!defaultOrganizationId) {
+            if (state.url.startsWith('/organizations/select')) {
+              return of(true);
+            }
+            return of(router.parseUrl('/organizations/select'));
+          }
+
           const activeContext = activeContextState.getActiveContext();
           const shouldRedirect =
             state.url.startsWith('/onboarding') ||
             state.url.startsWith('/organizations/entry') ||
             state.url.startsWith('/organizations/pending') ||
-            state.url.startsWith('/organizations/setup');
+            state.url.startsWith('/organizations/select') ||
+            state.url.startsWith('/organizations/setup') ||
+            state.url.startsWith('/companies/select');
 
           if (activeContextState.isComplete(activeContext)) {
             if (shouldRedirect && activeContext.companyId) {
@@ -59,11 +69,17 @@ export const OnboardingGuard: CanActivateFn = (_route, state) => {
             return of(true);
           }
 
-          if (activeContext.organizationId) {
+          if (activeContext.organizationId || defaultOrganizationId) {
+            if (!activeContext.companyId) {
+              if (state.url.startsWith('/companies/select')) {
+                return of(true);
+              }
+              return of(router.parseUrl('/companies/select'));
+            }
             return of(router.parseUrl('/organizations/setup'));
           }
 
-          return of(router.parseUrl('/organizations/entry'));
+          return of(router.parseUrl('/organizations/select'));
         }),
         catchError(() => of(router.parseUrl('/organizations/entry'))),
       );

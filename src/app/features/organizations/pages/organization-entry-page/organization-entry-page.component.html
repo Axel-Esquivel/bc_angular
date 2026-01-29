@@ -10,7 +10,7 @@
     <p-card>
       <ng-template pTemplate="title">Crear organizacion</ng-template>
       <p>Crea una organizacion nueva para comenzar el setup.</p>
-      <p-button label="Crear organizacion" icon="pi pi-plus" (onClick)="goToCreate()"></p-button>
+      <p-button label="Crear organizacion" icon="pi pi-plus" (onClick)="openCreateDialog()"></p-button>
     </p-card>
 
     <p-card>
@@ -32,3 +32,20 @@
     </p-card>
   </div>
 </section>
+
+<p-dialog
+  header="Crear organizacion"
+  [(visible)]="createDialogOpen"
+  [modal]="true"
+  appendTo="body"
+  [style]="{ width: '420px' }"
+>
+  <form [formGroup]="createForm" class="dialog-form">
+    <label>Nombre</label>
+    <input pInputText formControlName="name" />
+  </form>
+  <ng-template pTemplate="footer">
+    <p-button label="Cancelar" [text]="true" (onClick)="createDialogOpen=false"></p-button>
+    <p-button label="Crear" icon="pi pi-check" [disabled]="submitting" (onClick)="createOrganization()"></p-button>
+  </ng-template>
+</p-dialog>

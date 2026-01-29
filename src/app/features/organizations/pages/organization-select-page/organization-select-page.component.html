@@ -1,0 +1,132 @@
+<p-toast></p-toast>
+
+<div class="organization-select">
+  <div class="page-header">
+    <div>
+      <h1>Selecciona una organizacion</h1>
+      <div class="subtitle">Define tu organizacion predeterminada para continuar.</div>
+    </div>
+    <p-button label="Crear organizacion" icon="pi pi-plus" (onClick)="openCreateOrganization()"></p-button>
+  </div>
+
+  <p-card>
+    <ng-template pTemplate="title">Organizaciones propias</ng-template>
+    <p-table [value]="activeOrganizations" [loading]="loading" dataKey="id" responsiveLayout="scroll">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Nombre</th>
+          <th>Codigo</th>
+          <th>Rol</th>
+          <th>Estado</th>
+          <th>Predeterminada</th>
+          <th class="actions-col">Acciones</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-row>
+        <tr>
+          <td>{{ row.name }}</td>
+          <td>{{ row.code || '-' }}</td>
+          <td>{{ row.roleKey || '-' }}</td>
+          <td>{{ row.status === 'active' ? 'Activa' : 'Pendiente' }}</td>
+          <td>
+            <p-tag *ngIf="row.isDefault" severity="success" value="Predeterminada"></p-tag>
+          </td>
+          <td class="actions-col">
+            <p-button
+              label="Continuar"
+              icon="pi pi-arrow-right"
+              [disabled]="row.status !== 'active'"
+              (onClick)="selectOrganization(row)"
+            ></p-button>
+            <p-button
+              label="Marcar predeterminada"
+              icon="pi pi-star"
+              severity="secondary"
+              [text]="true"
+              [disabled]="row.isDefault || row.status !== 'active'"
+              (onClick)="setDefault(row)"
+            ></p-button>
+            <p-button
+              label="Editar"
+              icon="pi pi-pencil"
+              severity="secondary"
+              [text]="true"
+              [disabled]="!canEdit(row)"
+              (onClick)="openEdit(row)"
+            ></p-button>
+            <p-button
+              label="Eliminar"
+              icon="pi pi-trash"
+              severity="danger"
+              [text]="true"
+              [disabled]="!canDelete(row)"
+              (onClick)="openDelete(row)"
+            ></p-button>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="6">No tienes organizaciones activas.</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </p-card>
+
+  <p-card class="invites-card">
+    <ng-template pTemplate="title">Invitaciones</ng-template>
+    <p-table [value]="invitedOrganizations" [loading]="loading" dataKey="id" responsiveLayout="scroll">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Nombre</th>
+          <th>Codigo</th>
+          <th>Estado</th>
+          <th class="actions-col">Acciones</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-row>
+        <tr>
+          <td>{{ row.name }}</td>
+          <td>{{ row.code || '-' }}</td>
+          <td>{{ row.status === 'pending' ? 'Pendiente' : 'Activa' }}</td>
+          <td class="actions-col">
+            <p-button
+              label="Salir"
+              icon="pi pi-sign-out"
+              severity="secondary"
+              [text]="true"
+              [disabled]="!row.canLeave"
+              (onClick)="leaveOrganization(row)"
+            ></p-button>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="4">No tienes invitaciones pendientes.</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </p-card>
+</div>
+
+<p-dialog header="Editar organizacion" [(visible)]="editDialogOpen" [modal]="true" [style]="{ width: '420px' }">
+  <form [formGroup]="editForm" class="dialog-form">
+    <label>Nombre</label>
+    <input pInputText formControlName="name" />
+  </form>
+  <ng-template pTemplate="footer">
+    <p-button label="Cancelar" [text]="true" (onClick)="editDialogOpen=false"></p-button>
+    <p-button label="Guardar" icon="pi pi-check" (onClick)="saveEdit()"></p-button>
+  </ng-template>
+</p-dialog>
+
+<p-dialog header="Eliminar organizacion" [(visible)]="deleteDialogOpen" [modal]="true" [style]="{ width: '420px' }">
+  <div class="dialog-body">
+    Esta accion eliminara la organizacion seleccionada. Esta seguro?
+  </div>
+  <ng-template pTemplate="footer">
+    <p-button label="Cancelar" [text]="true" (onClick)="deleteDialogOpen=false"></p-button>
+    <p-button label="Eliminar" icon="pi pi-trash" severity="danger" (onClick)="confirmDelete()"></p-button>
+  </ng-template>
+</p-dialog>
