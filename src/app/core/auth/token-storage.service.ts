@@ -4,7 +4,6 @@ import { AuthTokens, AuthUser } from '../../shared/models/auth.model';
 
 const ACCESS_TOKEN_KEY = 'bc_token';
 const REFRESH_TOKEN_KEY = 'bc_refresh_token';
-const WORKSPACE_ID_KEY = 'bc_workspace_id';
 const DEVICE_ID_KEY = 'bc_device_id';
 const USER_KEY = 'bc_user';
 
@@ -31,14 +30,6 @@ export class TokenStorageService {
 
   getRefreshToken(): string | null {
     return this.getTokens()?.refreshToken ?? null;
-  }
-
-  setWorkspaceId(workspaceId?: string | null): void {
-    this.persistOptional(WORKSPACE_ID_KEY, workspaceId);
-  }
-
-  getWorkspaceId(): string | null {
-    return localStorage.getItem(WORKSPACE_ID_KEY);
   }
 
   setDeviceId(deviceId?: string | null): void {
@@ -75,7 +66,6 @@ export class TokenStorageService {
   clearTokens(): void {
     localStorage.removeItem(ACCESS_TOKEN_KEY);
     localStorage.removeItem(REFRESH_TOKEN_KEY);
-    localStorage.removeItem(WORKSPACE_ID_KEY);
     localStorage.removeItem(DEVICE_ID_KEY);
     localStorage.removeItem(USER_KEY);
   }

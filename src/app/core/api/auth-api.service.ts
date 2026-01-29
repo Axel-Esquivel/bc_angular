@@ -4,7 +4,14 @@ import { Observable } from 'rxjs';
 
 import { APP_CONFIG_TOKEN, AppConfig } from '../config/app-config';
 import { ApiResponse } from '../../shared/models/api-response.model';
-import { LoginRequest, LoginResult, MeResult, RegisterRequest, RegisterResult } from '../../shared/models/auth.model';
+import {
+  LoginRequest,
+  LoginResult,
+  MeResult,
+  RefreshResult,
+  RegisterRequest,
+  RegisterResult,
+} from '../../shared/models/auth.model';
 
 @Injectable({ providedIn: 'root' })
 export class AuthApiService {
@@ -22,8 +29,8 @@ export class AuthApiService {
     return this.http.post<ApiResponse<RegisterResult>>(`${this.baseUrl}/register`, dto);
   }
 
-  refresh(refreshToken: string): Observable<ApiResponse<LoginResult>> {
-    return this.http.post<ApiResponse<LoginResult>>(`${this.baseUrl}/refresh`, { refreshToken });
+  refresh(refreshToken: string): Observable<ApiResponse<RefreshResult>> {
+    return this.http.post<ApiResponse<RefreshResult>>(`${this.baseUrl}/refresh`, { refreshToken });
   }
 
   logout(deviceId?: string | null): Observable<ApiResponse<{ success: boolean }>> {

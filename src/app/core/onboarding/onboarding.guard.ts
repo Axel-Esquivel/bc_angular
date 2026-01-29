@@ -1,19 +1,15 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
-import { catchError, map, of, switchMap, take } from 'rxjs';
+import { catchError, of, switchMap, take } from 'rxjs';
 
 import { AuthService } from '../auth/auth.service';
 import { OrganizationsService } from '../api/organizations-api.service';
-import { WorkspacesApiService } from '../api/workspaces-api.service';
-import { Workspace } from '../../shared/models/workspace.model';
-
-const getCompanyId = (company: Workspace | null | undefined): string | null =>
-  company?.id ?? company?._id ?? null;
+import { ActiveContextStateService } from '../context/active-context-state.service';
 
 export const OnboardingGuard: CanActivateFn = (_route, state) => {
   const authService = inject(AuthService);
   const organizationsApi = inject(OrganizationsService);
-  const workspacesApi = inject(WorkspacesApiService);
+  const activeContextState = inject(ActiveContextStateService);
   const router = inject(Router);
 
   if (!authService.hasToken()) {
@@ -49,28 +45,25 @@ export const OnboardingGuard: CanActivateFn = (_route, state) => {
             return of(router.parseUrl('/organizations/entry'));
           }
 
-          if (
+          const activeContext = activeContextState.getActiveContext();
+          const shouldRedirect =
             state.url.startsWith('/onboarding') ||
             state.url.startsWith('/organizations/entry') ||
-            state.url.startsWith('/organizations/pending')
-          ) {
-            return workspacesApi.listMine().pipe(
-              map((res) => {
-                const companies = res.result?.workspaces ?? [];
-                const defaultId = res.result?.defaultWorkspaceId ?? user.defaultWorkspaceId ?? null;
-                const resolvedDefault =
-                  defaultId && companies.some((company) => getCompanyId(company) === defaultId)
-                    ? defaultId
-                    : null;
-                return resolvedDefault
-                  ? router.parseUrl(`/company/${resolvedDefault}/dashboard`)
-                  : router.parseUrl('/organizations/setup');
-              }),
-              catchError(() => of(router.parseUrl('/organizations/setup'))),
-            );
+            state.url.startsWith('/organizations/pending') ||
+            state.url.startsWith('/organizations/setup');
+
+          if (activeContextState.isComplete(activeContext)) {
+            if (shouldRedirect && activeContext.companyId) {
+              return of(router.parseUrl(`/company/${activeContext.companyId}/dashboard`));
+            }
+            return of(true);
           }
 
-          return of(true);
+          if (activeContext.organizationId) {
+            return of(router.parseUrl('/organizations/setup'));
+          }
+
+          return of(router.parseUrl('/organizations/entry'));
         }),
         catchError(() => of(router.parseUrl('/organizations/entry'))),
       );

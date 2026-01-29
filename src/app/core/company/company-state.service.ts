@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 
 import { AuthUser } from '../../shared/models/auth.model';
+import { ActiveContext } from '../../shared/models/active-context.model';
 import { TokenStorageService } from '../auth/token-storage.service';
 
 @Injectable({ providedIn: 'root' })
@@ -65,6 +66,16 @@ export class CompanyStateService {
   syncFromUser(user: AuthUser | null): void {
     const nextDefault = user?.defaultWorkspaceId ?? null;
     this.setDefaultCompanyId(nextDefault);
+  }
+
+  syncFromContext(context: ActiveContext | null): void {
+    if (!context?.companyId) {
+      return;
+    }
+    this.setActiveCompanyId(context.companyId);
+    if (!this.getDefaultCompanyId()) {
+      this.setDefaultCompanyId(context.companyId);
+    }
   }
 
   clear(): void {

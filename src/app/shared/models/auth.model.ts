@@ -1,3 +1,5 @@
+import { ActiveContext } from './active-context.model';
+
 export interface AuthUser {
   id: string;
   email: string;
@@ -30,16 +32,17 @@ export interface RegisterRequest {
 
 export interface LoginResult extends AuthTokens {
   user: AuthUser;
-  workspaceId?: string;
   deviceId?: string;
   refreshToken: string;
+  activeContext?: ActiveContext;
 }
 
 export interface RegisterResult {
   user: AuthUser;
-  workspaceId?: string;
   accessToken?: string;
   refreshToken?: string | null;
+  deviceId?: string;
+  activeContext?: ActiveContext;
 }
 
 export interface MeResult {
@@ -49,4 +52,8 @@ export interface MeResult {
 
 export interface RefreshRequest {
   refreshToken: string;
+}
+
+export interface RefreshResult extends AuthTokens {
+  activeContext?: ActiveContext;
 }

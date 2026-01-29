@@ -19,6 +19,7 @@ import {
   AuthUser,
   LoginRequest,
   LoginResult,
+  RefreshResult,
   RegisterRequest,
   RegisterResult,
 } from '../../shared/models/auth.model';
@@ -27,6 +28,7 @@ import { LoggerService } from '../logging/logger.service';
 import { TokenStorageService } from './token-storage.service';
 import { CompanyStateService } from '../company/company-state.service';
 import { RealtimeSocketService } from '../services/realtime-socket.service';
+import { ActiveContextStateService } from '../context/active-context-state.service';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -43,6 +45,7 @@ export class AuthService {
     private readonly tokenStorage: TokenStorageService,
     private readonly companyState: CompanyStateService,
     private readonly realtimeSocket: RealtimeSocketService,
+    private readonly activeContextState: ActiveContextStateService,
     private readonly logger: LoggerService
   ) {
     const storedToken = this.tokenStorage.getAccessToken();
@@ -189,11 +192,7 @@ export class AuthService {
     return this.tokenStorage.getAccessToken();
   }
 
-  getCurrentWorkspaceId(): string | null {
-    return this.tokenStorage.getWorkspaceId();
-  }
-
-  private persistAuthPayload(response: ApiResponse<LoginResult | RegisterResult>['result']): void {
+  private persistAuthPayload(response: ApiResponse<LoginResult | RegisterResult | RefreshResult>['result']): void {
     if (!response) {
       return;
     }
@@ -204,8 +203,12 @@ export class AuthService {
       this.setToken(tokens.accessToken);
     }
 
-    this.tokenStorage.setWorkspaceId((response as LoginResult | RegisterResult).workspaceId ?? null);
-    this.tokenStorage.setDeviceId((response as LoginResult).deviceId ?? null);
+    if ('deviceId' in response) {
+      this.tokenStorage.setDeviceId((response as LoginResult | RegisterResult).deviceId ?? null);
+    }
+    const activeContext = (response as LoginResult | RegisterResult | RefreshResult).activeContext ?? null;
+    this.activeContextState.setActiveContext(activeContext);
+    this.companyState.syncFromContext(activeContext);
     if ('user' in response && response.user) {
       const mappedUser = this.mapUser(response.user);
       this.setUser(mappedUser);
@@ -215,7 +218,7 @@ export class AuthService {
     }
   }
 
-  private extractTokens(payload?: LoginResult | RegisterResult | null): AuthTokens | null {
+  private extractTokens(payload?: LoginResult | RegisterResult | RefreshResult | null): AuthTokens | null {
     if (!payload || !('accessToken' in payload)) {
       return null;
     }
@@ -267,6 +270,7 @@ export class AuthService {
     this.realtimeSocket.setAuthToken(null);
     this.tokenStorage.clearTokens();
     this.clearAuthStorage();
+    this.activeContextState.clear();
     this.currentUserSubject.next(null);
     this.authStateSubject.next(false);
     this.companyState.clear();
