@@ -54,7 +54,7 @@ export class RegisterPageComponent {
 
     this.authService.register(payload).subscribe({
       next: () => {
-        this.router.navigateByUrl('/onboarding');
+        this.router.navigateByUrl('/auth/login');
       },
       error: (error) => {
         const detail = error?.error?.message ?? 'No se pudo completar el registro.';

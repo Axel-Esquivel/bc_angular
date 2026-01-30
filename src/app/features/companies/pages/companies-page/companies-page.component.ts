@@ -6,11 +6,11 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { CompaniesApiService } from '../../../../core/api/companies-api.service';
 import { OrganizationsService } from '../../../../core/api/organizations-api.service';
+import { OrganizationCoreApiService } from '../../../../core/api/organization-core-api.service';
 import { Company } from '../../../../shared/models/company.model';
 import { IOrganization } from '../../../../shared/models/organization.model';
 import { CreateOrganizationCompanyDto, OrganizationCompanyEnterpriseInput } from '../../../../shared/models/organization-company.model';
-import { OrganizationCoreApiService } from '../../../organizations/services/organization-core-api.service';
-import { CoreCountry, CoreCurrency } from '../../../organizations/models/organization-core.models';
+import { CoreCountry, CoreCurrency } from '../../../../shared/models/organization-core.model';
 
 interface ICountry {
   _id: string;
@@ -100,7 +100,7 @@ export class CompaniesPageComponent implements OnInit {
   ngOnInit(): void {
     const orgId = this.route.snapshot.paramMap.get('orgId');
     if (!orgId) {
-      this.router.navigate(['/organizations']);
+      this.router.navigate(['/org/setup']);
       return;
     }
 

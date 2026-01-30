@@ -1,0 +1,13 @@
+<div class="org-setup">
+  <p-card header="Configura tu organizacion" class="org-setup-card">
+    <p class="subtitle">Completa el setup inicial o unete a una organizacion existente.</p>
+    <div class="actions">
+      <p-button label="Crear organizacion" (onClick)="goCreate()"></p-button>
+      <p-button label="Unirme con codigo" severity="secondary" (onClick)="goJoin()"></p-button>
+    </div>
+    <div class="secondary-actions">
+      <p-button label="Continuar setup" severity="secondary" (onClick)="goBootstrap()"></p-button>
+      <p-button label="Configurar modulos" severity="secondary" (onClick)="goModules()"></p-button>
+    </div>
+  </p-card>
+</div>

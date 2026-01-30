@@ -23,16 +23,16 @@ export const WorkspaceBootstrapGuard: CanActivateFn = (route, state) => {
       const currentUrl = state.url;
 
       if (count === 0) {
-        if (currentUrl.startsWith('/workspaces/onboarding')) {
+        if (currentUrl.startsWith('/organizations/entry')) {
           console.log('[GUARD WorkspaceBootstrapGuard]', { ok: true, url: state.url, count });
           return true;
         }
-        const redirect = router.parseUrl('/workspaces/onboarding');
+        const redirect = router.parseUrl('/organizations/entry');
         console.log('[GUARD WorkspaceBootstrapGuard]', { ok: false, url: state.url, count, redirect: redirect.toString() });
-        return router.parseUrl('/workspaces/onboarding');
+        return router.parseUrl('/organizations/entry');
       }
 
-      if (currentUrl.startsWith('/workspaces/select') || currentUrl.startsWith('/workspaces/onboarding')) {
+      if (currentUrl.startsWith('/workspaces/select') || currentUrl.startsWith('/organizations/entry')) {
         console.log('[GUARD WorkspaceBootstrapGuard]', { ok: true, url: state.url, count });
         return true;
       }
@@ -68,9 +68,9 @@ export const WorkspaceBootstrapGuard: CanActivateFn = (route, state) => {
       return router.parseUrl('/workspaces/select');
     }),
     catchError(() => {
-      const redirect = router.parseUrl('/workspaces/onboarding');
+      const redirect = router.parseUrl('/organizations/entry');
       console.log('[GUARD WorkspaceBootstrapGuard]', { ok: false, url: state.url, redirect: redirect.toString(), error: true });
-      return of(router.parseUrl('/workspaces/onboarding'));
+      return of(router.parseUrl('/organizations/entry'));
     }),
   );
 };

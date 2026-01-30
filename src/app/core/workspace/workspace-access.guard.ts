@@ -33,9 +33,9 @@ export const WorkspaceAccessGuard: CanActivateFn = (route, state) => {
           logger.debug('[guard access] allow stored', { workspaceId, url: state.url });
           return true;
         }
-        const redirect = router.createUrlTree(['/workspaces/onboarding']);
+        const redirect = router.createUrlTree(['/organizations/entry']);
         logger.debug('[guard access] deny no workspaces', { workspaceId, url: state.url, redirect: redirect.toString() });
-        return router.createUrlTree(['/workspaces/onboarding']);
+        return router.createUrlTree(['/organizations/entry']);
       }
 
       const currentUrl = state.url;
@@ -81,7 +81,7 @@ export const WorkspaceAccessGuard: CanActivateFn = (route, state) => {
       logger.debug('[guard access] allow', { workspaceId, url: state.url, setupCompleted });
       return true;
     }),
-    catchError(() => of(router.createUrlTree(['/workspaces/onboarding']))),
+    catchError(() => of(router.createUrlTree(['/organizations/entry']))),
   );
 };
 

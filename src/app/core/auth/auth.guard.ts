@@ -10,7 +10,7 @@ export const AuthGuard: CanActivateFn = (route, state) => {
   const hasToken = authService.hasToken();
   if (!hasToken) {
     console.warn('[AUTH_GUARD_BLOCK]', { url: state.url, reason: 'missing_token' });
-    const redirect = router.createUrlTree(['/login']);
+    const redirect = router.createUrlTree(['/auth/login']);
     console.log('[GUARD AuthGuard]', { url: state.url, ok: false, token: hasToken, redirect: redirect.toString() });
     return redirect;
   }

@@ -15,8 +15,8 @@ export const OrganizationAccessGuard: CanActivateFn = () => {
       if (hasActive) {
         return true;
       }
-      return router.parseUrl('/onboarding');
+      return router.parseUrl('/organizations/entry');
     }),
-    catchError(() => of(router.parseUrl('/onboarding')))
+    catchError(() => of(router.parseUrl('/organizations/entry')))
   );
 };

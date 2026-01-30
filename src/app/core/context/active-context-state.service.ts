@@ -27,7 +27,11 @@ export class ActiveContextStateService {
 
   isComplete(context: ActiveContext): boolean {
     return Boolean(
-      context.organizationId && context.companyId && context.enterpriseId && context.currencyId,
+      context.organizationId &&
+        context.companyId &&
+        context.countryId &&
+        context.enterpriseId &&
+        context.currencyId,
     );
   }
 
@@ -42,6 +46,7 @@ export class ActiveContextStateService {
       return {
         organizationId: parsed.organizationId ?? null,
         companyId: parsed.companyId ?? null,
+        countryId: parsed.countryId ?? null,
         enterpriseId: parsed.enterpriseId ?? null,
         currencyId: parsed.currencyId ?? null,
       };

@@ -10,6 +10,7 @@ import { CompaniesApiService } from '../../../../core/api/companies-api.service'
 import { CountriesApiService } from '../../../../core/api/countries-api.service';
 import { CurrenciesApiService } from '../../../../core/api/currencies-api.service';
 import { OrganizationsService } from '../../../../core/api/organizations-api.service';
+import { OrganizationCoreApiService } from '../../../../core/api/organization-core-api.service';
 import { UsersApiService } from '../../../../core/api/users-api.service';
 import { CompanyStateService } from '../../../../core/company/company-state.service';
 import { ActiveContextStateService } from '../../../../core/context/active-context-state.service';
@@ -22,8 +23,7 @@ import {
 } from '../../../../shared/models/organization-company.model';
 import { Country } from '../../../../shared/models/country.model';
 import { Currency } from '../../../../shared/models/currency.model';
-import { OrganizationCoreApiService } from '../../../organizations/services/organization-core-api.service';
-import { CoreCountry, CoreCurrency } from '../../../organizations/models/organization-core.models';
+import { CoreCountry, CoreCurrency } from '../../../../shared/models/organization-core.model';
 
 interface ICountry {
   _id: string;
@@ -89,7 +89,7 @@ export class CompanySelectorComponent implements OnInit {
   selectedCompanyControl: FormControl<Company | null>;
   createForm: CompanyCreateForm;
 
-  private backUrl = '/dashboard';
+  private backUrl = '/app';
 
   constructor(
     private readonly companiesApi: CompaniesApiService,
@@ -119,8 +119,8 @@ export class CompanySelectorComponent implements OnInit {
 
     const nav = this.router.getCurrentNavigation();
     const previousUrl = nav?.previousNavigation?.finalUrl?.toString();
-    if (previousUrl?.startsWith('/organizations')) {
-      this.backUrl = '/organizations';
+    if (previousUrl?.startsWith('/org')) {
+      this.backUrl = '/org/setup';
     } else if (previousUrl) {
       this.backUrl = previousUrl;
     }
@@ -132,7 +132,7 @@ export class CompanySelectorComponent implements OnInit {
     this.organizationId = context.organizationId ?? fallbackOrg;
 
     if (!this.organizationId) {
-      this.router.navigateByUrl('/organizations/select');
+      this.router.navigateByUrl('/org/setup');
       return;
     }
 
@@ -193,8 +193,9 @@ export class CompanySelectorComponent implements OnInit {
   }
 
   selectCompany(): void {
-    const companyId = this.selectedCompany?.id;
-    if (!companyId) {
+    const selectedCompany = this.selectedCompany;
+    const companyId = selectedCompany?.id;
+    if (!companyId || !selectedCompany) {
       return;
     }
 
@@ -203,39 +204,33 @@ export class CompanySelectorComponent implements OnInit {
       next: () => {
         this.companyState.setActiveCompanyId(companyId);
         this.companyState.setDefaultCompanyId(companyId);
-        this.activeContextState.setActiveContext({
-          organizationId: this.organizationId,
-          companyId,
-          enterpriseId: null,
-          currencyId: null,
-        });
+        this.activeContextState.setActiveContext(
+          this.buildActiveContext(selectedCompany, this.organizationId),
+        );
         this.authService.refreshToken().subscribe({
           next: () => {
             this.submitting = false;
-            this.router.navigateByUrl(`/companies/${companyId}/dashboard`);
+            this.router.navigateByUrl('/app');
           },
           error: () => {
             this.submitting = false;
-            this.router.navigateByUrl(`/companies/${companyId}/dashboard`);
+            this.router.navigateByUrl('/app');
           },
         });
       },
       error: () => {
         this.companyState.setActiveCompanyId(companyId);
         this.companyState.setDefaultCompanyId(companyId);
-        this.activeContextState.setActiveContext({
-          organizationId: this.organizationId,
-          companyId,
-          enterpriseId: null,
-          currencyId: null,
-        });
+        this.activeContextState.setActiveContext(
+          this.buildActiveContext(selectedCompany, this.organizationId),
+        );
         this.submitting = false;
         this.messageService.add({
           severity: 'error',
           summary: 'Companias',
           detail: 'No se pudo marcar la compania por defecto.',
         });
-        this.router.navigateByUrl(`/companies/${companyId}/dashboard`);
+        this.router.navigateByUrl('/app');
       },
     });
   }
@@ -678,6 +673,22 @@ export class CompanySelectorComponent implements OnInit {
       return crypto.randomUUID();
     }
     return `tmp_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+  }
+
+  private buildActiveContext(company: Company, organizationId: string | null): {
+    organizationId: string | null;
+    companyId: string | null;
+    countryId: string | null;
+    enterpriseId: string | null;
+    currencyId: string | null;
+  } {
+    return {
+      organizationId,
+      companyId: company.id ?? null,
+      countryId: company.baseCountryId ?? null,
+      enterpriseId: company.defaultEnterpriseId ?? null,
+      currencyId: company.defaultCurrencyId ?? company.baseCurrencyId ?? null,
+    };
   }
 }
 

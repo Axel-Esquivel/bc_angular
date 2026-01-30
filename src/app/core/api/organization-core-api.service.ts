@@ -2,8 +2,8 @@ import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
-import { APP_CONFIG_TOKEN, AppConfig } from '../../../core/config/app-config';
-import { ApiResponse } from '../../../shared/models/api-response.model';
+import { APP_CONFIG_TOKEN, AppConfig } from '../config/app-config';
+import { ApiResponse } from '../../shared/models/api-response.model';
 import {
   CoreCompany,
   CoreCompanyCreatePayload,
@@ -13,7 +13,7 @@ import {
   CoreCurrencyCreatePayload,
   OrganizationCoreSettings,
   OrganizationCoreSettingsUpdatePayload,
-} from '../models/organization-core.models';
+} from '../../shared/models/organization-core.model';
 
 @Injectable({ providedIn: 'root' })
 export class OrganizationCoreApiService {

@@ -14,10 +14,10 @@ export class ModuleMenuService {
   private readonly companyState = inject(CompanyStateService);
 
   private readonly moduleRouteMap: Record<string, string> = {
-    dashboard: '/dashboard',
-    products: '/products',
-    inventory: '/inventory/stock',
-    pos: '/pos',
+    dashboard: '/app',
+    products: '/app/products',
+    inventory: '/app/inventory/stock',
+    pos: '/app/pos',
   };
 
   getMenuItems(): Observable<MenuItem[]> {
@@ -41,7 +41,7 @@ export class ModuleMenuService {
   private toMenuItem(module: ModuleInfo): MenuItem {
     return {
       label: this.formatLabel(module.name),
-      routerLink: this.moduleRouteMap[module.name] ?? `/${module.name}`,
+      routerLink: this.moduleRouteMap[module.name] ?? `/app/${module.name}`,
     };
   }
 
@@ -53,9 +53,9 @@ export class ModuleMenuService {
   ): MenuItem[] {
     const configItems: MenuItem[] = [];
     if (isOwner) {
-      configItems.push({ label: 'Setup organizacion', routerLink: '/organizations/setup' });
-      configItems.push({ label: 'Organizacion', routerLink: '/organizations' });
-      const setupItem: MenuItem = { label: 'Instalacion de modulos', routerLink: '/setup/modules' };
+      configItems.push({ label: 'Setup organizacion', routerLink: '/org/setup' });
+      configItems.push({ label: 'Organizacion', routerLink: '/org/setup' });
+      const setupItem: MenuItem = { label: 'Instalacion de modulos', routerLink: '/org/setup/modules' };
       if (organizationId) {
         setupItem.queryParams = companyId ? { orgId: organizationId, companyId } : { orgId: organizationId };
       }
@@ -63,17 +63,17 @@ export class ModuleMenuService {
       if (companyId) {
         configItems.push({
           label: 'Configuracion de modulos',
-          routerLink: ['/companies', companyId, 'settings/modules'],
+          routerLink: ['/app', 'settings', 'modules'],
         });
       }
       configItems.push({
         label: 'Catalogos',
-        items: [{ label: 'Paises', routerLink: '/settings/countries' }],
+        items: [{ label: 'Paises', routerLink: '/app/settings/countries' }],
       });
     }
 
     return [
-      { label: 'Dashboard', routerLink: '/dashboard' },
+      { label: 'Dashboard', routerLink: '/app' },
       ...moduleItems,
       ...(configItems.length > 0 ? [{ label: 'Configuracion', items: configItems }] : []),
     ];
