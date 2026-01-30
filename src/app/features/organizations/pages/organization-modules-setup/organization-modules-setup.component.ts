@@ -197,6 +197,8 @@ export class OrganizationModulesSetupComponent implements OnInit {
     if (!this.companyState.getDefaultCompanyId()) {
       this.companyState.setDefaultCompanyId(companyId);
     }
-    this.router.navigateByUrl(`/company/${companyId}/dashboard`);
+    this.router.navigateByUrl(`/companies/${companyId}/dashboard`);
   }
 }
+
+

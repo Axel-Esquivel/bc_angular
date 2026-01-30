@@ -7,6 +7,7 @@ import {
 } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { Observable, catchError, switchMap, throwError } from 'rxjs';
+import { MessageService } from 'primeng/api';
 
 import { APP_CONFIG_TOKEN, AppConfig } from '../config/app-config';
 import { AuthService } from './auth.service';
@@ -15,7 +16,8 @@ import { AuthService } from './auth.service';
 export class AuthInterceptor implements HttpInterceptor {
   constructor(
     @Inject(APP_CONFIG_TOKEN) private readonly config: AppConfig,
-    private readonly authService: AuthService
+    private readonly authService: AuthService,
+    private readonly messageService: MessageService
   ) {}
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
@@ -24,7 +26,7 @@ export class AuthInterceptor implements HttpInterceptor {
       req.url.startsWith('/api') ||
       req.url.includes('/api/');
     const accessToken = this.authService.getToken();
-    const authReq = isApiRequest && accessToken ? this.withAuthHeader(req, accessToken) : req;
+    const authReq = accessToken ? this.withAuthHeader(req, accessToken) : req;
 
     return next.handle(authReq).pipe(
       catchError((error) => this.handleError(error, req, next, isApiRequest))
@@ -37,7 +39,38 @@ export class AuthInterceptor implements HttpInterceptor {
     next: HttpHandler,
     isApiRequest: boolean
   ): Observable<HttpEvent<any>> {
-    if (!(error instanceof HttpErrorResponse) || error.status !== 401 || !isApiRequest) {
+    if (!(error instanceof HttpErrorResponse) || !isApiRequest) {
+      return throwError(() => error);
+    }
+
+    if (error.status === 0) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Acceso',
+        detail: 'Servidor no disponible.',
+      });
+      return throwError(() => error);
+    }
+
+    if (error.status === 403) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Acceso',
+        detail: 'Sin permisos.',
+      });
+      return throwError(() => error);
+    }
+
+    if (error.status === 404) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Acceso',
+        detail: 'Ruta no encontrada.',
+      });
+      return throwError(() => error);
+    }
+
+    if (error.status !== 401 && error.status !== 419) {
       return throwError(() => error);
     }
 
@@ -52,7 +85,10 @@ export class AuthInterceptor implements HttpInterceptor {
         return next.handle(retryRequest);
       }),
       catchError((refreshError) => {
-        this.authService.logout();
+        const status = refreshError instanceof HttpErrorResponse ? refreshError.status : null;
+        if (status === 401 || status === 419) {
+          this.authService.logout();
+        }
         return throwError(() => refreshError);
       })
     );

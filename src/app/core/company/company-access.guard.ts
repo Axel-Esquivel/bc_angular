@@ -17,14 +17,22 @@ export const CompanyAccessGuard: CanActivateFn = (route, state) => {
   }
 
   const activeContext = activeContextState.getActiveContext();
-  if (!activeContextState.isComplete(activeContext)) {
-    const redirect = activeContext.organizationId ? '/companies/select' : '/organizations/entry';
+  const isSettingsRoute =
+    state.url.startsWith(`/company/${companyId}/settings`) ||
+    state.url.startsWith(`/companies/${companyId}/settings`);
+  if (!activeContext.organizationId) {
+    const redirect = '/organizations/select';
+    logger.debug('[guard access] deny missing organization', { companyId, url: state.url, redirect });
+    return router.parseUrl(redirect);
+  }
+  if (!activeContextState.isComplete(activeContext) && !isSettingsRoute) {
+    const redirect = '/companies/select';
     logger.debug('[guard access] deny missing context', { companyId, url: state.url, redirect });
     return router.parseUrl(redirect);
   }
 
   if (activeContext.companyId && activeContext.companyId !== companyId) {
-    const redirect = `/company/${activeContext.companyId}/dashboard`;
+    const redirect = `/companies/${activeContext.companyId}/dashboard`;
     logger.debug('[guard access] redirect active company', { companyId, url: state.url, redirect });
     return router.parseUrl(redirect);
   }
@@ -33,3 +41,5 @@ export const CompanyAccessGuard: CanActivateFn = (route, state) => {
   logger.debug('[guard access] allow', { companyId, url: state.url });
   return true;
 };
+
+

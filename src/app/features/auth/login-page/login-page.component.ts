@@ -63,7 +63,7 @@ export class LoginPageComponent {
       )
       .subscribe({
         next: () => {
-          this.router.navigateByUrl('/onboarding');
+          this.router.navigateByUrl('/organizations/setup');
         },
         error: (error) => {
           const detail = error?.error?.message ?? 'No se pudo iniciar sesion.';

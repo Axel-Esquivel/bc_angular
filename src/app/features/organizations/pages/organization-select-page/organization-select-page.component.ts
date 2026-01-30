@@ -536,7 +536,7 @@ export class OrganizationSelectPageComponent implements OnInit {
   private redirectFromContext(): void {
     const context = this.activeContextState.getActiveContext();
     if (this.activeContextState.isComplete(context) && context.companyId) {
-      this.router.navigateByUrl(`/company/${context.companyId}/dashboard`);
+      this.router.navigateByUrl(`/companies/${context.companyId}/dashboard`);
       return;
     }
     if (context.organizationId) {
@@ -546,3 +546,4 @@ export class OrganizationSelectPageComponent implements OnInit {
     this.router.navigateByUrl('/organizations/entry');
   }
 }
+

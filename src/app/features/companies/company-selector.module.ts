@@ -1,14 +1,16 @@
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { ReactiveFormsModule } from '@angular/forms';
 import { RouterModule, Routes } from '@angular/router';
 import { MessageService } from 'primeng/api';
-import { Button } from 'primeng/button';
-import { Card } from 'primeng/card';
+import { AccordionModule } from 'primeng/accordion';
+import { ButtonModule } from 'primeng/button';
+import { CardModule } from 'primeng/card';
 import { DialogModule } from 'primeng/dialog';
-import { InputText } from 'primeng/inputtext';
-import { Select } from 'primeng/select';
-import { Toast } from 'primeng/toast';
+import { InputTextModule } from 'primeng/inputtext';
+import { MultiSelectModule } from 'primeng/multiselect';
+import { SelectModule } from 'primeng/select';
+import { ToastModule } from 'primeng/toast';
 
 import { CompanySelectorComponent } from './pages/company-selector/company-selector.component';
 
@@ -18,16 +20,19 @@ const routes: Routes = [{ path: '', component: CompanySelectorComponent }];
   declarations: [CompanySelectorComponent],
   imports: [
     CommonModule,
-    FormsModule,
     ReactiveFormsModule,
     RouterModule.forChild(routes),
-    Card,
-    Button,
+    AccordionModule,
+    ButtonModule,
+    CardModule,
     DialogModule,
-    InputText,
-    Select,
-    Toast,
+    InputTextModule,
+    MultiSelectModule,
+    SelectModule,
+    ToastModule,
   ],
   providers: [MessageService],
 })
 export class CompanySelectorModule {}
+
+

@@ -31,8 +31,8 @@ export class CompanyStateService {
 
   constructor(private readonly tokenStorage: TokenStorageService) {
     const storedUser = this.tokenStorage.getUser();
-    if (storedUser?.defaultWorkspaceId) {
-      this.setDefaultCompanyId(storedUser.defaultWorkspaceId);
+    if (storedUser?.defaultCompanyId || storedUser?.defaultWorkspaceId) {
+      this.setDefaultCompanyId(storedUser.defaultCompanyId ?? storedUser.defaultWorkspaceId ?? null);
     }
   }
 
@@ -64,7 +64,7 @@ export class CompanyStateService {
   }
 
   syncFromUser(user: AuthUser | null): void {
-    const nextDefault = user?.defaultWorkspaceId ?? null;
+    const nextDefault = user?.defaultCompanyId ?? user?.defaultWorkspaceId ?? null;
     this.setDefaultCompanyId(nextDefault);
   }
 

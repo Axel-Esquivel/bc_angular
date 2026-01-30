@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@angular/core';
 import { io, Socket } from 'socket.io-client';
-import { BehaviorSubject, catchError, map, of, take, tap } from 'rxjs';
+import { BehaviorSubject, catchError, finalize, of, take, tap } from 'rxjs';
 
 import { APP_CONFIG_TOKEN, AppConfig } from '../config/app-config';
 import { HealthApiService } from '../api/health-api.service';
@@ -11,6 +11,13 @@ export class RealtimeSocketService {
   private isConnecting = false;
   private authToken: string | null = null;
   private readonly connectedSubject = new BehaviorSubject<boolean>(false);
+  private reconnectAttempts = 0;
+  private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+  private isManualDisconnect = false;
+  private readonly maxReconnectAttempts = 5;
+  private readonly baseReconnectDelayMs = 1000;
+  private readonly maxReconnectDelayMs = 15000;
+  private readonly reconnectJitterMs = 250;
 
   readonly isConnected$ = this.connectedSubject.asObservable();
 
@@ -28,6 +35,7 @@ export class RealtimeSocketService {
       return;
     }
 
+    this.isManualDisconnect = false;
     this.isConnecting = true;
     this.healthApi
       .getStatus()
@@ -43,23 +51,33 @@ export class RealtimeSocketService {
             withCredentials: true,
             auth: token ? { token: `Bearer ${token}` } : undefined,
             autoConnect: true,
+            reconnection: false,
           });
 
           this.socket.on('connect', () => {
+            this.reconnectAttempts = 0;
             this.connectedSubject.next(true);
           });
 
           this.socket.on('disconnect', () => {
             this.connectedSubject.next(false);
+            this.scheduleReconnect();
+          });
+
+          this.socket.on('connect_error', () => {
+            this.connectedSubject.next(false);
+            this.scheduleReconnect();
           });
         }),
-        catchError(() => of(null))
-      )
-      .subscribe({
-        complete: () => {
+        catchError(() => {
+          this.scheduleReconnect();
+          return of(null);
+        }),
+        finalize(() => {
           this.isConnecting = false;
-        },
-      });
+        })
+      )
+      .subscribe();
   }
 
   disconnect(): void {
@@ -67,6 +85,11 @@ export class RealtimeSocketService {
       return;
     }
 
+    this.isManualDisconnect = true;
+    if (this.reconnectTimer) {
+      clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = null;
+    }
     this.socket.disconnect();
     this.socket = undefined;
     this.connectedSubject.next(false);
@@ -94,5 +117,26 @@ export class RealtimeSocketService {
     }
 
     return { url: rawSocketUrl, path: '/socket.io' };
+  }
+
+  private scheduleReconnect(): void {
+    if (this.isManualDisconnect || this.socket) {
+      return;
+    }
+    if (this.reconnectAttempts >= this.maxReconnectAttempts) {
+      return;
+    }
+    if (this.reconnectTimer) {
+      return;
+    }
+
+    const exponent = Math.min(this.reconnectAttempts, 10);
+    const delay = Math.min(this.baseReconnectDelayMs * 2 ** exponent, this.maxReconnectDelayMs);
+    const jitter = Math.floor(Math.random() * this.reconnectJitterMs);
+    this.reconnectAttempts += 1;
+    this.reconnectTimer = setTimeout(() => {
+      this.reconnectTimer = null;
+      this.connect();
+    }, delay + jitter);
   }
 }

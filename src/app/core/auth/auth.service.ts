@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import {
   BehaviorSubject,
   Observable,
@@ -112,9 +113,18 @@ export class AuthService {
         this.currentUserSubject.next(user);
         this.companyState.syncFromUser(user);
       }),
-      catchError(() => {
-        this.logout();
-        return of(null);
+      catchError((error) => {
+        const status = error instanceof HttpErrorResponse ? error.status : null;
+        if (status === 401 || status === 419) {
+          this.logout();
+          return of(null);
+        }
+        const cached = this.getCurrentUser();
+        if (cached) {
+          this.currentUserSubject.next(cached);
+          this.companyState.syncFromUser(cached);
+        }
+        return of(cached);
       })
     );
   }
@@ -181,7 +191,10 @@ export class AuthService {
         this.isRefreshing = false;
       }),
       catchError((error) => {
-        this.logout();
+        const status = error instanceof HttpErrorResponse ? error.status : null;
+        if (status === 401 || status === 419) {
+          this.logout();
+        }
         return throwError(() => error);
       }),
       shareReplay(1)
@@ -277,3 +290,5 @@ export class AuthService {
     this.realtimeSocket.disconnect();
   }
 }
+
+

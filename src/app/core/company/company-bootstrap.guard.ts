@@ -49,10 +49,10 @@ export const CompanyBootstrapGuard: CanActivateFn = (_route, state) => {
           companyState.setDefaultCompanyId(resolvedDefault);
         }
         companyState.setActiveCompanyId(targetCompanyId);
-        if (currentUrl.startsWith(`/company/${targetCompanyId}`)) {
+        if (currentUrl.startsWith(`/companies/${targetCompanyId}`)) {
           return true;
         }
-        return router.parseUrl(`/company/${targetCompanyId}/dashboard`);
+        return router.parseUrl(`/companies/${targetCompanyId}/dashboard`);
       }
 
       return router.parseUrl('/organizations/setup');
@@ -60,3 +60,5 @@ export const CompanyBootstrapGuard: CanActivateFn = (_route, state) => {
     catchError(() => of(router.parseUrl('/organizations/setup'))),
   );
 };
+
+

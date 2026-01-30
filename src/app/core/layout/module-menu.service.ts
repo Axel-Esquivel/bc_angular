@@ -63,7 +63,7 @@ export class ModuleMenuService {
       if (companyId) {
         configItems.push({
           label: 'Configuracion de modulos',
-          routerLink: ['/company', companyId, 'settings/modules'],
+          routerLink: ['/companies', companyId, 'settings/modules'],
         });
       }
       configItems.push({
@@ -87,3 +87,5 @@ export class ModuleMenuService {
     return name.charAt(0).toUpperCase() + name.slice(1);
   }
 }
+
+

@@ -1,5 +1,7 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
+import { HttpErrorResponse } from '@angular/common/http';
+import { MessageService } from 'primeng/api';
 import { catchError, of, switchMap, take } from 'rxjs';
 
 import { AuthService } from '../auth/auth.service';
@@ -11,6 +13,7 @@ export const OnboardingGuard: CanActivateFn = (_route, state) => {
   const organizationsApi = inject(OrganizationsService);
   const activeContextState = inject(ActiveContextStateService);
   const router = inject(Router);
+  const messageService = inject(MessageService);
 
   if (!authService.hasToken()) {
     return router.parseUrl('/login');
@@ -18,6 +21,46 @@ export const OnboardingGuard: CanActivateFn = (_route, state) => {
 
   const currentUser = authService.getCurrentUser();
   const user$ = currentUser ? of(currentUser) : authService.loadMe().pipe(take(1));
+
+  const resolveFallbackUrl = () => {
+    const activeContext = activeContextState.getActiveContext();
+    if (activeContext.companyId) {
+      return router.parseUrl(`/companies/${activeContext.companyId}/dashboard`);
+    }
+    return router.parseUrl('/organizations/setup');
+  };
+
+  const handleGuardError = (error: unknown) => {
+    const status = error instanceof HttpErrorResponse ? error.status : null;
+    if (status === 401 || status === 419) {
+      return router.parseUrl('/login');
+    }
+    if (status === 403) {
+      messageService.add({
+        severity: 'warn',
+        summary: 'Acceso',
+        detail: 'Sin permisos.',
+      });
+      return resolveFallbackUrl();
+    }
+    if (status === 404) {
+      messageService.add({
+        severity: 'error',
+        summary: 'Acceso',
+        detail: 'Ruta no encontrada.',
+      });
+      return resolveFallbackUrl();
+    }
+    if (status === 0) {
+      messageService.add({
+        severity: 'error',
+        summary: 'Acceso',
+        detail: 'Servidor no disponible.',
+      });
+      return resolveFallbackUrl();
+    }
+    return resolveFallbackUrl();
+  };
 
   return user$.pipe(
     switchMap((user) => {
@@ -64,7 +107,7 @@ export const OnboardingGuard: CanActivateFn = (_route, state) => {
 
           if (activeContextState.isComplete(activeContext)) {
             if (shouldRedirect && activeContext.companyId) {
-              return of(router.parseUrl(`/company/${activeContext.companyId}/dashboard`));
+              return of(router.parseUrl(`/companies/${activeContext.companyId}/dashboard`));
             }
             return of(true);
           }
@@ -81,9 +124,10 @@ export const OnboardingGuard: CanActivateFn = (_route, state) => {
 
           return of(router.parseUrl('/organizations/select'));
         }),
-        catchError(() => of(router.parseUrl('/organizations/entry'))),
+        catchError((error) => of(handleGuardError(error))),
       );
     }),
-    catchError(() => of(router.parseUrl('/login'))),
+    catchError((error) => of(handleGuardError(error))),
   );
 };
+

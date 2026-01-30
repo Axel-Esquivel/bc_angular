@@ -26,6 +26,10 @@ export class UsersApiService {
     return this.http.patch<ApiResponse<AuthUser>>(`${this.baseUrl}/me/default-workspace`, { workspaceId });
   }
 
+  setDefaultCompany(companyId: string): Observable<ApiResponse<AuthUser>> {
+    return this.http.patch<ApiResponse<AuthUser>>(`${this.baseUrl}/me/default-company`, { companyId });
+  }
+
   resolve(ids: string[]): Observable<ResolvedUser[]> {
     const unique = Array.from(new Set((ids ?? []).filter(Boolean)));
     const missing = unique.filter((id) => !this.resolvedCache.has(id));
