@@ -1,0 +1,20 @@
+<section class="modules-page">
+  <p-card header="Selecciona modulos" class="modules-card">
+    <form [formGroup]="form" (ngSubmit)="save()" class="form">
+      <div class="state" *ngIf="isLoading">Cargando modulos...</div>
+      <div class="state" *ngIf="!isLoading && selectableModules.length === 0">
+        No hay modulos disponibles.
+      </div>
+      <div class="module-row" *ngFor="let module of selectableModules; let i = index">
+        <p-checkbox [inputId]="module.key" [formControl]="modulesArray.at(i)"></p-checkbox>
+        <label [for]="module.key">{{ module.name }}</label>
+        <small class="deps" *ngIf="module.dependencies?.length">
+          Requiere: {{ module.dependencies.join(', ') }}
+        </small>
+      </div>
+      <div class="actions">
+        <p-button type="submit" label="Guardar seleccion" [disabled]="form.invalid || isSubmitting || isLoading"></p-button>
+      </div>
+    </form>
+  </p-card>
+</section>

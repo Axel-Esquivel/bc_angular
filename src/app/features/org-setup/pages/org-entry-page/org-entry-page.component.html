@@ -1,0 +1,74 @@
+<p-toast></p-toast>
+<section class="entry-page">
+  <p-card header="Configura tu organizacion" class="entry-card">
+    <p>Elige como quieres comenzar.</p>
+    <div class="actions">
+      <p-button type="button" label="Crear organizacion" (onClick)="goCreate()"></p-button>
+      <p-button type="button" label="Unirme" severity="secondary" (onClick)="goJoin()"></p-button>
+    </div>
+  </p-card>
+
+  <p-card header="Organizaciones (Owner)" class="entry-card">
+    <p class="state" *ngIf="loading">Cargando organizaciones...</p>
+    <p class="state" *ngIf="!loading && ownerOrganizations.length === 0">
+      No tienes organizaciones como owner.
+    </p>
+    <p-listbox
+      *ngIf="!loading && ownerOrganizations.length > 0"
+      [options]="ownerOrganizations"
+      optionLabel="name"
+      [disabled]="selecting"
+      (onChange)="selectOrganization($event.value)"
+      [style]="{ width: '100%' }"
+    ></p-listbox>
+  </p-card>
+
+  <p-card header="Membresias activas" class="entry-card">
+    <p class="state" *ngIf="!loading && activeMemberships.length === 0">Sin membresias activas.</p>
+    <p-dataView *ngIf="activeMemberships.length > 0" [value]="activeMemberships" layout="list">
+      <ng-template pTemplate="list" let-items>
+        <div class="list-row" *ngFor="let item of items">
+          <div>
+            <div class="list-title">{{ item.name }}</div>
+            <div class="list-meta">Rol: {{ item.roleKey }}</div>
+          </div>
+          <span class="badge success">Activo</span>
+        </div>
+      </ng-template>
+    </p-dataView>
+  </p-card>
+
+  <p-card header="Membresias pendientes" class="entry-card">
+    <p class="state" *ngIf="!loading && pendingMemberships.length === 0">Sin membresias pendientes.</p>
+    <p-dataView *ngIf="pendingMemberships.length > 0" [value]="pendingMemberships" layout="list">
+      <ng-template pTemplate="list" let-items>
+        <div class="list-row" *ngFor="let item of items">
+          <div>
+            <div class="list-title">{{ item.name }}</div>
+            <div class="list-meta">Rol: {{ item.roleKey }}</div>
+          </div>
+          <span class="badge warn">Pendiente</span>
+        </div>
+      </ng-template>
+    </p-dataView>
+  </p-card>
+
+  <p-card header="Membresias rechazadas" class="entry-card">
+    <p class="state" *ngIf="!loading && rejectedMemberships.length === 0">Sin membresias rechazadas.</p>
+    <p-dataView *ngIf="rejectedMemberships.length > 0" [value]="rejectedMemberships" layout="list">
+      <ng-template pTemplate="list" let-items>
+        <div class="list-row" *ngFor="let item of items">
+          <div>
+            <div class="list-title">{{ item.name }}</div>
+            <div class="list-meta">Rol: {{ item.roleKey }}</div>
+          </div>
+          <span class="badge danger">Rechazado</span>
+        </div>
+      </ng-template>
+    </p-dataView>
+  </p-card>
+
+  <p-card *ngIf="!loading && isEmpty" class="entry-card">
+    <p class="state">No hay organizaciones ni membresias.</p>
+  </p-card>
+</section>

@@ -1,0 +1,19 @@
+<section class="form-page">
+  <p-card header="Unirse a organizacion" class="form-card">
+    <form [formGroup]="form" (ngSubmit)="submit()" class="form">
+      <div class="field">
+        <p-floatLabel>
+          <input id="joinCode" type="text" pInputText formControlName="codeOrName" />
+          <label for="joinCode">Codigo o nombre</label>
+        </p-floatLabel>
+        <small class="error" *ngIf="form.controls.codeOrName.invalid && form.controls.codeOrName.touched">
+          Ingresa un codigo o nombre valido.
+        </small>
+      </div>
+
+      <div class="actions">
+        <p-button type="submit" label="Unirme" [disabled]="form.invalid || isSubmitting"></p-button>
+      </div>
+    </form>
+  </p-card>
+</section>

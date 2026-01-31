@@ -89,7 +89,7 @@ export class CompanySelectorComponent implements OnInit {
   selectedCompanyControl: FormControl<Company | null>;
   createForm: CompanyCreateForm;
 
-  private backUrl = '/app';
+  private backUrl = '/dashboard';
 
   constructor(
     private readonly companiesApi: CompaniesApiService,
@@ -119,8 +119,8 @@ export class CompanySelectorComponent implements OnInit {
 
     const nav = this.router.getCurrentNavigation();
     const previousUrl = nav?.previousNavigation?.finalUrl?.toString();
-    if (previousUrl?.startsWith('/org')) {
-      this.backUrl = '/org/setup';
+    if (previousUrl?.startsWith('/dashboard')) {
+      this.backUrl = '/dashboard';
     } else if (previousUrl) {
       this.backUrl = previousUrl;
     }
@@ -132,7 +132,7 @@ export class CompanySelectorComponent implements OnInit {
     this.organizationId = context.organizationId ?? fallbackOrg;
 
     if (!this.organizationId) {
-      this.router.navigateByUrl('/org/setup');
+      this.router.navigateByUrl('/dashboard');
       return;
     }
 
@@ -210,11 +210,11 @@ export class CompanySelectorComponent implements OnInit {
         this.authService.refreshToken().subscribe({
           next: () => {
             this.submitting = false;
-            this.router.navigateByUrl('/app');
+            this.router.navigateByUrl('/dashboard');
           },
           error: () => {
             this.submitting = false;
-            this.router.navigateByUrl('/app');
+            this.router.navigateByUrl('/dashboard');
           },
         });
       },
@@ -230,7 +230,7 @@ export class CompanySelectorComponent implements OnInit {
           summary: 'Companias',
           detail: 'No se pudo marcar la compania por defecto.',
         });
-        this.router.navigateByUrl('/app');
+        this.router.navigateByUrl('/dashboard');
       },
     });
   }

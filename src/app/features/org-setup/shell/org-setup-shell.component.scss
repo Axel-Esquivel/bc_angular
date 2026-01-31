@@ -1,0 +1,12 @@
+.org-setup-shell {
+  min-height: 100vh;
+  padding: 2rem 1.5rem;
+  background: var(--surface-ground);
+  display: flex;
+  justify-content: center;
+}
+
+.org-setup-content {
+  width: 100%;
+  max-width: 960px;
+}

@@ -1,0 +1,14 @@
+<section class="dashboard-page">
+  <p-card header="Modulos instalados" class="dashboard-card">
+    <div class="state" *ngIf="loading">Cargando modulos...</div>
+    <div class="state" *ngIf="!loading && enabledModules.length === 0">
+      No hay modulos instalados.
+    </div>
+    <div class="module-list" *ngIf="!loading && enabledModules.length > 0">
+      <div class="module-row" *ngFor="let module of enabledModules">
+        <span class="module-name">{{ module.name || module.key }}</span>
+        <p-tag [value]="module.state.status || 'enabled'" severity="success"></p-tag>
+      </div>
+    </div>
+  </p-card>
+</section>

@@ -1,0 +1,214 @@
+<p-toast></p-toast>
+<section class="form-page">
+  <p-card header="Crear organizacion" class="form-card">
+    <form [formGroup]="form" (ngSubmit)="submit()" class="form">
+      <div class="field">
+        <p-floatLabel>
+          <input id="orgName" type="text" pInputText formControlName="name" />
+          <label for="orgName">Organizacion</label>
+        </p-floatLabel>
+        <small class="error" *ngIf="form.controls.name.invalid && form.controls.name.touched">
+          Ingresa un nombre valido.
+        </small>
+      </div>
+
+      <p-divider></p-divider>
+
+      <div class="field-group">
+        <div class="field">
+          <p-floatLabel>
+            <p-select
+              inputId="countryId"
+              [options]="countries"
+              optionLabel="name"
+              optionValue="id"
+              placeholder="Selecciona un pais"
+              class="w-full md:w-56"
+              formControlName="countryId"
+            >
+              <ng-template #selectedItem let-country>
+                <div class="select-item">
+                  <i class="pi pi-map-marker"></i>
+                  <span>{{ country?.name }}</span>
+                </div>
+              </ng-template>
+              <ng-template #item let-country>
+                <div class="select-item">
+                  <i class="pi pi-flag"></i>
+                  <span>{{ country.name }}</span>
+                </div>
+              </ng-template>
+              <ng-template #dropdownicon>
+                <i class="pi pi-chevron-down"></i>
+              </ng-template>
+              <ng-template #header>
+                <div class="select-header">Available Countries</div>
+              </ng-template>
+              <ng-template #footer>
+                <div class="p-3 pt-2 w-full">
+                  <p-button
+                    label="Add New"
+                    icon="pi pi-plus"
+                    severity="secondary"
+                    text
+                    size="small"
+                    [fluid]="true"
+                    styleClass="w-full"
+                    (onClick)="openCreateCountryDialog()"
+                  />
+                </div>
+              </ng-template>
+            </p-select>
+            <label for="countryId">Pais</label>
+          </p-floatLabel>
+        </div>
+        <small class="hint" *ngIf="countries.length === 0">No hay paises creados. Usa Add New.</small>
+        <small class="error" *ngIf="form.controls.countryId.invalid && form.controls.countryId.touched">
+          Selecciona un pais.
+        </small>
+      </div>
+
+      <div class="field-group">
+        <div class="field">
+          <p-floatLabel>
+            <p-select
+              inputId="currencyId"
+              [options]="currencies"
+              optionLabel="name"
+              optionValue="id"
+              placeholder="Selecciona una moneda"
+              class="w-full md:w-56"
+              formControlName="currencyId"
+            >
+              <ng-template #selectedItem let-currency>
+                <div class="select-item">
+                  <i class="pi pi-wallet"></i>
+                  <span>{{ currency?.name }}</span>
+                </div>
+              </ng-template>
+              <ng-template #item let-currency>
+                <div class="select-item">
+                  <i class="pi pi-money-bill"></i>
+                  <span>{{ currency.name }}</span>
+                </div>
+              </ng-template>
+              <ng-template #dropdownicon>
+                <i class="pi pi-chevron-down"></i>
+              </ng-template>
+              <ng-template #header>
+                <div class="select-header">Available Currencies</div>
+              </ng-template>
+              <ng-template #footer>
+                <div class="p-3 pt-2 w-full">
+                  <p-button
+                    label="Add New"
+                    icon="pi pi-plus"
+                    severity="secondary"
+                    text
+                    size="small"
+                    [fluid]="true"
+                    styleClass="w-full"
+                    (onClick)="openCreateCurrencyDialog()"
+                  />
+                </div>
+              </ng-template>
+            </p-select>
+            <label for="currencyId">Moneda</label>
+          </p-floatLabel>
+        </div>
+        <small class="hint" *ngIf="currencies.length === 0">No hay monedas creadas. Usa Add New.</small>
+        <small class="error" *ngIf="form.controls.currencyId.invalid && form.controls.currencyId.touched">
+          Selecciona una moneda.
+        </small>
+      </div>
+
+      <div class="actions">
+        <p-button type="submit" label="Crear organizacion" [disabled]="form.invalid || isSubmitting"></p-button>
+      </div>
+    </form>
+  </p-card>
+</section>
+
+<p-dialog
+  header="Nuevo pais"
+  [(visible)]="isCountryDialogOpen"
+  [modal]="true"
+  [closable]="true"
+  [draggable]="false"
+  [style]="{ width: '420px' }"
+>
+  <form [formGroup]="countryForm" class="dialog-form">
+    <div class="field">
+      <p-floatLabel>
+        <input id="countryIso2" type="text" pInputText formControlName="iso2" />
+        <label for="countryIso2">ISO2</label>
+      </p-floatLabel>
+    </div>
+    <div class="field">
+      <p-floatLabel>
+        <input id="countryIso3" type="text" pInputText formControlName="iso3" />
+        <label for="countryIso3">ISO3</label>
+      </p-floatLabel>
+    </div>
+    <div class="field">
+      <p-floatLabel>
+        <input id="countryNameEs" type="text" pInputText formControlName="nameEs" />
+        <label for="countryNameEs">Nombre (ES)</label>
+      </p-floatLabel>
+    </div>
+    <div class="field">
+      <p-floatLabel>
+        <input id="countryNameEn" type="text" pInputText formControlName="nameEn" />
+        <label for="countryNameEn">Nombre (EN)</label>
+      </p-floatLabel>
+    </div>
+    <div class="field">
+      <p-floatLabel>
+        <input id="countryPhoneCode" type="text" pInputText formControlName="phoneCode" />
+        <label for="countryPhoneCode">Codigo telefonico</label>
+      </p-floatLabel>
+    </div>
+  </form>
+  <ng-template #footer>
+    <div class="dialog-actions">
+      <p-button label="Cancelar" severity="secondary" (onClick)="closeCountryDialog()"></p-button>
+      <p-button label="Crear" icon="pi pi-check" (onClick)="createCountry()"></p-button>
+    </div>
+  </ng-template>
+</p-dialog>
+
+<p-dialog
+  header="Nueva moneda"
+  [(visible)]="isCurrencyDialogOpen"
+  [modal]="true"
+  [closable]="true"
+  [draggable]="false"
+  [style]="{ width: '420px' }"
+>
+  <form [formGroup]="currencyForm" class="dialog-form">
+    <div class="field">
+      <p-floatLabel>
+        <input id="currencyName" type="text" pInputText formControlName="name" />
+        <label for="currencyName">Nombre de la moneda</label>
+      </p-floatLabel>
+    </div>
+    <div class="field">
+      <p-floatLabel>
+        <input id="currencyCode" type="text" pInputText formControlName="code" />
+        <label for="currencyCode">Codigo</label>
+      </p-floatLabel>
+    </div>
+    <div class="field">
+      <p-floatLabel>
+        <input id="currencySymbol" type="text" pInputText formControlName="symbol" />
+        <label for="currencySymbol">Simbolo</label>
+      </p-floatLabel>
+    </div>
+  </form>
+  <ng-template #footer>
+    <div class="dialog-actions">
+      <p-button label="Cancelar" severity="secondary" (onClick)="closeCurrencyDialog()"></p-button>
+      <p-button label="Crear" icon="pi pi-check" (onClick)="createCurrency()"></p-button>
+    </div>
+  </ng-template>
+</p-dialog>

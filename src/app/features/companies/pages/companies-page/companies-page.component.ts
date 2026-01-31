@@ -100,7 +100,7 @@ export class CompaniesPageComponent implements OnInit {
   ngOnInit(): void {
     const orgId = this.route.snapshot.paramMap.get('orgId');
     if (!orgId) {
-      this.router.navigate(['/org/setup']);
+      this.router.navigate(['/companies/select']);
       return;
     }
 

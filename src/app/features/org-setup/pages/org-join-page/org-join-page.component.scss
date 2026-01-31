@@ -1,0 +1,29 @@
+.form-page {
+  display: grid;
+  gap: 1rem;
+  justify-items: start;
+}
+
+.form-card {
+  width: 100%;
+  max-width: 420px;
+}
+
+.form {
+  display: grid;
+  gap: 1rem;
+}
+
+.field {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.error {
+  color: var(--red-500);
+}

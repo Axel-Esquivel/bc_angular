@@ -11,12 +11,14 @@ import { MessageService } from 'primeng/api';
 
 import { APP_CONFIG_TOKEN, AppConfig } from '../config/app-config';
 import { AuthService } from './auth.service';
+import { AuthStateService } from './auth-state.service';
 
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
   constructor(
     @Inject(APP_CONFIG_TOKEN) private readonly config: AppConfig,
     private readonly authService: AuthService,
+    private readonly authState: AuthStateService,
     private readonly messageService: MessageService
   ) {}
 
@@ -25,7 +27,7 @@ export class AuthInterceptor implements HttpInterceptor {
       req.url.startsWith(this.config.apiBaseUrl) ||
       req.url.startsWith('/api') ||
       req.url.includes('/api/');
-    const accessToken = this.authService.getToken();
+    const accessToken = this.authState.getAccessToken();
     const authReq = accessToken ? this.withAuthHeader(req, accessToken) : req;
 
     return next.handle(authReq).pipe(

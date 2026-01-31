@@ -1,0 +1,38 @@
+<p-toast></p-toast>
+<section class="context-page">
+  <p-card header="Selecciona contexto" class="context-card">
+    <form [formGroup]="form" (ngSubmit)="save()" class="form">
+      <div class="field">
+        <p-floatLabel>
+          <p-select
+            inputId="organizationId"
+            [options]="organizations"
+            optionLabel="name"
+            optionValue="id"
+            [loading]="loadingOrganizations"
+            formControlName="organizationId"
+          ></p-select>
+          <label for="organizationId">Organizacion</label>
+        </p-floatLabel>
+      </div>
+
+      <div class="field">
+        <p-floatLabel>
+          <p-select
+            inputId="companyId"
+            [options]="companies"
+            optionLabel="name"
+            optionValue="id"
+            [loading]="loadingCompanies"
+            formControlName="companyId"
+          ></p-select>
+          <label for="companyId">Compania</label>
+        </p-floatLabel>
+      </div>
+
+      <div class="actions">
+        <p-button type="submit" label="Guardar" [disabled]="form.invalid || submitting"></p-button>
+      </div>
+    </form>
+  </p-card>
+</section>

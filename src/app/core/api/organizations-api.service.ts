@@ -14,6 +14,7 @@ import {
   OrganizationDeleteResult,
   UpdateOrganizationRequest,
 } from '../../shared/models/organization.model';
+import { OrganizationModulesOverviewResponse } from '../../shared/models/organization-modules.model';
 import { Workspace } from '../../shared/models/workspace.model';
 
 @Injectable({ providedIn: 'root' })
@@ -148,24 +149,26 @@ export class OrganizationsService {
     return this.http.get<ApiResponse<IOrganizationRole[]>>(`${this.baseUrl}/${id}/roles`);
   }
 
-  getModules(id: string): Observable<ApiResponse<{
-    enabledModules: string[];
-    moduleStates: Record<string, string>;
-  }>> {
-    return this.http.get<ApiResponse<{
-      enabledModules: string[];
-      moduleStates: Record<string, string>;
-    }>>(`${this.baseUrl}/${id}/modules`);
+  getModules(id: string): Observable<ApiResponse<OrganizationModulesOverviewResponse>> {
+    return this.http.get<ApiResponse<OrganizationModulesOverviewResponse>>(`${this.baseUrl}/${id}/modules`);
   }
 
-  updateModules(id: string, payload: { enabledModules: string[] }): Observable<ApiResponse<{
-    enabledModules: string[];
-    moduleStates: Record<string, string>;
-  }>> {
-    return this.http.patch<ApiResponse<{
-      enabledModules: string[];
-      moduleStates: Record<string, string>;
-    }>>(`${this.baseUrl}/${id}/modules`, payload);
+  updateModules(id: string, payload: { modules: string[] }): Observable<ApiResponse<OrganizationModulesOverviewResponse>> {
+    return this.http.patch<ApiResponse<OrganizationModulesOverviewResponse>>(`${this.baseUrl}/${id}/modules`, payload);
+  }
+
+  installModule(id: string, key: string): Observable<ApiResponse<OrganizationModulesOverviewResponse>> {
+    return this.http.post<ApiResponse<OrganizationModulesOverviewResponse>>(
+      `${this.baseUrl}/${id}/modules/install`,
+      { key }
+    );
+  }
+
+  disableModule(id: string, key: string): Observable<ApiResponse<OrganizationModulesOverviewResponse>> {
+    return this.http.post<ApiResponse<OrganizationModulesOverviewResponse>>(
+      `${this.baseUrl}/${id}/modules/disable`,
+      { key }
+    );
   }
 
   createRole(

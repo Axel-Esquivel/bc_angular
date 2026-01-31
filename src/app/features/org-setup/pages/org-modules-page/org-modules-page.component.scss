@@ -1,0 +1,41 @@
+.modules-page {
+  display: grid;
+  gap: 1rem;
+  justify-items: start;
+}
+
+.modules-card {
+  width: 100%;
+  max-width: 520px;
+}
+
+.form {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.module-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--surface-border);
+  border-radius: 0.5rem;
+  background: var(--surface-0);
+  flex-wrap: wrap;
+}
+
+.state {
+  color: var(--text-color-secondary);
+  padding: 0.5rem 0;
+}
+
+.deps {
+  color: var(--text-color-secondary);
+  font-size: 0.85rem;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-start;
+}

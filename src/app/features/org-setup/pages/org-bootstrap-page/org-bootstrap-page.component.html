@@ -1,0 +1,29 @@
+<section class="form-page">
+  <p-card header="Bootstrap basico" class="form-card">
+    <form [formGroup]="form" (ngSubmit)="submit()" class="form">
+      <div class="field">
+        <p-floatLabel>
+          <input id="companyName" type="text" pInputText formControlName="companyName" />
+          <label for="companyName">Compania</label>
+        </p-floatLabel>
+      </div>
+
+      <div class="field">
+        <p-floatLabel>
+          <p-select
+            inputId="countryId"
+            [options]="countryOptions"
+            optionLabel="label"
+            optionValue="value"
+            formControlName="countryId"
+          ></p-select>
+          <label for="countryId">Pais</label>
+        </p-floatLabel>
+      </div>
+
+      <div class="actions">
+        <p-button type="submit" label="Guardar y continuar" [disabled]="form.invalid || isSubmitting"></p-button>
+      </div>
+    </form>
+  </p-card>
+</section>

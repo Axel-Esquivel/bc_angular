@@ -1,0 +1,64 @@
+.entry-page {
+  display: grid;
+  gap: 1rem;
+  justify-items: center;
+  padding: 2rem 1rem;
+}
+
+.entry-card {
+  width: 100%;
+  max-width: 720px;
+}
+
+.actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.state {
+  color: var(--text-color-secondary);
+}
+
+.list-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--surface-border);
+  border-radius: 0.5rem;
+  background: var(--surface-0);
+  margin-bottom: 0.5rem;
+}
+
+.list-title {
+  font-weight: 600;
+}
+
+.list-meta {
+  color: var(--text-color-secondary);
+  font-size: 0.85rem;
+}
+
+.badge {
+  font-size: 0.75rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  background: var(--surface-200);
+  color: var(--text-color);
+}
+
+.badge.success {
+  background: var(--green-100);
+  color: var(--green-800);
+}
+
+.badge.warn {
+  background: var(--yellow-100);
+  color: var(--yellow-800);
+}
+
+.badge.danger {
+  background: var(--red-100);
+  color: var(--red-700);
+}

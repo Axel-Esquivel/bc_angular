@@ -2,21 +2,25 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, catchError, combineLatest, map, of, shareReplay } from 'rxjs';
 import { MenuItem } from 'primeng/api';
 
-import { ModulesApiService } from '../api/modules-api.service';
 import { DashboardApiService } from '../api/dashboard-api.service';
 import { CompanyStateService } from '../company/company-state.service';
-import { ModuleInfo } from '../../shared/models/module.model';
+import { OrganizationsService } from '../api/organizations-api.service';
+import { AuthService } from '../auth/auth.service';
+import { ActiveContextStateService } from '../context/active-context-state.service';
+import { OrganizationModuleOverviewItem } from '../../shared/models/organization-modules.model';
 
 @Injectable({ providedIn: 'root' })
 export class ModuleMenuService {
-  private readonly modulesApi = inject(ModulesApiService);
   private readonly dashboardApi = inject(DashboardApiService);
   private readonly companyState = inject(CompanyStateService);
+  private readonly organizationsApi = inject(OrganizationsService);
+  private readonly authService = inject(AuthService);
+  private readonly activeContextState = inject(ActiveContextStateService);
 
   private readonly moduleRouteMap: Record<string, string> = {
     dashboard: '/app',
     products: '/app/products',
-    inventory: '/app/inventory/stock',
+    inventory: '/app/inventory',
     pos: '/app/pos',
   };
 
@@ -27,21 +31,46 @@ export class ModuleMenuService {
       catchError(() => of(null))
     );
 
-    return combineLatest([this.modulesApi.getModules(), overview$]).pipe(
-      map(([response, overview]) => {
-        const modules = response.result ?? [];
-        const moduleItems = modules.filter((module) => module.enabled).map((module) => this.toMenuItem(module));
-        return this.buildMenu(moduleItems, overview?.currentOrgRoleKey === 'owner', overview?.currentOrgId ?? null, companyId);
+    const organizationId =
+      this.activeContextState.getActiveContext().organizationId ??
+      this.authService.getCurrentUser()?.defaultOrganizationId ??
+      null;
+    if (!organizationId) {
+      return overview$.pipe(
+        map((overview) =>
+          this.buildMenu([], overview?.currentOrgRoleKey === 'owner', overview?.currentOrgId ?? null, companyId)
+        ),
+        catchError(() => of(this.buildMenu([], false, null, companyId))),
+        shareReplay(1)
+      );
+    }
+
+    const modules$ = this.organizationsApi.getModules(organizationId).pipe(
+      map((response) => response.result?.modules ?? []),
+      catchError(() => of([] as OrganizationModuleOverviewItem[]))
+    );
+
+    return combineLatest([modules$, overview$]).pipe(
+      map(([modules, overview]) => {
+        const moduleItems = modules
+          .filter((module) => module.state?.status !== 'disabled' && !module.isSystem)
+          .map((module) => this.toMenuItem(module));
+        return this.buildMenu(
+          moduleItems,
+          overview?.currentOrgRoleKey === 'owner',
+          overview?.currentOrgId ?? null,
+          companyId
+        );
       }),
       catchError(() => of(this.buildMenu([], false, null, companyId))),
       shareReplay(1)
     );
   }
 
-  private toMenuItem(module: ModuleInfo): MenuItem {
+  private toMenuItem(module: OrganizationModuleOverviewItem): MenuItem {
     return {
-      label: this.formatLabel(module.name),
-      routerLink: this.moduleRouteMap[module.name] ?? `/app/${module.name}`,
+      label: this.formatLabel(module.name || module.key),
+      routerLink: this.moduleRouteMap[module.key] ?? `/app/${module.key}`,
     };
   }
 
@@ -53,22 +82,15 @@ export class ModuleMenuService {
   ): MenuItem[] {
     const configItems: MenuItem[] = [];
     if (isOwner) {
-      configItems.push({ label: 'Setup organizacion', routerLink: '/org/setup' });
-      configItems.push({ label: 'Organizacion', routerLink: '/org/setup' });
-      const setupItem: MenuItem = { label: 'Instalacion de modulos', routerLink: '/org/setup/modules' };
-      if (organizationId) {
-        setupItem.queryParams = companyId ? { orgId: organizationId, companyId } : { orgId: organizationId };
-      }
-      configItems.push(setupItem);
       if (companyId) {
         configItems.push({
           label: 'Configuracion de modulos',
-          routerLink: ['/app', 'settings', 'modules'],
+          routerLink: ['/companies', companyId, 'settings/modules'],
         });
       }
       configItems.push({
         label: 'Catalogos',
-        items: [{ label: 'Paises', routerLink: '/app/settings/countries' }],
+        items: [{ label: 'Paises', routerLink: '/settings/countries' }],
       });
     }
 

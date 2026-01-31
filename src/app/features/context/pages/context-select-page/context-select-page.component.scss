@@ -1,0 +1,28 @@
+.context-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: var(--surface-ground);
+  padding: 2rem 1rem;
+}
+
+.context-card {
+  width: 100%;
+  max-width: 520px;
+}
+
+.form {
+  display: grid;
+  gap: 1rem;
+}
+
+.field {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-start;
+}

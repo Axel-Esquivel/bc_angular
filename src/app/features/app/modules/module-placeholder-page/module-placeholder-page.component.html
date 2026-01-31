@@ -1,0 +1,8 @@
+<section class="module-placeholder">
+  <p-card header="Modulo">
+    <p class="title">{{ moduleKey || 'unknown' }}</p>
+    <p class="muted" *ngIf="installed === false">No instalado.</p>
+    <p class="muted" *ngIf="installed === true">Modulo instalado.</p>
+    <p class="muted" *ngIf="installed === null">Estado no disponible.</p>
+  </p-card>
+</section>

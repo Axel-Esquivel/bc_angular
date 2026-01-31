@@ -85,9 +85,9 @@ export class PosTerminalPageComponent implements OnInit {
   }
 
   onCheckout(payment: PosPayment): void {
-    // TODO: Conectar con PosApiService cuando los endpoints de tickets/ventas estén confirmados
+    // TODO: Conectar con PosApiService cuando los endpoints de tickets/ventas estÃ©n confirmados
     void this.posApi;
-    alert(`Cobro registrado en modo demostración. Método: ${payment.method}. Monto: ${payment.amount}.`);
+    void payment;
   }
 
   private recalculateTotals(): void {
