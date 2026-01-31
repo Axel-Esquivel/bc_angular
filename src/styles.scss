@@ -1,1 +1,42 @@
 @import "primeicons/primeicons.css";
+
+body, html {
+    margin: 0;
+    border: 0;
+    width: 100vw;
+    height: 100vh;
+    font-size: 16px;
+}
+
+.bc-page-center {
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.bc-form {
+    .p-floatlabel {
+        margin-top: 2em;
+    }
+    
+    input {
+        width: 100%;
+    }
+
+    .p-select {
+        width: 100%;
+    }
+
+    .p-button {
+        margin-top: 1em;
+    }
+
+    .bc-actions {
+        display: flex;
+        flex-direction: row;
+        justify-content: end;
+        align-items: center;
+        gap: 1em;
+    }
+}

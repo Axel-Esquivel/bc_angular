@@ -1,0 +1,25 @@
+﻿<form [formGroup]="form" class="bc-form">
+  <div class="bc-field">
+    <p-floatLabel>
+      <input id="currencyName" type="text" pInputText formControlName="name" class="w-full" />
+      <label for="currencyName">Nombre de la moneda</label>
+    </p-floatLabel>
+  </div>
+  <div class="bc-field">
+    <p-floatLabel>
+      <input id="currencyCode" type="text" pInputText formControlName="code" class="w-full" />
+      <label for="currencyCode">Codigo</label>
+    </p-floatLabel>
+  </div>
+  <div class="bc-field">
+    <p-floatLabel>
+      <input id="currencySymbol" type="text" pInputText formControlName="symbol" class="w-full" />
+      <label for="currencySymbol">Simbolo</label>
+    </p-floatLabel>
+  </div>
+
+  <div class="bc-actions bc-actions--end" *ngIf="showActions">
+    <p-button label="Cancelar" severity="secondary" (onClick)="cancel()"></p-button>
+    <p-button label="Crear" icon="pi pi-check" (onClick)="submit()"></p-button>
+  </div>
+</form>

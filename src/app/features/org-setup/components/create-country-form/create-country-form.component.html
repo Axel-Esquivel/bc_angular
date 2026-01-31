@@ -1,0 +1,16 @@
+﻿<form [formGroup]="form" class="bc-form">
+  <p-floatLabel>
+    <input id="countryCode" type="text" pInputText formControlName="code" class="w-full" />
+    <label for="countryCode">Codigo pais</label>
+  </p-floatLabel>
+
+  <p-floatLabel>
+    <input id="countryName" type="text" pInputText formControlName="name" class="w-full" />
+    <label for="countryName">Nombre</label>
+  </p-floatLabel>
+
+  <div class="bc-actions" *ngIf="showActions">
+    <p-button label="Cancelar" severity="secondary" (onClick)="cancel()"></p-button>
+    <p-button label="Crear" icon="pi pi-check" (onClick)="submit()"></p-button>
+  </div>
+</form>
