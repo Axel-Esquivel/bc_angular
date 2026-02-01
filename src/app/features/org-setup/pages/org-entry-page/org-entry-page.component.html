@@ -1,4 +1,4 @@
-<p-toast></p-toast>
+﻿<p-toast></p-toast>
 <section class="entry-page">
   <p-card header="Configura tu organizacion" class="entry-card">
     <p>Elige como quieres comenzar.</p>
@@ -13,62 +13,161 @@
     <p class="state" *ngIf="!loading && ownerOrganizations.length === 0">
       No tienes organizaciones como owner.
     </p>
-    <p-listbox
+    <p-table
       *ngIf="!loading && ownerOrganizations.length > 0"
-      [options]="ownerOrganizations"
-      optionLabel="name"
-      [disabled]="selecting"
-      (onChange)="selectOrganization($event.value)"
-      [style]="{ width: '100%' }"
-    ></p-listbox>
+      [value]="ownerOrganizations"
+      [paginator]="false"
+      responsiveLayout="scroll"
+    >
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Nombre</th>
+          <th>Pais</th>
+          <th>Moneda</th>
+          <th>Acciones</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-org>
+        <tr>
+          <td>{{ org.name }}</td>
+          <td>{{ getCountryLabel(org) }}</td>
+          <td>{{ getCurrencyLabel(org) }}</td>
+          <td>
+            <div class="actions">
+              <p-button type="button" label="Editar" size="small" (onClick)="openEdit(org)"></p-button>
+              <p-button
+                type="button"
+                label="Default"
+                size="small"
+                severity="secondary"
+                (onClick)="setDefault(org)"
+              ></p-button>
+              <p-button
+                type="button"
+                label="Eliminar"
+                size="small"
+                severity="danger"
+                (onClick)="deleteOrganization(org)"
+              ></p-button>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
   </p-card>
 
   <p-card header="Membresias activas" class="entry-card">
     <p class="state" *ngIf="!loading && activeMemberships.length === 0">Sin membresias activas.</p>
-    <p-dataView *ngIf="activeMemberships.length > 0" [value]="activeMemberships" layout="list">
-      <ng-template pTemplate="list" let-items>
-        <div class="list-row" *ngFor="let item of items">
-          <div>
-            <div class="list-title">{{ item.name }}</div>
-            <div class="list-meta">Rol: {{ item.roleKey }}</div>
-          </div>
-          <span class="badge success">Activo</span>
-        </div>
+    <p-table
+      *ngIf="activeMemberships.length > 0"
+      [value]="activeMemberships"
+      [paginator]="false"
+      responsiveLayout="scroll"
+    >
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Organizacion</th>
+          <th>Rol</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
       </ng-template>
-    </p-dataView>
+      <ng-template pTemplate="body" let-item>
+        <tr>
+          <td>{{ item.name }}</td>
+          <td>{{ item.roleKey }}</td>
+          <td>Activo</td>
+          <td>
+            <div class="actions">
+              <p-button
+                type="button"
+                label="Salir"
+                size="small"
+                severity="secondary"
+                (onClick)="leaveOrganization(item)"
+              ></p-button>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
   </p-card>
 
   <p-card header="Membresias pendientes" class="entry-card">
     <p class="state" *ngIf="!loading && pendingMemberships.length === 0">Sin membresias pendientes.</p>
-    <p-dataView *ngIf="pendingMemberships.length > 0" [value]="pendingMemberships" layout="list">
-      <ng-template pTemplate="list" let-items>
-        <div class="list-row" *ngFor="let item of items">
-          <div>
-            <div class="list-title">{{ item.name }}</div>
-            <div class="list-meta">Rol: {{ item.roleKey }}</div>
-          </div>
-          <span class="badge warn">Pendiente</span>
-        </div>
+    <p-table
+      *ngIf="pendingMemberships.length > 0"
+      [value]="pendingMemberships"
+      [paginator]="false"
+      responsiveLayout="scroll"
+    >
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Organizacion</th>
+          <th>Rol</th>
+          <th>Estado</th>
+        </tr>
       </ng-template>
-    </p-dataView>
+      <ng-template pTemplate="body" let-item>
+        <tr>
+          <td>{{ item.name }}</td>
+          <td>{{ item.roleKey }}</td>
+          <td>Pendiente</td>
+        </tr>
+      </ng-template>
+    </p-table>
   </p-card>
 
   <p-card header="Membresias rechazadas" class="entry-card">
     <p class="state" *ngIf="!loading && rejectedMemberships.length === 0">Sin membresias rechazadas.</p>
-    <p-dataView *ngIf="rejectedMemberships.length > 0" [value]="rejectedMemberships" layout="list">
-      <ng-template pTemplate="list" let-items>
-        <div class="list-row" *ngFor="let item of items">
-          <div>
-            <div class="list-title">{{ item.name }}</div>
-            <div class="list-meta">Rol: {{ item.roleKey }}</div>
-          </div>
-          <span class="badge danger">Rechazado</span>
-        </div>
+    <p-table
+      *ngIf="rejectedMemberships.length > 0"
+      [value]="rejectedMemberships"
+      [paginator]="false"
+      responsiveLayout="scroll"
+    >
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Organizacion</th>
+          <th>Rol</th>
+          <th>Estado</th>
+        </tr>
       </ng-template>
-    </p-dataView>
+      <ng-template pTemplate="body" let-item>
+        <tr>
+          <td>{{ item.name }}</td>
+          <td>{{ item.roleKey }}</td>
+          <td>Rechazado</td>
+        </tr>
+      </ng-template>
+    </p-table>
   </p-card>
 
   <p-card *ngIf="!loading && isEmpty" class="entry-card">
     <p class="state">No hay organizaciones ni membresias.</p>
   </p-card>
 </section>
+
+<p-dialog
+  header="Editar organizacion"
+  [(visible)]="editDialogOpen"
+  [modal]="true"
+  [closable]="true"
+  [draggable]="false"
+  [style]="{ width: '420px' }"
+>
+  <div class="bc-form">
+    <div class="bc-field">
+      <p-floatLabel>
+        <input id="editOrgName" type="text" pInputText [(ngModel)]="editOrganizationName" class="w-full" />
+        <label for="editOrgName">Nombre</label>
+      </p-floatLabel>
+    </div>
+  </div>
+  <ng-template #footer>
+    <div class="bc-actions bc-actions--end">
+      <p-button label="Cancelar" severity="secondary" (onClick)="closeEdit()"></p-button>
+      <p-button label="Guardar" icon="pi pi-check" (onClick)="saveEdit()"></p-button>
+    </div>
+  </ng-template>
+</p-dialog>

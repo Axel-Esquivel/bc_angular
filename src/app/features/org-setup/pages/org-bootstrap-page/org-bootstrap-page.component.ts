@@ -47,8 +47,8 @@ export class OrgBootstrapPageComponent implements OnInit {
       return;
     }
 
-    this.form.controls.countryId.setValue(draft.countryId);
-    this.loadCountries(draft.countryId);
+    this.form.controls.countryId.setValue(draft.countryId ?? '');
+    this.loadCountries(draft.countryId ?? '');
   }
 
   private loadCountries(selectedId: string): void {
@@ -99,8 +99,8 @@ export class OrgBootstrapPageComponent implements OnInit {
       return;
     }
 
-    const countryId = draft.countryId.trim();
-    const currencyId = draft.currencyId.trim();
+    const countryId = (draft.countryId ?? '').trim();
+    const currencyId = (draft.currencyId ?? '').trim();
     if (!countryId || !currencyId) {
       this.isSubmitting = false;
       this.messageService.add({
@@ -145,7 +145,7 @@ export class OrgBootstrapPageComponent implements OnInit {
           }
           this.setupState.setOrganizationId(organizationId);
           this.isSubmitting = false;
-          this.router.navigate(['/org/setup/modules']);
+          this.router.navigateByUrl('/org/setup', { state: { refresh: true } });
         },
         error: () => {
           this.isSubmitting = false;

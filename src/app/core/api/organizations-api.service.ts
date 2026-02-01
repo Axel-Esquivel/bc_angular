@@ -38,6 +38,8 @@ export class OrganizationsService {
   }
 
   create(payload: CreateOrganizationRequest): Observable<ApiResponse<IOrganization>> {
+    // eslint-disable-next-line no-console
+    console.log('[ORG] POST /organizations payload', payload);
     return this.http.post<ApiResponse<IOrganization>>(this.baseUrl, payload);
   }
 

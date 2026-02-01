@@ -1,4 +1,4 @@
-<p-toast></p-toast>
+﻿<p-toast></p-toast>
 <section class="bc-page-center">
   <p-card header="Crear organizacion" class="bc-card">
     <form [formGroup]="form" (ngSubmit)="submit()" class="bc-form">
@@ -31,15 +31,13 @@
               <ng-template #selectedItem let-country>
                 <div class="select-item">
                   <i class="pi pi-map-marker"></i>
-                  <span class="country-flag">{{ country?.code?.toUpperCase() }}</span>
-                  <span>{{ country?.name }}</span>
+                  <span>{{ country?.name }} ({{ country?.code?.toUpperCase() }})</span>
                 </div>
               </ng-template>
               <ng-template #item let-country>
                 <div class="select-item">
                   <i class="pi pi-flag"></i>
-                  <span class="country-flag">{{ country.code?.toUpperCase() }}</span>
-                  <span>{{ country.name }}</span>
+                  <span>{{ country.name }} ({{ country.code?.toUpperCase() }})</span>
                 </div>
               </ng-template>
               <ng-template #dropdownicon>
@@ -64,9 +62,6 @@
           </p-floatLabel>
         </div>
         <small class="bc-hint" *ngIf="countries.length === 0">No hay paises creados, agrega uno nuevo.</small>
-        <small class="bc-error" *ngIf="form.controls.countryId.invalid && form.controls.countryId.touched">
-          Selecciona un pais.
-        </small>
       </div>
 
       <div class="bc-field-group">
@@ -84,13 +79,13 @@
               <ng-template #selectedItem let-currency>
                 <div class="select-item">
                   <i class="pi pi-wallet"></i>
-                  <span>{{ currency?.name }}</span>
+                  <span>{{ currency?.name }} ({{ currency?.symbol || currency?.code }})</span>
                 </div>
               </ng-template>
               <ng-template #item let-currency>
                 <div class="select-item">
                   <i class="pi pi-money-bill"></i>
-                  <span>{{ currency.name }}</span>
+                  <span>{{ currency.name }} ({{ currency.symbol || currency.code }})</span>
                 </div>
               </ng-template>
               <ng-template #dropdownicon>
@@ -115,26 +110,29 @@
           </p-floatLabel>
         </div>
         <small class="bc-hint" *ngIf="currencies.length === 0">No hay monedas creadas, agrega una nueva.</small>
-        <small class="bc-error" *ngIf="form.controls.currencyId.invalid && form.controls.currencyId.touched">
-          Selecciona una moneda.
-        </small>
       </div>
 
       <div class="bc-actions">
         <p-button
           type="submit"
           label="Crear organizacion"
-          [disabled]="form.invalid || isSubmitting"
+          [disabled]="form.controls.name.invalid || isSubmitting || countries.length === 0 || currencies.length === 0"
           [fluid]="true"
           styleClass="w-full"
         ></p-button>
+        <small class="bc-error" *ngIf="countries.length === 0">
+          Debes crear al menos un pais antes de crear la organizacion.
+        </small>
+        <small class="bc-error" *ngIf="currencies.length === 0">
+          Debes crear al menos una moneda antes de crear la organizacion.
+        </small>
       </div>
     </form>
   </p-card>
 </section>
 
 <p-dialog
-  header="Nuevo país"
+  header="Nuevo pais"
   [(visible)]="isCountryDialogOpen"
   [modal]="true"
   [closable]="true"

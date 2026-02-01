@@ -45,7 +45,7 @@ export class OrgJoinPageComponent {
           summary: 'Listo',
           detail: 'Solicitud enviada. Espera la aprobacion de un administrador.',
         });
-        this.router.navigate(['/org/setup']);
+        this.router.navigateByUrl('/org/setup', { state: { refresh: true } });
       },
       error: () => {
         this.isSubmitting = false;

@@ -2,8 +2,8 @@ import { Injectable } from '@angular/core';
 
 export interface OrgSetupOrganizationDraft {
   name: string;
-  countryId: string;
-  currencyId: string;
+  countryId: string | null;
+  currencyId: string | null;
 }
 
 export interface OrgSetupModulesState {

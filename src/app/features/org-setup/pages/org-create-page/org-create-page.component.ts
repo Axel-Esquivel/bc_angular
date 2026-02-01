@@ -15,10 +15,10 @@ import { take } from 'rxjs';
 
 import { CountriesApiService } from '../../../../core/api/countries-api.service';
 import { CurrenciesApiService } from '../../../../core/api/currencies-api.service';
+import { OrganizationsService } from '../../../../core/api/organizations-api.service';
 import { Country } from '../../../../shared/models/country.model';
 import { Currency } from '../../../../shared/models/currency.model';
 import { OrgSetupComponentsModule } from '../../components/org-setup-components.module';
-import { SetupStateService } from '../../services/setup-state.service';
 
 @Component({
   selector: 'app-org-create-page',
@@ -41,9 +41,9 @@ import { SetupStateService } from '../../services/setup-state.service';
 })
 export class OrgCreatePageComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
-  private readonly setupState = inject(SetupStateService);
   private readonly countriesApi = inject(CountriesApiService);
   private readonly currenciesApi = inject(CurrenciesApiService);
+  private readonly organizationsApi = inject(OrganizationsService);
   private readonly router = inject(Router);
   private readonly messageService = inject(MessageService);
 
@@ -52,8 +52,8 @@ export class OrgCreatePageComponent implements OnInit {
 
   readonly form = this.fb.group({
     name: this.fb.nonNullable.control('', [Validators.required, Validators.minLength(2)]),
-    countryId: this.fb.control<string | null>(null, [Validators.required]),
-    currencyId: this.fb.control<string | null>(null, [Validators.required]),
+    countryId: this.fb.control<string | null>(null),
+    currencyId: this.fb.control<string | null>(null),
   });
 
   isSubmitting = false;
@@ -107,6 +107,7 @@ export class OrgCreatePageComponent implements OnInit {
               id: (currency.id ?? currency.code ?? '').toString(),
               name: currency.name,
               code: currency.code,
+              symbol: currency.symbol,
             }))
             .filter((item) => item.id);
           if (selectId) {
@@ -150,21 +151,74 @@ export class OrgCreatePageComponent implements OnInit {
   }
 
   submit(): void {
-    if (this.form.invalid || this.isSubmitting) {
+    if (this.isSubmitting) {
+      return;
+    }
+
+    if (!this.form.value.name?.trim()) {
+      this.form.controls.name.markAsTouched();
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'El nombre de la organizacion es obligatorio.',
+      });
+      return;
+    }
+
+    if (this.countries.length === 0) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Debes crear al menos un pais antes de crear la organizacion.',
+      });
+      return;
+    }
+
+    if (this.currencies.length === 0) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Debes crear al menos una moneda antes de crear la organizacion.',
+      });
+      return;
+    }
+
+    if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
     }
 
     this.isSubmitting = true;
     const formValue = this.form.getRawValue();
-    this.setupState.clear();
-    this.setupState.setOrganizationDraft({
+    const payload = {
       name: formValue.name.trim(),
-      countryId: formValue.countryId ?? '',
-      currencyId: formValue.currencyId ?? '',
-    });
-    this.isSubmitting = false;
-    this.router.navigate(['/org/setup/bootstrap']);
+      countryIds: formValue.countryId ? [formValue.countryId] : undefined,
+      currencyIds: formValue.currencyId ? [formValue.currencyId] : undefined,
+    };
+
+    this.organizationsApi
+      .create(payload)
+      .pipe(take(1))
+      .subscribe({
+        next: () => {
+          this.isSubmitting = false;
+          this.form.reset({ name: '', countryId: null, currencyId: null });
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Listo',
+            detail: 'Organizacion creada.',
+          });
+          this.router.navigateByUrl('/org/setup', { state: { refresh: true } });
+        },
+        error: () => {
+          this.isSubmitting = false;
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'No se pudo crear la organizacion.',
+          });
+        },
+      });
   }
 }
 
@@ -172,4 +226,5 @@ interface SelectOption {
   id: string;
   name: string;
   code?: string;
+  symbol?: string;
 }
