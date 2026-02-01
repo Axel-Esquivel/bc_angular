@@ -68,9 +68,9 @@ export class ModulesApiService {
     );
   }
 
-  getDefinitions(workspaceId: string): Observable<ApiResponse<ModuleDefinition[]>> {
+  getDefinitions(OrganizationId: string): Observable<ApiResponse<ModuleDefinition[]>> {
     return this.http.get<ApiResponse<ModuleDefinition[]>>(
-      `${this.baseUrl}/definitions?workspaceId=${encodeURIComponent(workspaceId)}`
+      `${this.baseUrl}/definitions?OrganizationId=${encodeURIComponent(OrganizationId)}`
     );
   }
 

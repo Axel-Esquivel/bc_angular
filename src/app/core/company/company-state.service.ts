@@ -10,9 +10,9 @@ export class CompanyStateService {
   private readonly activeKey = 'bc_active_company_id';
   private readonly defaultKey = 'bc_default_company_id';
   private readonly activeSetupKey = 'bc_active_company_setup_completed';
-  private readonly legacyActiveKey = 'bc_active_workspace_id';
-  private readonly legacyDefaultKey = 'bc_default_workspace_id';
-  private readonly legacySetupKey = 'bc_active_workspace_setup_completed';
+  private readonly legacyActiveKey = 'bc_active_Organization_id';
+  private readonly legacyDefaultKey = 'bc_default_Organization_id';
+  private readonly legacySetupKey = 'bc_active_Organization_setup_completed';
 
   private readonly activeCompanySubject = new BehaviorSubject<string | null>(
     this.readStorage(this.activeKey, this.legacyActiveKey),
@@ -31,8 +31,8 @@ export class CompanyStateService {
 
   constructor(private readonly tokenStorage: TokenStorageService) {
     const storedUser = this.tokenStorage.getUser();
-    if (storedUser?.defaultCompanyId || storedUser?.defaultWorkspaceId) {
-      this.setDefaultCompanyId(storedUser.defaultCompanyId ?? storedUser.defaultWorkspaceId ?? null);
+    if (storedUser?.defaultCompanyId || storedUser?.defaultOrganizationId) {
+      this.setDefaultCompanyId(storedUser.defaultCompanyId ?? storedUser.defaultOrganizationId ?? null);
     }
   }
 
@@ -64,7 +64,7 @@ export class CompanyStateService {
   }
 
   syncFromUser(user: AuthUser | null): void {
-    const nextDefault = user?.defaultCompanyId ?? user?.defaultWorkspaceId ?? null;
+    const nextDefault = user?.defaultCompanyId ?? user?.defaultOrganizationId ?? null;
     this.setDefaultCompanyId(nextDefault);
   }
 

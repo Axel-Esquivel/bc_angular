@@ -22,8 +22,8 @@ export class UsersApiService {
     this.baseUrl = `${this.config.apiBaseUrl}/users`;
   }
 
-  setDefaultWorkspace(workspaceId: string): Observable<ApiResponse<AuthUser>> {
-    return this.http.patch<ApiResponse<AuthUser>>(`${this.baseUrl}/me/default-workspace`, { workspaceId });
+  setDefaultOrganization(OrganizationId: string): Observable<ApiResponse<AuthUser>> {
+    return this.http.patch<ApiResponse<AuthUser>>(`${this.baseUrl}/me/default-Organization`, { OrganizationId });
   }
 
   setDefaultCompany(companyId: string): Observable<ApiResponse<AuthUser>> {

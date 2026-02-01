@@ -38,11 +38,11 @@ export interface IOrganization {
 }
 
 export interface IOrganizationOverview {
-  totalWorkspaces: number;
+  totalOrganizations: number;
   totalCompanies: number;
   totalBranches: number;
   totalWarehouses: number;
-  workspaces: Array<{
+  Organizations: Array<{
     id: string;
     name?: string;
     activeModules: Array<{ key: string; status: string }>;

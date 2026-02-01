@@ -31,8 +31,8 @@ export class App implements OnInit {
     this.theme.initTheme();
     combineLatest([this.auth.isAuthenticated$, this.companyState.activeCompanyId$])
       .pipe(
-        map(([isAuthenticated, workspaceId]) => ({
-          shouldConnect: isAuthenticated && !!workspaceId,
+        map(([isAuthenticated, OrganizationId]) => ({
+          shouldConnect: isAuthenticated && !!OrganizationId,
         })),
         distinctUntilChanged((prev, next) => prev.shouldConnect === next.shouldConnect),
         takeUntilDestroyed(this.destroyRef)

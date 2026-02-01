@@ -6,7 +6,7 @@ import { APP_CONFIG_TOKEN, AppConfig } from '../config/app-config';
 import { ApiResponse } from '../../shared/models/api-response.model';
 import { Company } from '../../shared/models/company.model';
 import { CreateOrganizationCompanyDto } from '../../shared/models/organization-company.model';
-import { WorkspaceModulesOverview } from '../../shared/models/workspace-modules.model';
+import { OrganizationModulesOverview } from '../../shared/models/Organization-modules.model';
 
 @Injectable({ providedIn: 'root' })
 export class CompaniesApiService {
@@ -47,8 +47,8 @@ export class CompaniesApiService {
     );
   }
 
-  getModules(companyId: string): Observable<ApiResponse<WorkspaceModulesOverview>> {
-    return this.http.get<ApiResponse<WorkspaceModulesOverview>>(
+  getModules(companyId: string): Observable<ApiResponse<OrganizationModulesOverview>> {
+    return this.http.get<ApiResponse<OrganizationModulesOverview>>(
       `${this.baseUrl}/companies/${companyId}/modules`,
     );
   }

@@ -1,8 +1,8 @@
-import { WorkspaceModuleState } from './workspace-modules.model';
+import { OrganizationModuleState } from './Organization-modules.model';
 import { OrganizationCoreSettings } from './organization-core-settings.model';
 import { OrganizationStructureSettings } from './organization-structure-settings.model';
 
-export interface Workspace {
+export interface Organization {
   _id?: string;
   id?: string;
   name: string;
@@ -13,24 +13,24 @@ export interface Workspace {
   baseCurrencyId?: string;
   ownerUserId?: string;
   ownerId?: string;
-  members?: WorkspaceMember[];
+  members?: OrganizationMember[];
   enabledModules?: { key: string; enabled: boolean; enabledAt?: string; enabledBy?: string }[];
-  moduleStates?: WorkspaceModuleState[];
+  moduleStates?: OrganizationModuleState[];
   setupCompleted?: boolean;
   createdAt?: string;
   updatedAt?: string;
 }
 
-export interface WorkspaceMember {
+export interface OrganizationMember {
   userId: string;
   role?: 'admin' | 'member';
   roleKey?: string;
   status?: 'active' | 'invited' | 'disabled';
 }
 
-export interface WorkspaceListResult {
-  workspaces: Workspace[];
-  defaultWorkspaceId?: string;
+export interface OrganizationListResult {
+  Organizations: Organization[];
+  defaultOrganizationId?: string;
 }
 
-export type IWorkspaceCoreSettings = OrganizationCoreSettings & OrganizationStructureSettings;
+export type IOrganizationCoreSettings = OrganizationCoreSettings & OrganizationStructureSettings;

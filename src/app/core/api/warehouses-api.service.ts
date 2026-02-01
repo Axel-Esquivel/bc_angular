@@ -9,7 +9,7 @@ export interface Warehouse {
   id: string;
   name: string;
   code: string;
-  workspaceId: string;
+  OrganizationId: string;
   companyId: string;
   branchId?: string;
 }

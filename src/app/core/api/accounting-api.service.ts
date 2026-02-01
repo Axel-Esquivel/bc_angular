@@ -19,9 +19,9 @@ export class AccountingApiService {
     this.baseUrl = `${this.config.apiBaseUrl}/accounting`;
   }
 
-  listAccounts(workspaceId?: string, companyId?: string): Observable<ApiResponse<AccountingAccount[]>> {
+  listAccounts(OrganizationId?: string, companyId?: string): Observable<ApiResponse<AccountingAccount[]>> {
     let params = new HttpParams();
-    if (workspaceId) params = params.set('workspaceId', workspaceId);
+    if (OrganizationId) params = params.set('OrganizationId', OrganizationId);
     if (companyId) params = params.set('companyId', companyId);
     return this.http.get<ApiResponse<AccountingAccount[]>>(`${this.baseUrl}/accounts`, { params });
   }

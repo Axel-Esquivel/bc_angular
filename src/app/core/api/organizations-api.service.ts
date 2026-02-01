@@ -15,7 +15,7 @@ import {
   UpdateOrganizationRequest,
 } from '../../shared/models/organization.model';
 import { OrganizationModulesOverviewResponse } from '../../shared/models/organization-modules.model';
-import { Workspace } from '../../shared/models/workspace.model';
+import { Organization } from '../../shared/models/Organization.model';
 
 @Injectable({ providedIn: 'root' })
 export class OrganizationsService {
@@ -122,8 +122,8 @@ export class OrganizationsService {
     );
   }
 
-  listWorkspaces(id: string): Observable<ApiResponse<Workspace[]>> {
-    return this.http.get<ApiResponse<Workspace[]>>(`${this.baseUrl}/${id}/workspaces`);
+  listOrganizations(id: string): Observable<ApiResponse<Organization[]>> {
+    return this.http.get<ApiResponse<Organization[]>>(`${this.baseUrl}/${id}/Organizations`);
   }
 
   updateOrganization(id: string, payload: UpdateOrganizationRequest): Observable<ApiResponse<IOrganization>> {

@@ -4,143 +4,143 @@ import { Observable } from 'rxjs';
 
 import { APP_CONFIG_TOKEN, AppConfig } from '../config/app-config';
 import { ApiResponse } from '../../shared/models/api-response.model';
-import { IWorkspaceCoreSettings, Workspace, WorkspaceListResult } from '../../shared/models/workspace.model';
-import { WorkspaceModulesOverview } from '../../shared/models/workspace-modules.model';
+import { IOrganizationCoreSettings, Organization, OrganizationListResult } from '../../shared/models/Organization.model';
+import { OrganizationModulesOverview } from '../../shared/models/Organization-modules.model';
 import { AuthUser } from '../../shared/models/auth.model';
 
 @Injectable({ providedIn: 'root' })
-export class WorkspacesApiService {
+export class OrganizationsApiService {
   private readonly baseUrl: string;
 
   constructor(@Inject(APP_CONFIG_TOKEN) private readonly config: AppConfig, private readonly http: HttpClient) {
-    this.baseUrl = `${this.config.apiBaseUrl}/workspaces`;
+    this.baseUrl = `${this.config.apiBaseUrl}/Organizations`;
   }
 
-  create(dto: { name: string; organizationId: string; countryId: string; baseCurrencyId?: string }): Observable<ApiResponse<Workspace>> {
-    return this.http.post<ApiResponse<Workspace>>(this.baseUrl, dto);
+  create(dto: { name: string; organizationId: string; countryId: string; baseCurrencyId?: string }): Observable<ApiResponse<Organization>> {
+    return this.http.post<ApiResponse<Organization>>(this.baseUrl, dto);
   }
 
-  join(dto: { code: string }): Observable<ApiResponse<Workspace>> {
-    return this.http.post<ApiResponse<Workspace>>(`${this.baseUrl}/join`, dto);
+  join(dto: { code: string }): Observable<ApiResponse<Organization>> {
+    return this.http.post<ApiResponse<Organization>>(`${this.baseUrl}/join`, dto);
   }
 
-  getWorkspaceModules(workspaceId: string): Observable<ApiResponse<WorkspaceModulesOverview>> {
-    return this.http.get<ApiResponse<WorkspaceModulesOverview>>(`${this.baseUrl}/${workspaceId}/modules`);
+  getOrganizationModules(OrganizationId: string): Observable<ApiResponse<OrganizationModulesOverview>> {
+    return this.http.get<ApiResponse<OrganizationModulesOverview>>(`${this.baseUrl}/${OrganizationId}/modules`);
   }
 
-  updateWorkspaceModules(
-    workspaceId: string,
+  updateOrganizationModules(
+    OrganizationId: string,
     modules: { key: string; enabled: boolean }[]
   ): Observable<ApiResponse<{ key: string; enabled: boolean }[]>> {
     return this.http.patch<ApiResponse<{ key: string; enabled: boolean }[]>>(
-      `${this.baseUrl}/${workspaceId}/modules`,
+      `${this.baseUrl}/${OrganizationId}/modules`,
       { modules }
     );
   }
 
-  listMine(): Observable<ApiResponse<WorkspaceListResult>> {
-    return this.http.get<ApiResponse<WorkspaceListResult>>(this.baseUrl);
+  listMine(): Observable<ApiResponse<OrganizationListResult>> {
+    return this.http.get<ApiResponse<OrganizationListResult>>(this.baseUrl);
   }
 
-  listRoles(workspaceId: string): Observable<ApiResponse<any[]>> {
-    return this.http.get<ApiResponse<any[]>>(`${this.baseUrl}/${workspaceId}/roles`);
+  listRoles(OrganizationId: string): Observable<ApiResponse<any[]>> {
+    return this.http.get<ApiResponse<any[]>>(`${this.baseUrl}/${OrganizationId}/roles`);
   }
 
   createRole(
-    workspaceId: string,
+    OrganizationId: string,
     payload: { key: string; name: string; permissions: string[] }
   ): Observable<ApiResponse<any[]>> {
-    return this.http.post<ApiResponse<any[]>>(`${this.baseUrl}/${workspaceId}/roles`, payload);
+    return this.http.post<ApiResponse<any[]>>(`${this.baseUrl}/${OrganizationId}/roles`, payload);
   }
 
   updateRole(
-    workspaceId: string,
+    OrganizationId: string,
     roleKey: string,
     payload: { name?: string; permissions?: string[] }
   ): Observable<ApiResponse<any[]>> {
-    return this.http.patch<ApiResponse<any[]>>(`${this.baseUrl}/${workspaceId}/roles/${encodeURIComponent(roleKey)}`, payload);
+    return this.http.patch<ApiResponse<any[]>>(`${this.baseUrl}/${OrganizationId}/roles/${encodeURIComponent(roleKey)}`, payload);
   }
 
-  deleteRole(workspaceId: string, roleKey: string): Observable<ApiResponse<any[]>> {
-    return this.http.delete<ApiResponse<any[]>>(`${this.baseUrl}/${workspaceId}/roles/${encodeURIComponent(roleKey)}`);
+  deleteRole(OrganizationId: string, roleKey: string): Observable<ApiResponse<any[]>> {
+    return this.http.delete<ApiResponse<any[]>>(`${this.baseUrl}/${OrganizationId}/roles/${encodeURIComponent(roleKey)}`);
   }
 
   updateMemberRole(
-    workspaceId: string,
+    OrganizationId: string,
     userId: string,
     roleKey: string
   ): Observable<ApiResponse<Record<string, any>>> {
     return this.http.patch<ApiResponse<Record<string, any>>>(
-      `${this.baseUrl}/${workspaceId}/members/${encodeURIComponent(userId)}/role`,
+      `${this.baseUrl}/${OrganizationId}/members/${encodeURIComponent(userId)}/role`,
       { roleKey }
     );
   }
 
   addMember(
-    workspaceId: string,
+    OrganizationId: string,
     payload: { userId: string; roleKey: string }
   ): Observable<ApiResponse<Record<string, any>>> {
     return this.http.post<ApiResponse<Record<string, any>>>(
-      `${this.baseUrl}/${workspaceId}/members`,
+      `${this.baseUrl}/${OrganizationId}/members`,
       payload
     );
   }
 
-  completeSetup(workspaceId: string): Observable<ApiResponse<Workspace>> {
-    return this.http.patch<ApiResponse<Workspace>>(`${this.baseUrl}/${workspaceId}/setup-complete`, {});
+  completeSetup(OrganizationId: string): Observable<ApiResponse<Organization>> {
+    return this.http.patch<ApiResponse<Organization>>(`${this.baseUrl}/${OrganizationId}/setup-complete`, {});
   }
 
-  updateModuleSettings(workspaceId: string, moduleId: string, settings: Record<string, any>): Observable<ApiResponse<Record<string, any>>> {
+  updateModuleSettings(OrganizationId: string, moduleId: string, settings: Record<string, any>): Observable<ApiResponse<Record<string, any>>> {
     return this.http.patch<ApiResponse<Record<string, any>>>(
-      `${this.baseUrl}/${workspaceId}/module-settings/${moduleId}`,
+      `${this.baseUrl}/${OrganizationId}/module-settings/${moduleId}`,
       settings
     );
   }
 
-  getCoreSettings(workspaceId: string): Observable<ApiResponse<IWorkspaceCoreSettings>> {
-    return this.http.get<ApiResponse<IWorkspaceCoreSettings>>(
-      `${this.baseUrl}/${workspaceId}/settings/core`
+  getCoreSettings(OrganizationId: string): Observable<ApiResponse<IOrganizationCoreSettings>> {
+    return this.http.get<ApiResponse<IOrganizationCoreSettings>>(
+      `${this.baseUrl}/${OrganizationId}/settings/core`
     );
   }
 
   updateCoreSettings(
-    workspaceId: string,
-    settings: IWorkspaceCoreSettings
-  ): Observable<ApiResponse<IWorkspaceCoreSettings>> {
-    return this.http.patch<ApiResponse<IWorkspaceCoreSettings>>(
-      `${this.baseUrl}/${workspaceId}/settings/core`,
+    OrganizationId: string,
+    settings: IOrganizationCoreSettings
+  ): Observable<ApiResponse<IOrganizationCoreSettings>> {
+    return this.http.patch<ApiResponse<IOrganizationCoreSettings>>(
+      `${this.baseUrl}/${OrganizationId}/settings/core`,
       settings
     );
   }
 
-  getModuleSettings(workspaceId: string, moduleId: string): Observable<ApiResponse<Record<string, any>>> {
+  getModuleSettings(OrganizationId: string, moduleId: string): Observable<ApiResponse<Record<string, any>>> {
     return this.http.get<ApiResponse<Record<string, any>>>(
-      `${this.baseUrl}/${workspaceId}/module-settings/${moduleId}`
+      `${this.baseUrl}/${OrganizationId}/module-settings/${moduleId}`
     );
   }
 
-  getInventorySettings(workspaceId: string): Observable<ApiResponse<Record<string, any>>> {
+  getInventorySettings(OrganizationId: string): Observable<ApiResponse<Record<string, any>>> {
     return this.http.get<ApiResponse<Record<string, any>>>(
-      `${this.baseUrl}/${workspaceId}/inventory/settings`
+      `${this.baseUrl}/${OrganizationId}/inventory/settings`
     );
   }
 
   updateInventorySettings(
-    workspaceId: string,
+    OrganizationId: string,
     settings: { costMethod?: string; stockLevel?: string; allowNegative?: boolean }
   ): Observable<ApiResponse<Record<string, any>>> {
     return this.http.patch<ApiResponse<Record<string, any>>>(
-      `${this.baseUrl}/${workspaceId}/inventory/settings`,
+      `${this.baseUrl}/${OrganizationId}/inventory/settings`,
       settings
     );
   }
 
-  getPosTerminals(workspaceId: string): Observable<ApiResponse<Record<string, any>>> {
-    return this.http.get<ApiResponse<Record<string, any>>>(`${this.baseUrl}/${workspaceId}/pos/terminals`);
+  getPosTerminals(OrganizationId: string): Observable<ApiResponse<Record<string, any>>> {
+    return this.http.get<ApiResponse<Record<string, any>>>(`${this.baseUrl}/${OrganizationId}/pos/terminals`);
   }
 
   createPosTerminal(
-    workspaceId: string,
+    OrganizationId: string,
     dto: {
       name: string;
       companyId: string;
@@ -151,11 +151,11 @@ export class WorkspacesApiService {
       isActive?: boolean;
     }
   ): Observable<ApiResponse<Record<string, any>>> {
-    return this.http.post<ApiResponse<Record<string, any>>>(`${this.baseUrl}/${workspaceId}/pos/terminals`, dto);
+    return this.http.post<ApiResponse<Record<string, any>>>(`${this.baseUrl}/${OrganizationId}/pos/terminals`, dto);
   }
 
   updatePosTerminal(
-    workspaceId: string,
+    OrganizationId: string,
     terminalId: string,
     dto: {
       name?: string;
@@ -168,108 +168,108 @@ export class WorkspacesApiService {
     }
   ): Observable<ApiResponse<Record<string, any>>> {
     return this.http.patch<ApiResponse<Record<string, any>>>(
-      `${this.baseUrl}/${workspaceId}/pos/terminals/${terminalId}`,
+      `${this.baseUrl}/${OrganizationId}/pos/terminals/${terminalId}`,
       dto
     );
   }
 
-  deletePosTerminal(workspaceId: string, terminalId: string): Observable<ApiResponse<Record<string, any>>> {
+  deletePosTerminal(OrganizationId: string, terminalId: string): Observable<ApiResponse<Record<string, any>>> {
     return this.http.delete<ApiResponse<Record<string, any>>>(
-      `${this.baseUrl}/${workspaceId}/pos/terminals/${terminalId}`
+      `${this.baseUrl}/${OrganizationId}/pos/terminals/${terminalId}`
     );
   }
 
-  enableModule(workspaceId: string, moduleKey: string): Observable<ApiResponse<Record<string, any>>> {
+  enableModule(OrganizationId: string, moduleKey: string): Observable<ApiResponse<Record<string, any>>> {
     return this.http.post<ApiResponse<Record<string, any>>>(
-      `${this.baseUrl}/${workspaceId}/modules/${encodeURIComponent(moduleKey)}/enable`,
+      `${this.baseUrl}/${OrganizationId}/modules/${encodeURIComponent(moduleKey)}/enable`,
       {}
     );
   }
 
-  configureModule(workspaceId: string, moduleKey: string): Observable<ApiResponse<Record<string, any>>> {
+  configureModule(OrganizationId: string, moduleKey: string): Observable<ApiResponse<Record<string, any>>> {
     return this.http.post<ApiResponse<Record<string, any>>>(
-      `${this.baseUrl}/${workspaceId}/modules/${encodeURIComponent(moduleKey)}/configure`,
+      `${this.baseUrl}/${OrganizationId}/modules/${encodeURIComponent(moduleKey)}/configure`,
       {}
     );
   }
 
-  setDefault(dto: { workspaceId: string }): Observable<ApiResponse<AuthUser>> {
-    return this.http.patch<ApiResponse<AuthUser>>(`${this.config.apiBaseUrl}/users/me/default-workspace`, dto);
+  setDefault(dto: { OrganizationId: string }): Observable<ApiResponse<AuthUser>> {
+    return this.http.patch<ApiResponse<AuthUser>>(`${this.config.apiBaseUrl}/users/me/default-Organization`, dto);
   }
 
-  getAccountingDefaults(workspaceId: string): Observable<ApiResponse<Record<string, any>>> {
-    return this.http.get<ApiResponse<Record<string, any>>>(`${this.baseUrl}/${workspaceId}/accounting/defaults`);
+  getAccountingDefaults(OrganizationId: string): Observable<ApiResponse<Record<string, any>>> {
+    return this.http.get<ApiResponse<Record<string, any>>>(`${this.baseUrl}/${OrganizationId}/accounting/defaults`);
   }
 
   updateAccountingDefaults(
-    workspaceId: string,
+    OrganizationId: string,
     defaults: Record<string, any>
   ): Observable<ApiResponse<Record<string, any>>> {
     return this.http.patch<ApiResponse<Record<string, any>>>(
-      `${this.baseUrl}/${workspaceId}/accounting/defaults`,
+      `${this.baseUrl}/${OrganizationId}/accounting/defaults`,
       defaults
     );
   }
 
-  listAccountingTaxes(workspaceId: string): Observable<ApiResponse<Record<string, any>[]>> {
-    return this.http.get<ApiResponse<Record<string, any>[]>>(`${this.baseUrl}/${workspaceId}/accounting/taxes`);
+  listAccountingTaxes(OrganizationId: string): Observable<ApiResponse<Record<string, any>[]>> {
+    return this.http.get<ApiResponse<Record<string, any>[]>>(`${this.baseUrl}/${OrganizationId}/accounting/taxes`);
   }
 
   createAccountingTax(
-    workspaceId: string,
+    OrganizationId: string,
     tax: Record<string, any>
   ): Observable<ApiResponse<Record<string, any>>> {
-    return this.http.post<ApiResponse<Record<string, any>>>(`${this.baseUrl}/${workspaceId}/accounting/taxes`, tax);
+    return this.http.post<ApiResponse<Record<string, any>>>(`${this.baseUrl}/${OrganizationId}/accounting/taxes`, tax);
   }
 
   updateAccountingTax(
-    workspaceId: string,
+    OrganizationId: string,
     taxId: string,
     tax: Record<string, any>
   ): Observable<ApiResponse<Record<string, any>>> {
     return this.http.patch<ApiResponse<Record<string, any>>>(
-      `${this.baseUrl}/${workspaceId}/accounting/taxes/${taxId}`,
+      `${this.baseUrl}/${OrganizationId}/accounting/taxes/${taxId}`,
       tax
     );
   }
 
-  deleteAccountingTax(workspaceId: string, taxId: string): Observable<ApiResponse<Record<string, any>>> {
-    return this.http.delete<ApiResponse<Record<string, any>>>(`${this.baseUrl}/${workspaceId}/accounting/taxes/${taxId}`);
+  deleteAccountingTax(OrganizationId: string, taxId: string): Observable<ApiResponse<Record<string, any>>> {
+    return this.http.delete<ApiResponse<Record<string, any>>>(`${this.baseUrl}/${OrganizationId}/accounting/taxes/${taxId}`);
   }
 
-  listAccountingCategoryMappings(workspaceId: string): Observable<ApiResponse<Record<string, any>[]>> {
+  listAccountingCategoryMappings(OrganizationId: string): Observable<ApiResponse<Record<string, any>[]>> {
     return this.http.get<ApiResponse<Record<string, any>[]>>(
-      `${this.baseUrl}/${workspaceId}/accounting/category-mappings`
+      `${this.baseUrl}/${OrganizationId}/accounting/category-mappings`
     );
   }
 
   createAccountingCategoryMapping(
-    workspaceId: string,
+    OrganizationId: string,
     payload: Record<string, any>
   ): Observable<ApiResponse<Record<string, any>>> {
     return this.http.post<ApiResponse<Record<string, any>>>(
-      `${this.baseUrl}/${workspaceId}/accounting/category-mappings`,
+      `${this.baseUrl}/${OrganizationId}/accounting/category-mappings`,
       payload
     );
   }
 
   updateAccountingCategoryMapping(
-    workspaceId: string,
+    OrganizationId: string,
     mappingId: string,
     payload: Record<string, any>
   ): Observable<ApiResponse<Record<string, any>>> {
     return this.http.patch<ApiResponse<Record<string, any>>>(
-      `${this.baseUrl}/${workspaceId}/accounting/category-mappings/${mappingId}`,
+      `${this.baseUrl}/${OrganizationId}/accounting/category-mappings/${mappingId}`,
       payload
     );
   }
 
   deleteAccountingCategoryMapping(
-    workspaceId: string,
+    OrganizationId: string,
     mappingId: string
   ): Observable<ApiResponse<Record<string, any>>> {
     return this.http.delete<ApiResponse<Record<string, any>>>(
-      `${this.baseUrl}/${workspaceId}/accounting/category-mappings/${mappingId}`
+      `${this.baseUrl}/${OrganizationId}/accounting/category-mappings/${mappingId}`
     );
   }
 }

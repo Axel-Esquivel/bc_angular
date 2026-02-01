@@ -1,4 +1,4 @@
-export interface WorkspaceModuleCatalogEntry {
+export interface OrganizationModuleCatalogEntry {
   key: string;
   name: string;
   description?: string;
@@ -7,7 +7,7 @@ export interface WorkspaceModuleCatalogEntry {
   requiresConfig?: boolean;
 }
 
-export interface WorkspaceModuleState {
+export interface OrganizationModuleState {
   key: string;
   enabled: boolean;
   configured?: boolean;
@@ -16,10 +16,10 @@ export interface WorkspaceModuleState {
   enabledBy?: string;
 }
 
-export type WorkspaceRole = string;
+export type OrganizationRole = string;
 
-export interface WorkspaceModulesOverview {
-  availableModules: WorkspaceModuleCatalogEntry[];
-  enabledModules: WorkspaceModuleState[];
-  userRole: WorkspaceRole;
+export interface OrganizationModulesOverview {
+  availableModules: OrganizationModuleCatalogEntry[];
+  enabledModules: OrganizationModuleState[];
+  userRole: OrganizationRole;
 }

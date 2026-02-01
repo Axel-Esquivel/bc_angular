@@ -6,7 +6,7 @@ export interface AuthUser {
   firstName: string;
   lastName: string;
   phone: string;
-  defaultWorkspaceId?: string;
+  defaultOrganizationId?: string;
   defaultOrganizationId?: string;
   defaultCompanyId?: string;
   displayName?: string;
