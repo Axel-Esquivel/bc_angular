@@ -184,7 +184,7 @@ Payload ejemplo:
     "email": "admin@mi-tienda.com",
     "password": "secreto"
   },
-  "workspace": {
+  "Organization": {
     "name": "Principal"
   },
   "company": {
@@ -198,7 +198,7 @@ El backend debería:
 
 - Crear la base de datos / instancia o su equivalente lógico.
 - Crear el usuario admin inicial.
-- Crear el workspace inicial y la compañía.
+- Crear el Organization inicial y la compañía.
 - Marcar el sistema como inicializado (`initialized = true`).
 
 > Recalcar: esto es un **diseño objetivo**; no está implementado aún en `bc_server`.
@@ -229,7 +229,7 @@ Responsabilidades:
 2. Wizard de configuración con secciones:
    - Nombre de instancia / base de datos (`dbName`).
    - Datos del usuario admin inicial.
-   - Nombre del primer workspace.
+   - Nombre del primer Organization.
    - Nombre de la compañía.
    - Selección de módulos a habilitar (lista proveniente de `ModulesApiService.getModules()`).
 

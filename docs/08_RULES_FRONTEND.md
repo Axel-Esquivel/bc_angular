@@ -31,7 +31,7 @@ Para cada archivo:
 2. **Mencionar las dependencias explícitamente**  
    Siempre que sea posible, indicar:
 
-   - Services que debe usar (`AuthApiService`, `WorkspacesApiService`, etc.).
+   - Services que debe usar (`AuthApiService`, `OrganizationsApiService`, etc.).
    - Tipos a importar (`ApiResponse`, `AppConfig`, etc.).
    - Componentes de PrimeNG que debe utilizar.
 
@@ -60,7 +60,7 @@ Para cada archivo:
 
 ## Uso por sprints
 
-- Para el arranque, usar `docs/09_SPRINT0_SHELL_AUTH_WORKSPACE.md` como guía de orden de archivos.
+- Para el arranque, usar `docs/09_SPRINT0_SHELL_AUTH_Organization.md` como guía de orden de archivos.
 - Posteriormente, usar `docs/10_TASKS_FRONTEND.md` para ir agregando módulos:
   - Productos
   - Inventario
@@ -78,7 +78,7 @@ El archivo `frontend_codex_prompts.txt` contiene una colección de prompts **ya 
 - Configuración base (`AppConfig`, `ApiResponse`).
 - Auth (`AuthApiService`, `AuthService`, `TokenStorageService`, `AuthGuard`, `AuthInterceptor`).
 - Layout (`MainLayoutComponent`, `app.routes.ts`).
-- Workspaces.
+- Organizations.
 - Productos y POS.
 - Módulos dinámicos (`ModulesApiService`, `ModuleMenuService`).
 - Setup inicial (`SystemStatusApiService`, `InitialSetupApiService`, `InitialSetupPageComponent`) marcados como funcionalidad futura.

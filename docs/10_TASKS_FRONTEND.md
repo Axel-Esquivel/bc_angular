@@ -4,13 +4,13 @@ Lista de tareas de alto nivel para construir el frontend de Business Control, al
 
 ---
 
-## Sprint 0 – Shell + Auth + Workspace
+## Sprint 0 – Shell + Auth + Organization
 
 - [ ] Definir `AppConfig` y registrarlo en `app.config.ts`.
 - [ ] Crear modelo `ApiResponse<T>` y tipos comunes.
 - [ ] Crear servicios de API:
   - [ ] `auth-api.service.ts`
-  - [ ] `workspaces-api.service.ts` (con nota de endpoint `GET /workspaces` futuro).
+  - [ ] `Organizations-api.service.ts` (con nota de endpoint `GET /Organizations` futuro).
 - [ ] Implementar core de autenticación:
   - [ ] `TokenStorageService`
   - [ ] `AuthService`
@@ -18,10 +18,10 @@ Lista de tareas de alto nivel para construir el frontend de Business Control, al
   - [ ] `AuthGuard`
 - [ ] Implementar layout principal:
   - [ ] `MainLayoutComponent` con topbar + sidebar + router-outlet.
-  - [ ] `app.routes.ts` con rutas `/login`, `/workspaces/select`, `/` y `/dashboard`.
+  - [ ] `app.routes.ts` con rutas `/login`, `/Organizations/select`, `/` y `/dashboard`.
 - [ ] Implementar páginas:
   - [ ] `LoginPageComponent`
-  - [ ] `WorkspaceSelectPageComponent` (pendiente de endpoint real para listar workspaces).
+  - [ ] `OrganizationselectPageComponent` (pendiente de endpoint real para listar Organizations).
 
 ---
 
@@ -111,7 +111,7 @@ Lista de tareas de alto nivel para construir el frontend de Business Control, al
 - [ ] Página `InitialSetupPageComponent` (`/setup/initial`) con wizard:
   - [ ] Nombre de instancia / base de datos.
   - [ ] Admin inicial.
-  - [ ] Workspace inicial.
+  - [ ] Organization inicial.
   - [ ] Compañía inicial.
   - [ ] Selección de módulos activos.
 

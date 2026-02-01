@@ -31,7 +31,7 @@ src/app/
     api/
       api-client.service.ts      (opcional, si quieres un wrapper genérico)
       auth-api.service.ts
-      workspaces-api.service.ts
+      Organizations-api.service.ts
       products-api.service.ts
       inventory-api.service.ts
       inventory-counts-api.service.ts
@@ -92,9 +92,9 @@ src/app/
       forgot-password-page/
     setup/
       initial-setup-page/          (wizard para primer arranque – futuro)
-    workspaces/
-      workspace-select-page/
-      workspace-form-page/
+    Organizations/
+      Organization-select-page/
+      Organization-form-page/
     layout/
       main-layout/
     dashboard/
@@ -171,6 +171,6 @@ El guard o un resolver puede consultar `SystemStatusApiService` (una vez impleme
 ## Integración estricta con el backend
 
 - Todas las rutas que comienzan con `/api/` corresponden a controladores reales en `bc_server/src/modules`.
-- Si un endpoint aún **no existe** en el backend (por ejemplo `GET /api/workspaces` o `/api/system/status`), los `.md` lo marcarán como **“diseño objetivo / futuro”** para que sea claro qué está implementado y qué falta.
+- Si un endpoint aún **no existe** en el backend (por ejemplo `GET /api/Organizations` o `/api/system/status`), los `.md` lo marcarán como **“diseño objetivo / futuro”** para que sea claro qué está implementado y qué falta.
 
 El objetivo de esta documentación es que el frontend y el backend evolucionen juntos.

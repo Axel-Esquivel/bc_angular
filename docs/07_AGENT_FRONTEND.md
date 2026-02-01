@@ -87,7 +87,7 @@ En los casos de endpoints de diseño futuro, como:
 
 - `/api/system/status`
 - `/api/system/setup`
-- `GET /api/workspaces`
+- `GET /api/Organizations`
 
 El agente debe:
 

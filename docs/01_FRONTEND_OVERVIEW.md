@@ -1,6 +1,6 @@
 # Business Control – Frontend Angular
 
-Este proyecto es el **frontend web** de Business Control, construido con **Angular 20** y soporte de **SSR (Angular Universal)**. Su objetivo es consumir la API de `bc_server` y ofrecer una interfaz modular para pequeños negocios: ventas, inventarios, compras, contabilidad básica, reportes y administración de workspaces.
+Este proyecto es el **frontend web** de Business Control, construido con **Angular 20** y soporte de **SSR (Angular Universal)**. Su objetivo es consumir la API de `bc_server` y ofrecer una interfaz modular para pequeños negocios: ventas, inventarios, compras, contabilidad básica, reportes y administración de Organizations.
 
 Este documento y los demás `.md` están pensados para trabajar con un agente (ChatGPT / Codex) que genere el código del frontend respetando la arquitectura del backend actual.
 
@@ -26,7 +26,7 @@ http://localhost:3000/api/<ruta-del-controlador>
 Ejemplos de rutas a partir de los controladores detectados en `src/modules` del backend:
 
 - `AuthController` → `/api/auth`
-- `WorkspacesController` → `/api/workspaces`
+- `OrganizationsController` → `/api/Organizations`
 - `ProductsController` → `/api/products`
 - `PurchasesController` → `/api/purchases`
 - `InventoryController` → `/api/inventory`
@@ -67,11 +67,11 @@ Ejemplos de rutas a partir de los controladores detectados en `src/modules` del 
    - Refresh de token con `/api/auth/refresh`.
    - Perfil actual con `/api/auth/me` (requiere `JwtAuthGuard` en backend).
 
-3. **Workspaces y multiempresa**
-   - En backend existe `WorkspacesController` con:
-     - `POST /api/workspaces` → crear workspace.
-     - `POST /api/workspaces/:id/members` → agregar miembro.
-   - A futuro se recomienda agregar `GET /api/workspaces` para listar los workspaces del usuario. Mientras no exista, el frontend puede usar datos simulados o esperar su implementación.
+3. **Organizations y multiempresa**
+   - En backend existe `OrganizationsController` con:
+     - `POST /api/Organizations` → crear Organization.
+     - `POST /api/Organizations/:id/members` → agregar miembro.
+   - A futuro se recomienda agregar `GET /api/Organizations` para listar los Organizations del usuario. Mientras no exista, el frontend puede usar datos simulados o esperar su implementación.
 
 4. **Módulos dinámicos (tipo Odoo)**
    - Backend expone `ModuleLoaderController` bajo `/api/modules` con:
@@ -110,6 +110,6 @@ Ejemplos de rutas a partir de los controladores detectados en `src/modules` del 
 - Organización en:
   - `core/` → servicios transversales (auth, api, sockets, i18n, theme, layout).
   - `shared/` → componentes reutilizables, pipes, directivas, modelos comunes.
-  - `features/` → módulos de negocio (auth, workspaces, products, inventory, pos, purchases, reports, settings, etc.).
+  - `features/` → módulos de negocio (auth, Organizations, products, inventory, pos, purchases, reports, settings, etc.).
 
 Este archivo sirve como **visión general**. Los demás `.md` detallan stack, estructura, mapeo de endpoints, tareas y prompts para el agente.

@@ -1,12 +1,12 @@
-# Sprint 0 – Shell, Layout, Auth base y Workspace
+# Sprint 0 – Shell, Layout, Auth base y Organization
 
 Objetivo: tener lo mínimo para:
 
 1. Loguearse contra el backend real.
-2. Preparar selección de workspace.
+2. Preparar selección de Organization.
 3. Mostrar un layout principal con menú.
 
-> Importante: en el backend actual NO existe todavía `GET /api/workspaces`. Este sprint asume que se implementará en algún momento; mientras tanto, se puede trabajar con datos simulados o dejar la funcionalidad de selección de workspace pendiente de conexión.
+> Importante: en el backend actual NO existe todavía `GET /api/Organizations`. Este sprint asume que se implementará en algún momento; mientras tanto, se puede trabajar con datos simulados o dejar la funcionalidad de selección de Organization pendiente de conexión.
 
 ---
 
@@ -48,7 +48,7 @@ Prompt sugerido:
 
 ---
 
-### 3. Servicios de API (auth y workspaces)
+### 3. Servicios de API (auth y Organizations)
 
 **Archivo**: `src/app/core/api/auth-api.service.ts`
 
@@ -64,16 +64,16 @@ Prompt sugerido:
 > - Cada método debe usar `HttpClient` y `APP_CONFIG.apiBaseUrl`.
 > - Retornos como `Observable<ApiResponse<any>>`.
 
-**Archivo**: `src/app/core/api/workspaces-api.service.ts`
+**Archivo**: `src/app/core/api/Organizations-api.service.ts`
 
 Prompt sugerido (incluye nota sobre endpoint aún no implementado):
 
-> Genera EXCLUSIVAMENTE el contenido de `src/app/core/api/workspaces-api.service.ts` con:
-> - Servicio inyectable `WorkspacesApiService`.
+> Genera EXCLUSIVAMENTE el contenido de `src/app/core/api/Organizations-api.service.ts` con:
+> - Servicio inyectable `OrganizationsApiService`.
 > - Métodos:
->   - `createWorkspace(dto: { name: string; description?: string })` → POST `/workspaces` (endpoint EXISTENTE).
->   - `addMember(workspaceId: string, dto: { userId: string; roleId: string })` → POST `/workspaces/:id/members` (endpoint EXISTENTE).
->   - `listMyWorkspaces()` → GET `/workspaces` (ENDPOINT FUTURO: aún no existe en el backend; deja un comentario TODO indicando que debe implementarse en `WorkspacesController` de bc_server).
+>   - `createOrganization(dto: { name: string; description?: string })` → POST `/Organizations` (endpoint EXISTENTE).
+>   - `addMember(OrganizationId: string, dto: { userId: string; roleId: string })` → POST `/Organizations/:id/members` (endpoint EXISTENTE).
+>   - `listMyOrganizations()` → GET `/Organizations` (ENDPOINT FUTURO: aún no existe en el backend; deja un comentario TODO indicando que debe implementarse en `OrganizationsController` de bc_server).
 > - Debe usar `HttpClient`, `APP_CONFIG` y `ApiResponse<T>`.
 
 ---
@@ -167,7 +167,7 @@ Prompt sugerido:
 > - Ruta `/login` → `LoginPageComponent` (componente standalone, **sin lazy loading**).
 > - Ruta `/register` → `RegisterPageComponent` (si existe en el proyecto; también **sin lazy loading**).
 > - Ruta `/setup/initial` → `InitialSetupPageComponent` (wizard de configuración inicial, **sin lazy loading**).
-> - Ruta `/workspaces/select` → `WorkspaceSelectPageComponent` (lazy, usando `loadComponent` o `loadChildren` según la estructura de módulos).
+> - Ruta `/Organizations/select` → `OrganizationselectPageComponent` (lazy, usando `loadComponent` o `loadChildren` según la estructura de módulos).
 > - Ruta raíz `/` → `MainLayoutComponent` protegida con `AuthGuard`, con children:
 >   - `/dashboard` → `DashboardPageComponent` (lazy, placeholder).
 >   - Rutas futuras como `/products`, `/inventory`, `/pos`, etc., preparadas para ser cargadas como módulos lazy (`loadChildren`).
@@ -175,7 +175,7 @@ Prompt sugerido:
 
 ---
 
-### 7. Páginas de auth y workspace
+### 7. Páginas de auth y Organization
 
 **LoginPageComponent**:
 
@@ -192,24 +192,24 @@ Prompt sugerido:
 > - Uso de `AuthService.login` al hacer submit.
 > - Uso de PrimeNG (`p-card`, `p-inputText`, `p-password`, `p-button`).
 
-**WorkspaceSelectPageComponent** (requiere endpoint futuro):
+**OrganizationselectPageComponent** (requiere endpoint futuro):
 
 - Archivos:
-  - `src/app/features/workspaces/workspace-select-page/workspace-select-page.component.ts`
-  - `src/app/features/workspaces/workspace-select-page/workspace-select-page.component.html`
-  - `src/app/features/workspaces/workspace-select-page/workspace-select-page.component.scss`
+  - `src/app/features/Organizations/Organization-select-page/Organization-select-page.component.ts`
+  - `src/app/features/Organizations/Organization-select-page/Organization-select-page.component.html`
+  - `src/app/features/Organizations/Organization-select-page/Organization-select-page.component.scss`
 
 Prompt sugerido:
 
-> Genera EXCLUSIVAMENTE el contenido de los archivos de `WorkspaceSelectPageComponent` con:
+> Genera EXCLUSIVAMENTE el contenido de los archivos de `OrganizationselectPageComponent` con:
 > - Componente standalone.
-> - Intento de carga de workspaces desde `WorkspacesApiService.listMyWorkspaces()`.
-> - Mientras `GET /api/workspaces` no exista en el backend, deja un comentario TODO indicando que la respuesta está simulada.
-> - UI con PrimeNG (`p-card`, `p-table` o `p-select`) para seleccionar workspace.
-> - Al seleccionar workspace, navegar a `/dashboard`.
+> - Intento de carga de Organizations desde `OrganizationsApiService.listMyOrganizations()`.
+> - Mientras `GET /api/Organizations` no exista en el backend, deja un comentario TODO indicando que la respuesta está simulada.
+> - UI con PrimeNG (`p-card`, `p-table` o `p-select`) para seleccionar Organization.
+> - Al seleccionar Organization, navegar a `/dashboard`.
 
 Con esto, Sprint 0 deja listo:
 
 - Login funcional contra el backend.
 - Layout principal.
-- Infraestructura para workspaces (lista pendiente del endpoint real).
+- Infraestructura para Organizations (lista pendiente del endpoint real).

@@ -44,36 +44,36 @@ Frontend:
 
 ---
 
-## Workspaces – `/api/workspaces`
+## Organizations – `/api/Organizations`
 
-Controlador: `src/modules/workspaces/workspaces.controller.ts`
+Controlador: `src/modules/Organizations/Organizations.controller.ts`
 
 Endpoints **existentes** (según código actual):
 
-- `POST /api/workspaces`
-  - Crea un workspace (`createWorkspace(CreateWorkspaceDto)`).
-- `POST /api/workspaces/:id/members`
-  - Agrega un miembro con rol a un workspace (`addMember(id, AddMemberDto)`).
+- `POST /api/Organizations`
+  - Crea un Organization (`createOrganization(CreateOrganizationDto)`).
+- `POST /api/Organizations/:id/members`
+  - Agrega un miembro con rol a un Organization (`addMember(id, AddMemberDto)`).
 
 Endpoints **recomendados a futuro** (NO existen aún en el código actual):
 
-- `GET /api/workspaces`
-  - Listar workspaces del usuario actual.
-- `GET /api/workspaces/:id`
-  - Detalle de un workspace.
-- `PATCH /api/workspaces/:id`
-  - Actualizar workspace.
-- `DELETE /api/workspaces/:id`
-  - Eliminar workspace.
+- `GET /api/Organizations`
+  - Listar Organizations del usuario actual.
+- `GET /api/Organizations/:id`
+  - Detalle de un Organization.
+- `PATCH /api/Organizations/:id`
+  - Actualizar Organization.
+- `DELETE /api/Organizations/:id`
+  - Eliminar Organization.
 
 Frontend:
 
-- Servicio: `core/api/workspaces-api.service.ts`
+- Servicio: `core/api/Organizations-api.service.ts`
 - Páginas:
-  - `features/workspaces/workspace-select-page` (requiere `GET /api/workspaces` para ser 100% funcional).
-  - `features/workspaces/workspace-form-page` para crear/editar.
+  - `features/Organizations/Organization-select-page` (requiere `GET /api/Organizations` para ser 100% funcional).
+  - `features/Organizations/Organization-form-page` para crear/editar.
 
-> Importante: mientras `GET /api/workspaces` no exista, el frontend puede:
+> Importante: mientras `GET /api/Organizations` no exista, el frontend puede:
 > - Trabajar con datos simulados, o
 > - Esperar a que se implemente el endpoint antes de conectar la UI real.
 
