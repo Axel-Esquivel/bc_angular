@@ -76,3 +76,5 @@ export interface OrganizationDefaultResult {
 export interface OrganizationDeleteResult {
   success: true;
 }
+
+export type Organization = IOrganization;

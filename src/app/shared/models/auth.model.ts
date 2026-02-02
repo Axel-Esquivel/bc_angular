@@ -7,7 +7,6 @@ export interface AuthUser {
   lastName: string;
   phone: string;
   defaultOrganizationId?: string;
-  defaultOrganizationId?: string;
   defaultCompanyId?: string;
   displayName?: string;
   roles?: string[];

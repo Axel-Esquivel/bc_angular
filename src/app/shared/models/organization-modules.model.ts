@@ -17,3 +17,5 @@ export interface OrganizationModuleOverviewItem {
 export interface OrganizationModulesOverviewResponse {
   modules: OrganizationModuleOverviewItem[];
 }
+
+export type OrganizationModulesOverview = OrganizationModuleOverviewItem[];

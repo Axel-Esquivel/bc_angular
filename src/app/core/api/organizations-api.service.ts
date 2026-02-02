@@ -15,7 +15,7 @@ import {
   UpdateOrganizationRequest,
 } from '../../shared/models/organization.model';
 import { OrganizationModulesOverviewResponse } from '../../shared/models/organization-modules.model';
-import { Organization } from '../../shared/models/Organization.model';
+import { Organization } from '../../shared/models/organization.model';
 
 @Injectable({ providedIn: 'root' })
 export class OrganizationsService {

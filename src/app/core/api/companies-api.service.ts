@@ -6,7 +6,7 @@ import { APP_CONFIG_TOKEN, AppConfig } from '../config/app-config';
 import { ApiResponse } from '../../shared/models/api-response.model';
 import { Company } from '../../shared/models/company.model';
 import { CreateOrganizationCompanyDto } from '../../shared/models/organization-company.model';
-import { OrganizationModulesOverview } from '../../shared/models/Organization-modules.model';
+import { OrganizationModulesOverview } from '../../shared/models/organization-modules.model';
 
 @Injectable({ providedIn: 'root' })
 export class CompaniesApiService {
