@@ -44,6 +44,7 @@
     class="w-full"
     styleClass="w-full"
     [formControl]="countryFilterControl"
+    appendTo="body"
   >
     <ng-template #selectedItem let-country>
       <div class="select-item">
@@ -134,6 +135,7 @@
             class="w-full"
             styleClass="w-full"
             formControlName="countryId"
+            appendTo="body"
           ></p-select>
           <label for="companyCountry">Pais base</label>
         </p-floatLabel>
@@ -151,6 +153,7 @@
             class="w-full"
             styleClass="w-full"
             formControlName="currencyId"
+            appendTo="body"
           ></p-select>
           <label for="companyCurrency">Moneda base</label>
         </p-floatLabel>

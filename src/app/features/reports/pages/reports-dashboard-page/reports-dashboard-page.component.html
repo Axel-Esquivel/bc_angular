@@ -21,11 +21,23 @@
     </div>
     <div class="filter-group">
       <label for="startDate">Desde</label>
-      <p-datepicker inputId="startDate" formControlName="startDate" dateFormat="yy-mm-dd" [showIcon]="true"></p-datepicker>
+      <p-datepicker
+        inputId="startDate"
+        formControlName="startDate"
+        dateFormat="yy-mm-dd"
+        [showIcon]="true"
+        appendTo="body"
+      ></p-datepicker>
     </div>
     <div class="filter-group">
       <label for="endDate">Hasta</label>
-      <p-datepicker inputId="endDate" formControlName="endDate" dateFormat="yy-mm-dd" [showIcon]="true"></p-datepicker>
+      <p-datepicker
+        inputId="endDate"
+        formControlName="endDate"
+        dateFormat="yy-mm-dd"
+        [showIcon]="true"
+        appendTo="body"
+      ></p-datepicker>
     </div>
     <div class="filter-group">
       <label for="warehouse">Almacén</label>
