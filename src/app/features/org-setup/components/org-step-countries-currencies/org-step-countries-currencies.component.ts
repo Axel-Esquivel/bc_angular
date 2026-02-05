@@ -79,6 +79,16 @@ export class OrgStepCountriesCurrenciesComponent implements OnChanges {
     this.messageService.add({ severity: 'error', summary: 'Error', detail: message });
   }
 
+  getCountryLabel(country: SelectOption): string {
+    const code = country.code ? country.code.toUpperCase() : '';
+    return code ? `${country.name} (${code})` : country.name;
+  }
+
+  getCurrencyLabel(currency: SelectOption): string {
+    const symbolOrCode = currency.symbol || currency.code || '';
+    return symbolOrCode ? `${currency.name} (${symbolOrCode})` : currency.name;
+  }
+
   private loadCoreSettings(): void {
     if (!this.organizationId) {
       this.countries = [];

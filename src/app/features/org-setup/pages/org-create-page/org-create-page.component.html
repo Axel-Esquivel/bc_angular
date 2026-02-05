@@ -2,24 +2,26 @@
   <p-card header="Crear organizacion" class="bc-card">
     <p-stepper [(value)]="activeStep">
       <p-step-list>
-        <p-step [value]="0">Organizacion</p-step>
-        <p-step [value]="1">Paises y Monedas</p-step>
-        <p-step [value]="2">Companias por Pais</p-step>
-        <p-step [value]="3">Empresas por Compania</p-step>
+        <p-step [value]="1">Organizacion</p-step>
+        <p-step [value]="2">Paises y Monedas</p-step>
+        <p-step [value]="3">Companias por Pais</p-step>
+        <p-step [value]="4">Empresas por Compania</p-step>
       </p-step-list>
 
       <p-step-panels>
-        <p-step-panel [value]="0">
+        <p-step-panel [value]="1">
           <ng-template #content>
             <app-org-step-organization-form
               [isSubmitting]="isSubmittingOrg"
+              [organizationId]="createdOrganizationId"
+              [existingOrganizations]="existingOrganizations"
               (created)="onOrganizationCreated($event)"
               (validChange)="onStep1ValidChange($event)"
             ></app-org-step-organization-form>
           </ng-template>
         </p-step-panel>
 
-        <p-step-panel [value]="1">
+        <p-step-panel [value]="2">
           <ng-template #content>
             <app-org-step-countries-currencies
               [organizationId]="createdOrganizationId"
@@ -28,7 +30,7 @@
           </ng-template>
         </p-step-panel>
 
-        <p-step-panel [value]="2">
+        <p-step-panel [value]="3">
           <ng-template #content>
             <app-org-step-companies-by-country
               [organizationId]="createdOrganizationId"
@@ -37,7 +39,7 @@
           </ng-template>
         </p-step-panel>
 
-        <p-step-panel [value]="3">
+        <p-step-panel [value]="4">
           <ng-template #content>
             <app-org-step-branches-by-company
               [organizationId]="createdOrganizationId"
@@ -53,24 +55,24 @@
         label="Atras"
         severity="secondary"
         text
-        [disabled]="activeStep === 0"
+        [disabled]="activeStep === 1"
         (onClick)="goBack()"
       ></p-button>
 
       <p-button
-        *ngIf="activeStep < 3"
+        *ngIf="activeStep < 4"
         label="Siguiente"
         [disabled]="
-          (activeStep === 0 && (!step1Valid || isSubmittingOrg)) ||
-          (activeStep === 1 && !step2Ready) ||
-          (activeStep === 2 && !step3Ready)
+          (activeStep === 1 && (!step1Valid || isSubmittingOrg)) ||
+          (activeStep === 2 && !step2Ready) ||
+          (activeStep === 3 && !step3Ready)
         "
-        [loading]="activeStep === 0 && isSubmittingOrg"
+        [loading]="activeStep === 1 && isSubmittingOrg"
         (onClick)="goNext()"
       ></p-button>
 
       <p-button
-        *ngIf="activeStep === 3"
+        *ngIf="activeStep === 4"
         label="Finalizar"
         [disabled]="!step4Ready"
         (onClick)="finish()"
@@ -78,3 +80,4 @@
     </div>
   </p-card>
 </section>
+<p-confirmDialog></p-confirmDialog>

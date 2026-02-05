@@ -69,8 +69,24 @@
       </div>
       <div class="bc-list" *ngIf="countries.length > 0; else emptyCountries">
         <div class="bc-list-item" *ngFor="let country of countries">
-          <span>{{ country.name }}</span>
-          <small class="bc-muted">{{ country.code?.toUpperCase() }}</small>
+          <span>{{ getCountryLabel(country) }}</span>
+          <div class="bc-actions">
+            <p-button
+              icon="pi pi-pencil"
+              text
+              size="small"
+              [disabled]="true"
+              title="Editar no disponible"
+            ></p-button>
+            <p-button
+              icon="pi pi-trash"
+              severity="danger"
+              text
+              size="small"
+              [disabled]="true"
+              title="Eliminar no disponible"
+            ></p-button>
+          </div>
         </div>
       </div>
       <ng-template #emptyCountries>
@@ -93,8 +109,24 @@
       </div>
       <div class="bc-list" *ngIf="currencies.length > 0; else emptyCurrencies">
         <div class="bc-list-item" *ngFor="let currency of currencies">
-          <span>{{ currency.name }}</span>
-          <small class="bc-muted">{{ currency.symbol || currency.code }}</small>
+          <span>{{ getCurrencyLabel(currency) }}</span>
+          <div class="bc-actions">
+            <p-button
+              icon="pi pi-pencil"
+              text
+              size="small"
+              [disabled]="true"
+              title="Editar no disponible"
+            ></p-button>
+            <p-button
+              icon="pi pi-trash"
+              severity="danger"
+              text
+              size="small"
+              [disabled]="true"
+              title="Eliminar no disponible"
+            ></p-button>
+          </div>
         </div>
       </div>
       <ng-template #emptyCurrencies>

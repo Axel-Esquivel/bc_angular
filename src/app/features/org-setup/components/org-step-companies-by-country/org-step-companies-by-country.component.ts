@@ -28,6 +28,8 @@ export class OrgStepCompaniesByCountryComponent implements OnChanges {
   countries: SelectOption[] = [];
   currencies: SelectOption[] = [];
   companies: Company[] = [];
+  private countryLabelMap = new Map<string, string>();
+  private currencyLabelMap = new Map<string, string>();
 
   readonly countryFilterControl = this.fb.control<string | null>(null);
 
@@ -97,15 +99,34 @@ export class OrgStepCompaniesByCountryComponent implements OnChanges {
       return;
     }
 
+    const payload = {
+      name: name.trim(),
+      countryId,
+      operatingCountryIds: [countryId],
+      currencyIds: [currencyId],
+      defaultCurrencyId: currencyId,
+      enterprisesByCountry: [
+        {
+          countryId,
+          enterprises: [
+            {
+              name: 'Principal',
+              allowedCurrencyIds: [currencyId],
+              baseCurrencyId: currencyId,
+            },
+          ],
+        },
+      ],
+      defaultEnterpriseKey: { countryId, enterpriseIndex: 0 },
+    };
+
+    // TEMP: remove after confirming payload is correct in devtools.
+    // eslint-disable-next-line no-console
+    console.log('[ORG] create company payload', payload);
+
     this.isSubmittingCompany = true;
     this.companiesApi
-      .create(this.organizationId, {
-        name: name.trim(),
-        countryId,
-        operatingCountryIds: [countryId],
-        currencyIds: [currencyId],
-        defaultCurrencyId: currencyId,
-      })
+      .create(this.organizationId, payload)
       .pipe(take(1))
       .subscribe({
         next: () => {
@@ -165,6 +186,20 @@ export class OrgStepCompaniesByCountryComponent implements OnChanges {
               symbol: currency.symbol,
             }))
             .filter((item) => item.id);
+          this.countryLabelMap = new Map(
+            this.countries.map((country) => {
+              const code = country.code ? country.code.toUpperCase() : '';
+              const label = code ? `${country.name} (${code})` : country.name;
+              return [country.id, label];
+            }),
+          );
+          this.currencyLabelMap = new Map(
+            this.currencies.map((currency) => {
+              const symbolOrCode = currency.symbol || currency.code || '';
+              const label = symbolOrCode ? `${currency.name} (${symbolOrCode})` : currency.name;
+              return [currency.id, label];
+            }),
+          );
           if (!this.countryFilterControl.value && this.countries.length > 0) {
             this.countryFilterControl.setValue(this.countries[0].id);
           }
@@ -212,6 +247,19 @@ export class OrgStepCompaniesByCountryComponent implements OnChanges {
           });
         },
       });
+  }
+
+  getCompanyCountryLabel(company: Company): string {
+    const id = company.baseCountryId || (company as { countryId?: string }).countryId || '';
+    return id ? this.countryLabelMap.get(id) || id : '—';
+  }
+
+  getCompanyCurrencyLabel(company: Company): string {
+    const id =
+      (company as { baseCurrencyId?: string }).baseCurrencyId ||
+      (company as { defaultCurrencyId?: string }).defaultCurrencyId ||
+      '';
+    return id ? this.currencyLabelMap.get(id) || id : '—';
   }
 }
 

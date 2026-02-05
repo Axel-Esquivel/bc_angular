@@ -1,9 +1,10 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, OnInit, Output, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { MessageService } from 'primeng/api';
+import { ConfirmationService, MessageService } from 'primeng/api';
 import { Button } from 'primeng/button';
 import { Card } from 'primeng/card';
+import { ConfirmDialog } from 'primeng/confirmdialog';
 import { StepperModule } from 'primeng/stepper';
 
 import { OrgSetupComponentsModule } from '../../components/org-setup-components.module';
@@ -15,9 +16,10 @@ import { take } from 'rxjs/operators';
 @Component({
   selector: 'app-org-create-page',
   standalone: true,
-  imports: [CommonModule, Button, Card, StepperModule, OrgSetupComponentsModule],
+  imports: [CommonModule, Button, Card, ConfirmDialog, StepperModule, OrgSetupComponentsModule],
   templateUrl: './org-create-page.component.html',
   styleUrl: './org-create-page.component.scss',
+  providers: [ConfirmationService],
 })
 export class OrgCreatePageComponent implements OnInit {
   private readonly router = inject(Router);
@@ -27,18 +29,19 @@ export class OrgCreatePageComponent implements OnInit {
   private readonly messageService = inject(MessageService);
 
   @Input() organizationId?: string;
-  @Input() startStep = 0;
+  @Input() startStep = 1;
   @Input() managePending = true;
   @Input() navigateOnComplete = true;
   @Input() visibleInDialog = false;
   @Input() mode: 'page' | 'dialog' = 'page';
+  @Input() existingOrganizations: Array<{ id: string; name: string }> = [];
 
   @Output() cancelled = new EventEmitter<void>();
   @Output() completed = new EventEmitter<{ organizationId: string }>();
   @Output() organizationCreated = new EventEmitter<{ organizationId: string }>();
   @Output() stepChanged = new EventEmitter<number>();
 
-  private _activeStep = 0;
+  private _activeStep = 1;
   createdOrganizationId: string | null = null;
   pendingStartedAt: string | null = null;
 
@@ -64,16 +67,16 @@ export class OrgCreatePageComponent implements OnInit {
     const pending = this.sessionState.getPendingOrgSetup();
     if (this.organizationId) {
       this.createdOrganizationId = this.organizationId;
-      this._activeStep = this.startStep;
+      this._activeStep = this.normalizeStep(this.startStep);
       return;
     }
     if (pending && this.sessionState.isAuthenticated()) {
       this.createdOrganizationId = pending.organizationId;
       this.pendingStartedAt = pending.startedAt;
-      this._activeStep = pending.lastStep ?? 0;
+      this._activeStep = this.normalizeStep(pending.lastStep);
       return;
     }
-    this._activeStep = this.startStep;
+    this._activeStep = this.normalizeStep(this.startStep);
   }
 
   onStep1ValidChange(isValid: boolean): void {
@@ -91,7 +94,7 @@ export class OrgCreatePageComponent implements OnInit {
     this.step2Ready = false;
     this.step3Ready = false;
     this.step4Ready = false;
-    this.activeStep = 1;
+    this.activeStep = 2;
   }
 
   onStep2ReadyChange(ready: boolean): void {
@@ -107,13 +110,13 @@ export class OrgCreatePageComponent implements OnInit {
   }
 
   goBack(): void {
-    if (this.activeStep > 0) {
+    if (this.activeStep > 1) {
       this.activeStep -= 1;
     }
   }
 
   goNext(): void {
-    if (this.activeStep === 0) {
+    if (this.activeStep === 1) {
       if (!this.step1Valid || this.isSubmittingOrg) {
         return;
       }
@@ -121,15 +124,15 @@ export class OrgCreatePageComponent implements OnInit {
       return;
     }
 
-    if (this.activeStep === 1 && !this.step2Ready) {
+    if (this.activeStep === 2 && !this.step2Ready) {
       return;
     }
 
-    if (this.activeStep === 2 && !this.step3Ready) {
+    if (this.activeStep === 3 && !this.step3Ready) {
       return;
     }
 
-    if (this.activeStep < 3) {
+    if (this.activeStep < 4) {
       this.activeStep += 1;
     }
   }
@@ -180,6 +183,19 @@ export class OrgCreatePageComponent implements OnInit {
       startedAt: this.pendingStartedAt,
       lastStep: this._activeStep,
     });
+  }
+
+  private normalizeStep(value?: number): number {
+    if (typeof value !== 'number' || Number.isNaN(value)) {
+      return 1;
+    }
+    if (value < 1) {
+      return 1;
+    }
+    if (value > 4) {
+      return 4;
+    }
+    return value;
   }
 
   onCancel(): void {

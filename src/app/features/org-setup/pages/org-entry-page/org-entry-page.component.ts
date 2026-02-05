@@ -50,7 +50,7 @@ export class OrgEntryPageComponent implements OnInit {
   selecting = false;
   wizardDialogOpen = false;
   wizardOrganizationId: string | null = null;
-  wizardStartStep = 0;
+  wizardStartStep = 1;
   editDialogOpen = false;
   editOrganizationId: string | null = null;
   editOrganizationName = '';
@@ -222,6 +222,21 @@ export class OrgEntryPageComponent implements OnInit {
     return pendingId;
   }
 
+  get existingOrganizationsForWizard(): Array<{ id: string; name: string }> {
+    const map = new Map<string, string>();
+    for (const org of this.ownerOrganizations) {
+      if (org?.id && org?.name) {
+        map.set(org.id, org.name);
+      }
+    }
+    for (const membership of this.memberships) {
+      if (membership?.organizationId && membership?.name) {
+        map.set(membership.organizationId, membership.name);
+      }
+    }
+    return Array.from(map.entries()).map(([id, name]) => ({ id, name }));
+  }
+
   openEdit(organization: IOrganization): void {
     if (!organization?.id) {
       return;
@@ -375,7 +390,7 @@ export class OrgEntryPageComponent implements OnInit {
 
   goCreate(): void {
     this.wizardOrganizationId = null;
-    this.wizardStartStep = 0;
+    this.wizardStartStep = 1;
     this.wizardDialogOpen = true;
   }
 
@@ -409,7 +424,7 @@ export class OrgEntryPageComponent implements OnInit {
     this.sessionState.setPendingOrgSetup({
       organizationId: payload.organizationId,
       startedAt: new Date().toISOString(),
-      lastStep: 1,
+      lastStep: 2,
     });
     this.pendingSetup = this.sessionState.getPendingOrgSetup();
     this.refreshLists();
@@ -434,7 +449,8 @@ export class OrgEntryPageComponent implements OnInit {
       return;
     }
     this.wizardOrganizationId = this.pendingSetup.organizationId;
-    this.wizardStartStep = this.pendingSetup.lastStep ?? 1;
+    const pendingStep = this.pendingSetup.lastStep ?? 2;
+    this.wizardStartStep = pendingStep < 1 ? 1 : pendingStep;
     this.wizardDialogOpen = true;
   }
 

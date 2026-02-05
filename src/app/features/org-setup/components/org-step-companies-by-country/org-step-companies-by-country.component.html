@@ -75,11 +75,33 @@
     />
   </div>
   <div class="bc-list" *ngIf="filteredCompanies.length > 0; else emptyCompanies">
-    <div class="bc-list-item" *ngFor="let company of filteredCompanies">
-      <span>{{ company.name }}</span>
-      <small class="bc-muted">{{ company.baseCountryId || '�' }}</small>
+  <div class="bc-list-item" *ngFor="let company of filteredCompanies">
+    <div class="bc-list-item__content">
+      <div class="bc-list-item__title">{{ company.name }}</div>
+      <div class="bc-list-item__meta">
+        <span>{{ getCompanyCountryLabel(company) }}</span>
+        <span>{{ getCompanyCurrencyLabel(company) }}</span>
+      </div>
+    </div>
+    <div class="bc-actions">
+      <p-button
+        icon="pi pi-pencil"
+        text
+        size="small"
+        [disabled]="true"
+        title="Editar no disponible"
+      ></p-button>
+      <p-button
+        icon="pi pi-trash"
+        severity="danger"
+        text
+        size="small"
+        [disabled]="true"
+        title="Eliminar no disponible"
+      ></p-button>
     </div>
   </div>
+</div>
   <ng-template #emptyCompanies>
     <div class="bc-empty">No hay companias para el pais seleccionado.</div>
   </ng-template>
