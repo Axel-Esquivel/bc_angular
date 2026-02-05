@@ -8,7 +8,6 @@ import { Card } from 'primeng/card';
 import { FloatLabel } from 'primeng/floatlabel';
 import { InputText } from 'primeng/inputtext';
 import { PasswordModule } from 'primeng/password';
-import { Toast } from 'primeng/toast';
 
 import { AuthService } from '../../../../core/auth/auth.service';
 import { RegisterRequest } from '../../../../shared/models/auth.model';
@@ -16,7 +15,7 @@ import { RegisterRequest } from '../../../../shared/models/auth.model';
 @Component({
   selector: 'app-register-page',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, Card, FloatLabel, InputText, PasswordModule, Button, Toast],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, Card, FloatLabel, InputText, PasswordModule, Button],
   templateUrl: './register-page.component.html',
   styleUrl: './register-page.component.scss',
   providers: [MessageService],

@@ -11,7 +11,6 @@ import { InputTextModule } from 'primeng/inputtext';
 import { MultiSelectModule } from 'primeng/multiselect';
 import { SelectModule } from 'primeng/select';
 import { TableModule } from 'primeng/table';
-import { ToastModule } from 'primeng/toast';
 
 import { CompaniesPageComponent } from './pages/companies-page/companies-page.component';
 
@@ -31,7 +30,6 @@ const routes: Routes = [{ path: '', component: CompaniesPageComponent }];
     MultiSelectModule,
     SelectModule,
     TableModule,
-    ToastModule,
   ],
   providers: [MessageService],
 })

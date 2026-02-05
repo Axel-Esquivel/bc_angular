@@ -19,6 +19,12 @@
     gap: 1rem;
 }
 
+.bc-dialog-wrapper {
+    height: auto;
+    display: block;
+    padding: 0;
+}
+
 .bc-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));

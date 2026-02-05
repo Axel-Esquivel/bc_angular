@@ -101,8 +101,6 @@ export class OrgStepCompaniesByCountryComponent implements OnChanges {
     this.companiesApi
       .create(this.organizationId, {
         name: name.trim(),
-        baseCountryId: countryId,
-        baseCurrencyId: currencyId,
         countryId,
         operatingCountryIds: [countryId],
         currencyIds: [currencyId],

@@ -1,5 +1,4 @@
-<p-toast></p-toast>
-<section class="bc-page-center">
+<section [class.bc-page-center]="mode === 'page'" [class.bc-dialog-wrapper]="mode === 'dialog'">
   <p-card header="Crear organizacion" class="bc-card">
     <p-stepper [(value)]="activeStep">
       <p-step-list>

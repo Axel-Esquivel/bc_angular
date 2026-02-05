@@ -77,7 +77,7 @@
   <div class="bc-list" *ngIf="filteredCompanies.length > 0; else emptyCompanies">
     <div class="bc-list-item" *ngFor="let company of filteredCompanies">
       <span>{{ company.name }}</span>
-      <small class="bc-muted">{{ company.baseCountryId || '—' }}</small>
+      <small class="bc-muted">{{ company.baseCountryId || 'ï¿½' }}</small>
     </div>
   </div>
   <ng-template #emptyCompanies>

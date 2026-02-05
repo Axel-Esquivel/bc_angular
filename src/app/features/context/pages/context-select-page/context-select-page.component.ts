@@ -7,7 +7,6 @@ import { Button } from 'primeng/button';
 import { Card } from 'primeng/card';
 import { FloatLabel } from 'primeng/floatlabel';
 import { Select } from 'primeng/select';
-import { Toast } from 'primeng/toast';
 import { take } from 'rxjs';
 
 import { ContextApiService } from '../../../../core/api/context-api.service';
@@ -19,7 +18,7 @@ import { Company } from '../../../../shared/models/company.model';
 @Component({
   selector: 'app-context-select-page',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, Button, Card, FloatLabel, Select, Toast],
+  imports: [CommonModule, ReactiveFormsModule, Button, Card, FloatLabel, Select],
   templateUrl: './context-select-page.component.html',
   styleUrl: './context-select-page.component.scss',
   providers: [MessageService],

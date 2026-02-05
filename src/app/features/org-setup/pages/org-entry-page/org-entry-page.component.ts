@@ -9,7 +9,6 @@ import { Dialog } from 'primeng/dialog';
 import { FloatLabel } from 'primeng/floatlabel';
 import { InputText } from 'primeng/inputtext';
 import { TableModule } from 'primeng/table';
-import { Toast } from 'primeng/toast';
 import { take } from 'rxjs';
 
 import { CountriesApiService } from '../../../../core/api/countries-api.service';
@@ -26,7 +25,7 @@ import { OrgCreatePageComponent } from '../org-create-page/org-create-page.compo
 @Component({
   selector: 'app-org-entry-page',
   standalone: true,
-  imports: [CommonModule, FormsModule, Button, Card, Dialog, FloatLabel, InputText, TableModule, Toast, OrgCreatePageComponent],
+  imports: [CommonModule, FormsModule, Button, Card, Dialog, FloatLabel, InputText, TableModule, OrgCreatePageComponent],
   templateUrl: './org-entry-page.component.html',
   styleUrl: './org-entry-page.component.scss',
   providers: [MessageService],

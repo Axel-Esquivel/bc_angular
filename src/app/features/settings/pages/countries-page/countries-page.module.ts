@@ -8,7 +8,6 @@ import { Card } from 'primeng/card';
 import { DialogModule } from 'primeng/dialog';
 import { InputText } from 'primeng/inputtext';
 import { TableModule } from 'primeng/table';
-import { Toast } from 'primeng/toast';
 
 import { CountriesPageComponent } from './countries-page.component';
 
@@ -26,7 +25,6 @@ const routes: Routes = [{ path: '', component: CountriesPageComponent }];
     DialogModule,
     InputText,
     TableModule,
-    Toast,
   ],
   providers: [MessageService],
 })

@@ -9,7 +9,6 @@ import { DialogModule } from 'primeng/dialog';
 import { InputText } from 'primeng/inputtext';
 import { Select } from 'primeng/select';
 import { TableModule } from 'primeng/table';
-import { Toast } from 'primeng/toast';
 
 import { WarehousesPageComponent } from './warehouses-page.component';
 
@@ -28,7 +27,6 @@ const routes: Routes = [{ path: '', component: WarehousesPageComponent }];
     InputText,
     Select,
     TableModule,
-    Toast,
   ],
   providers: [MessageService],
 })

@@ -1,4 +1,3 @@
-<p-toast></p-toast>
 <section class="entry-page">
   <p-card *ngIf="pendingSetup && !hidePendingBanner" header="Configuracion pendiente" class="entry-card">
     <p>
@@ -177,7 +176,8 @@
   [modal]="true"
   [closable]="true"
   [draggable]="false"
-  [style]="{ width: '880px' }"
+  [style]="{ width: 'min(1000px, 95vw)', maxHeight: '90vh' }"
+  [contentStyle]="{ overflow: 'auto', maxHeight: 'calc(90vh - 8rem)', padding: '0' }"
   (onHide)="onWizardCancelled()"
 >
   <app-org-create-page
@@ -186,6 +186,7 @@
     [managePending]="false"
     [navigateOnComplete]="false"
     [visibleInDialog]="true"
+    mode="dialog"
     (cancelled)="onWizardCancelled()"
     (completed)="onWizardCompleted($event)"
     (organizationCreated)="onWizardOrganizationCreated($event)"

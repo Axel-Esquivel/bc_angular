@@ -1,5 +1,6 @@
 import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { Toast } from 'primeng/toast';
 import { combineLatest, distinctUntilChanged, map } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
@@ -12,7 +13,7 @@ import { CompanyStateService } from './core/company/company-state.service';
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet],
+  imports: [RouterOutlet, Toast],
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })

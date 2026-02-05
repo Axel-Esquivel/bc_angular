@@ -5,7 +5,6 @@ import { MessageService } from 'primeng/api';
 import { Button } from 'primeng/button';
 import { Card } from 'primeng/card';
 import { StepperModule } from 'primeng/stepper';
-import { Toast } from 'primeng/toast';
 
 import { OrgSetupComponentsModule } from '../../components/org-setup-components.module';
 import { OrganizationsService } from '../../../../core/api/organizations-api.service';
@@ -16,7 +15,7 @@ import { take } from 'rxjs/operators';
 @Component({
   selector: 'app-org-create-page',
   standalone: true,
-  imports: [CommonModule, Button, Card, StepperModule, Toast, OrgSetupComponentsModule],
+  imports: [CommonModule, Button, Card, StepperModule, OrgSetupComponentsModule],
   templateUrl: './org-create-page.component.html',
   styleUrl: './org-create-page.component.scss',
 })
@@ -32,6 +31,7 @@ export class OrgCreatePageComponent implements OnInit {
   @Input() managePending = true;
   @Input() navigateOnComplete = true;
   @Input() visibleInDialog = false;
+  @Input() mode: 'page' | 'dialog' = 'page';
 
   @Output() cancelled = new EventEmitter<void>();
   @Output() completed = new EventEmitter<{ organizationId: string }>();

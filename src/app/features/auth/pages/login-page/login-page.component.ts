@@ -9,7 +9,6 @@ import { Card } from 'primeng/card';
 import { FloatLabel } from 'primeng/floatlabel';
 import { InputText } from 'primeng/inputtext';
 import { PasswordModule } from 'primeng/password';
-import { Toast } from 'primeng/toast';
 
 import { AuthService } from '../../../../core/auth/auth.service';
 import { LoggerService } from '../../../../core/logging/logger.service';
@@ -18,7 +17,7 @@ import { LoginRequest } from '../../../../shared/models/auth.model';
 @Component({
   selector: 'app-login-page',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, Card, FloatLabel, InputText, PasswordModule, Button, Toast],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, Card, FloatLabel, InputText, PasswordModule, Button],
   templateUrl: './login-page.component.html',
   styleUrl: './login-page.component.scss',
   providers: [MessageService],
