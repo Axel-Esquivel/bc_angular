@@ -1,230 +1,188 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Component, EventEmitter, Input, OnInit, Output, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { Button } from 'primeng/button';
 import { Card } from 'primeng/card';
-import { Dialog } from 'primeng/dialog';
-import { Divider } from 'primeng/divider';
-import { FloatLabel } from 'primeng/floatlabel';
-import { InputText } from 'primeng/inputtext';
-import { Select } from 'primeng/select';
+import { StepperModule } from 'primeng/stepper';
 import { Toast } from 'primeng/toast';
-import { take } from 'rxjs';
 
-import { CountriesApiService } from '../../../../core/api/countries-api.service';
-import { CurrenciesApiService } from '../../../../core/api/currencies-api.service';
-import { OrganizationsService } from '../../../../core/api/organizations-api.service';
-import { Country } from '../../../../shared/models/country.model';
-import { Currency } from '../../../../shared/models/currency.model';
 import { OrgSetupComponentsModule } from '../../components/org-setup-components.module';
+import { OrganizationsService } from '../../../../core/api/organizations-api.service';
+import { ActiveContextStateService } from '../../../../core/context/active-context-state.service';
+import { SessionStateService } from '../../../../core/services/session-state.service';
+import { take } from 'rxjs/operators';
 
 @Component({
   selector: 'app-org-create-page',
   standalone: true,
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    Button,
-    Card,
-    Dialog,
-    Divider,
-    FloatLabel,
-    InputText,
-    OrgSetupComponentsModule,
-    Select,
-    Toast,
-  ],
+  imports: [CommonModule, Button, Card, StepperModule, Toast, OrgSetupComponentsModule],
   templateUrl: './org-create-page.component.html',
   styleUrl: './org-create-page.component.scss',
 })
 export class OrgCreatePageComponent implements OnInit {
-  private readonly fb = inject(FormBuilder);
-  private readonly countriesApi = inject(CountriesApiService);
-  private readonly currenciesApi = inject(CurrenciesApiService);
-  private readonly organizationsApi = inject(OrganizationsService);
   private readonly router = inject(Router);
+  private readonly organizationsApi = inject(OrganizationsService);
+  private readonly activeContextState = inject(ActiveContextStateService);
+  private readonly sessionState = inject(SessionStateService);
   private readonly messageService = inject(MessageService);
 
-  countries: SelectOption[] = [];
-  currencies: SelectOption[] = [];
+  @Input() organizationId?: string;
+  @Input() startStep = 0;
+  @Input() managePending = true;
+  @Input() navigateOnComplete = true;
+  @Input() visibleInDialog = false;
 
-  readonly form = this.fb.group({
-    name: this.fb.nonNullable.control('', [Validators.required, Validators.minLength(2)]),
-    countryId: this.fb.control<string | null>(null),
-    currencyId: this.fb.control<string | null>(null),
-  });
+  @Output() cancelled = new EventEmitter<void>();
+  @Output() completed = new EventEmitter<{ organizationId: string }>();
+  @Output() organizationCreated = new EventEmitter<{ organizationId: string }>();
+  @Output() stepChanged = new EventEmitter<number>();
 
-  isSubmitting = false;
-  isCountryDialogOpen = false;
-  isCurrencyDialogOpen = false;
+  private _activeStep = 0;
+  createdOrganizationId: string | null = null;
+  pendingStartedAt: string | null = null;
+
+  isSubmittingOrg = false;
+  step1Valid = false;
+  step2Ready = false;
+  step3Ready = false;
+  step4Ready = false;
+
+  get activeStep(): number {
+    return this._activeStep;
+  }
+
+  set activeStep(value: number) {
+    this._activeStep = value;
+    this.stepChanged.emit(this._activeStep);
+    if (this.managePending) {
+      this.persistPendingSetup();
+    }
+  }
 
   ngOnInit(): void {
-    this.loadCountries();
-    this.loadCurrencies();
+    const pending = this.sessionState.getPendingOrgSetup();
+    if (this.organizationId) {
+      this.createdOrganizationId = this.organizationId;
+      this._activeStep = this.startStep;
+      return;
+    }
+    if (pending && this.sessionState.isAuthenticated()) {
+      this.createdOrganizationId = pending.organizationId;
+      this.pendingStartedAt = pending.startedAt;
+      this._activeStep = pending.lastStep ?? 0;
+      return;
+    }
+    this._activeStep = this.startStep;
   }
 
-  private loadCountries(selectId?: string): void {
-    this.countriesApi
-      .list()
-      .pipe(take(1))
-      .subscribe({
-        next: (response) => {
-          const items = Array.isArray(response?.result) ? response.result : [];
-          this.countries = items
-            .map((country) => ({
-              id: (country.id ?? country.iso2 ?? '').toString(),
-              name: country.nameEs || country.nameEn || country.iso2,
-              code: country.iso2,
-            }))
-            .filter((item) => item.id);
-          if (selectId) {
-            const match = this.countries.find((country) => country.id === selectId);
-            this.form.controls.countryId.setValue(match?.id ?? selectId);
-          }
-        },
-        error: () => {
-          this.countries = [];
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: 'No se pudieron cargar los paises.',
-          });
-        },
-      });
+  onStep1ValidChange(isValid: boolean): void {
+    this.step1Valid = isValid;
   }
 
-  private loadCurrencies(selectId?: string): void {
-    this.currenciesApi
-      .list()
-      .pipe(take(1))
-      .subscribe({
-        next: (response) => {
-          const items = Array.isArray(response?.result) ? response.result : [];
-          this.currencies = items
-            .map((currency) => ({
-              id: (currency.id ?? currency.code ?? '').toString(),
-              name: currency.name,
-              code: currency.code,
-              symbol: currency.symbol,
-            }))
-            .filter((item) => item.id);
-          if (selectId) {
-            const match = this.currencies.find((currency) => currency.id === selectId);
-            this.form.controls.currencyId.setValue(match?.id ?? selectId);
-          }
-        },
-        error: () => {
-          this.currencies = [];
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: 'No se pudieron cargar las monedas.',
-          });
-        },
-      });
+  onOrganizationCreated(organizationId: string): void {
+    this.isSubmittingOrg = false;
+    if (!organizationId) {
+      return;
+    }
+    this.createdOrganizationId = organizationId;
+    this.pendingStartedAt = new Date().toISOString();
+    this.organizationCreated.emit({ organizationId });
+    this.step2Ready = false;
+    this.step3Ready = false;
+    this.step4Ready = false;
+    this.activeStep = 1;
   }
 
-  openCreateCountryDialog(): void {
-    this.isCountryDialogOpen = true;
+  onStep2ReadyChange(ready: boolean): void {
+    this.step2Ready = ready;
   }
 
-  openCreateCurrencyDialog(): void {
-    this.isCurrencyDialogOpen = true;
+  onStep3ReadyChange(ready: boolean): void {
+    this.step3Ready = ready;
   }
 
-  onCountryCreated(country: Country): void {
-    const id = (country?.id ?? country?.iso2 ?? '').toString();
-    this.loadCountries(id || undefined);
-    this.messageService.add({ severity: 'success', summary: 'Listo', detail: 'Pais creado.' });
+  onStep4Finished(): void {
+    this.step4Ready = true;
   }
 
-  onCurrencyCreated(currency: Currency): void {
-    const id = (currency?.id ?? currency?.code ?? '').toString();
-    this.loadCurrencies(id || undefined);
-    this.messageService.add({ severity: 'success', summary: 'Listo', detail: 'Moneda creada.' });
+  goBack(): void {
+    if (this.activeStep > 0) {
+      this.activeStep -= 1;
+    }
   }
 
-  onDialogError(message: string): void {
-    this.messageService.add({ severity: 'error', summary: 'Error', detail: message });
-  }
-
-  submit(): void {
-    if (this.isSubmitting) {
+  goNext(): void {
+    if (this.activeStep === 0) {
+      if (!this.step1Valid || this.isSubmittingOrg) {
+        return;
+      }
+      this.isSubmittingOrg = true;
       return;
     }
 
-    if (!this.form.value.name?.trim()) {
-      this.form.controls.name.markAsTouched();
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: 'El nombre de la organizacion es obligatorio.',
-      });
+    if (this.activeStep === 1 && !this.step2Ready) {
       return;
     }
 
-    if (this.countries.length === 0) {
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: 'Debes crear al menos un pais antes de crear la organizacion.',
-      });
+    if (this.activeStep === 2 && !this.step3Ready) {
       return;
     }
 
-    if (this.currencies.length === 0) {
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: 'Debes crear al menos una moneda antes de crear la organizacion.',
-      });
+    if (this.activeStep < 3) {
+      this.activeStep += 1;
+    }
+  }
+
+  finish(): void {
+    if (!this.step4Ready || !this.createdOrganizationId) {
       return;
     }
-
-    if (this.form.invalid) {
-      this.form.markAllAsTouched();
-      return;
-    }
-
-    this.isSubmitting = true;
-    const formValue = this.form.getRawValue();
-    const payload = {
-      name: formValue.name.trim(),
-      countryIds: formValue.countryId ? [formValue.countryId] : undefined,
-      currencyIds: formValue.currencyId ? [formValue.currencyId] : undefined,
-    };
-
     this.organizationsApi
-      .create(payload)
+      .setDefaultOrganization(this.createdOrganizationId)
       .pipe(take(1))
       .subscribe({
         next: () => {
-          this.isSubmitting = false;
-          this.form.reset({ name: '', countryId: null, currencyId: null });
-          this.messageService.add({
-            severity: 'success',
-            summary: 'Listo',
-            detail: 'Organizacion creada.',
+          const current = this.activeContextState.getActiveContext();
+          this.activeContextState.setActiveContext({
+            ...current,
+            organizationId: this.createdOrganizationId ?? current.organizationId,
           });
-          this.router.navigateByUrl('/org/setup', { state: { refresh: true } });
+          const orgId = this.createdOrganizationId ?? '';
+          if (this.managePending) {
+            this.sessionState.clearPendingOrgSetup();
+          }
+          if (orgId) {
+            this.completed.emit({ organizationId: orgId });
+          }
+          if (this.navigateOnComplete) {
+            this.router.navigateByUrl('/context/select');
+          }
         },
-        error: () => {
-          this.isSubmitting = false;
+        error: (err) => {
+          const message =
+            err?.error?.message || 'No se pudo finalizar la configuracion de la organizacion.';
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
-            detail: 'No se pudo crear la organizacion.',
+            detail: message,
           });
         },
       });
   }
-}
 
-interface SelectOption {
-  id: string;
-  name: string;
-  code?: string;
-  symbol?: string;
+  private persistPendingSetup(): void {
+    if (!this.createdOrganizationId || !this.pendingStartedAt) {
+      return;
+    }
+    this.sessionState.setPendingOrgSetup({
+      organizationId: this.createdOrganizationId,
+      startedAt: this.pendingStartedAt,
+      lastStep: this._activeStep,
+    });
+  }
+
+  onCancel(): void {
+    this.cancelled.emit();
+  }
 }

@@ -6,6 +6,67 @@
     gap: 1em;
 }
 
+.bc-step-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.bc-step-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+}
+
+.bc-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.5rem;
+}
+
+.bc-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+}
+
+.bc-panel-header--spaced {
+    margin-top: 1.5rem;
+}
+
+.bc-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.5rem 0;
+}
+
+.bc-list-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.5rem;
+    background: var(--surface-50);
+    border: 1px solid var(--surface-border);
+}
+
+.bc-empty {
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    background: var(--surface-50);
+    border: 1px dashed var(--surface-border);
+    color: var(--text-color-secondary);
+}
+
+.bc-muted {
+    color: var(--text-color-secondary);
+    font-size: 0.85rem;
+}
+
 .bc-alerts {
     display: flex;
     flex-direction: column;

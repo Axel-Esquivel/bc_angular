@@ -1,0 +1,225 @@
+import { HttpErrorResponse } from '@angular/common/http';
+import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, inject } from '@angular/core';
+import { FormBuilder, Validators } from '@angular/forms';
+import { MessageService } from 'primeng/api';
+import { take } from 'rxjs/operators';
+
+import { CompaniesApiService } from '../../../../core/api/companies-api.service';
+import { OrganizationCoreApiService } from '../../../../core/api/organization-core-api.service';
+import { Company } from '../../../../shared/models/company.model';
+import { CoreCountry, CoreCurrency } from '../../../../shared/models/organization-core.model';
+
+@Component({
+  selector: 'app-org-step-companies-by-country',
+  templateUrl: './org-step-companies-by-country.component.html',
+  styleUrl: './org-step-companies-by-country.component.scss',
+  standalone: false,
+})
+export class OrgStepCompaniesByCountryComponent implements OnChanges {
+  private readonly fb = inject(FormBuilder);
+  private readonly companiesApi = inject(CompaniesApiService);
+  private readonly organizationCoreApi = inject(OrganizationCoreApiService);
+  private readonly messageService = inject(MessageService);
+
+  @Input() organizationId: string | null = null;
+
+  @Output() readyChange = new EventEmitter<boolean>();
+
+  countries: SelectOption[] = [];
+  currencies: SelectOption[] = [];
+  companies: Company[] = [];
+
+  readonly countryFilterControl = this.fb.control<string | null>(null);
+
+  isLoading = false;
+  isCompanyDialogOpen = false;
+  isSubmittingCompany = false;
+
+  readonly companyForm = this.fb.nonNullable.group({
+    name: this.fb.nonNullable.control('', [Validators.required, Validators.minLength(2)]),
+    countryId: this.fb.control<string | null>(null, [Validators.required]),
+    currencyId: this.fb.control<string | null>(null, [Validators.required]),
+  });
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['organizationId']) {
+      this.loadData();
+    }
+  }
+
+  get hasOrganization(): boolean {
+    return Boolean(this.organizationId);
+  }
+
+  get filteredCompanies(): Company[] {
+    const countryId = this.countryFilterControl.value;
+    if (!countryId) {
+      return this.companies;
+    }
+    return this.companies.filter((company) => {
+      const baseCountryId = company.baseCountryId || (company as { countryId?: string }).countryId || undefined;
+      return baseCountryId === countryId;
+    });
+  }
+
+  openCreateCompanyDialog(): void {
+    if (!this.organizationId) {
+      this.messageService.add({
+        severity: 'info',
+        summary: 'Atencion',
+        detail: 'Primero crea la organizacion.',
+      });
+      return;
+    }
+    const defaultCountryId = this.countryFilterControl.value || this.countries[0]?.id || null;
+    const defaultCurrencyId = this.currencies[0]?.id || null;
+    this.companyForm.reset({
+      name: '',
+      countryId: defaultCountryId,
+      currencyId: defaultCurrencyId,
+    });
+    this.isCompanyDialogOpen = true;
+  }
+
+  submitCompany(): void {
+    if (!this.organizationId || this.isSubmittingCompany) {
+      return;
+    }
+
+    if (this.companyForm.invalid) {
+      this.companyForm.markAllAsTouched();
+      return;
+    }
+
+    const { name, countryId, currencyId } = this.companyForm.getRawValue();
+    if (!name?.trim() || !countryId || !currencyId) {
+      this.companyForm.markAllAsTouched();
+      return;
+    }
+
+    this.isSubmittingCompany = true;
+    this.companiesApi
+      .create(this.organizationId, {
+        name: name.trim(),
+        baseCountryId: countryId,
+        baseCurrencyId: currencyId,
+        countryId,
+        operatingCountryIds: [countryId],
+        currencyIds: [currencyId],
+        defaultCurrencyId: currencyId,
+      })
+      .pipe(take(1))
+      .subscribe({
+        next: () => {
+          this.isSubmittingCompany = false;
+          this.isCompanyDialogOpen = false;
+          this.loadCompanies();
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Listo',
+            detail: 'Compania creada.',
+          });
+        },
+        error: (err: unknown) => {
+          this.isSubmittingCompany = false;
+          const message =
+            err instanceof HttpErrorResponse
+              ? (err.error?.message as string | undefined) || 'No se pudo crear la compania.'
+              : 'No se pudo crear la compania.';
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: message,
+          });
+        },
+      });
+  }
+
+  private loadData(): void {
+    if (!this.organizationId) {
+      this.countries = [];
+      this.currencies = [];
+      this.companies = [];
+      this.readyChange.emit(false);
+      return;
+    }
+    this.isLoading = true;
+    this.organizationCoreApi
+      .getCoreSettings(this.organizationId)
+      .pipe(take(1))
+      .subscribe({
+        next: (response) => {
+          const result = response?.result;
+          const countries = Array.isArray(result?.countries) ? result.countries : [];
+          const currencies = Array.isArray(result?.currencies) ? result.currencies : [];
+          this.countries = countries
+            .map((country: CoreCountry) => ({
+              id: country.id,
+              name: country.name,
+              code: country.code,
+            }))
+            .filter((item) => item.id);
+          this.currencies = currencies
+            .map((currency: CoreCurrency) => ({
+              id: currency.id,
+              name: currency.name,
+              code: currency.code,
+              symbol: currency.symbol,
+            }))
+            .filter((item) => item.id);
+          if (!this.countryFilterControl.value && this.countries.length > 0) {
+            this.countryFilterControl.setValue(this.countries[0].id);
+          }
+          this.loadCompanies();
+        },
+        error: () => {
+          this.countries = [];
+          this.currencies = [];
+          this.companies = [];
+          this.isLoading = false;
+          this.readyChange.emit(false);
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'No se pudieron cargar las companias.',
+          });
+        },
+      });
+  }
+
+  private loadCompanies(): void {
+    if (!this.organizationId) {
+      this.companies = [];
+      this.readyChange.emit(false);
+      return;
+    }
+
+    this.companiesApi
+      .listByOrganization(this.organizationId)
+      .pipe(take(1))
+      .subscribe({
+        next: (response) => {
+          this.companies = Array.isArray(response?.result) ? response.result : [];
+          this.isLoading = false;
+          this.readyChange.emit(this.companies.length > 0);
+        },
+        error: () => {
+          this.companies = [];
+          this.isLoading = false;
+          this.readyChange.emit(false);
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'No se pudieron cargar las companias.',
+          });
+        },
+      });
+  }
+}
+
+interface SelectOption {
+  id: string;
+  name: string;
+  code?: string;
+  symbol?: string;
+}

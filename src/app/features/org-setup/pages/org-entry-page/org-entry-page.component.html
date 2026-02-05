@@ -1,5 +1,28 @@
-﻿<p-toast></p-toast>
+<p-toast></p-toast>
 <section class="entry-page">
+  <p-card *ngIf="pendingSetup && !hidePendingBanner" header="Configuracion pendiente" class="entry-card">
+    <p>
+      Tienes una organizacion en proceso: <strong>{{ pendingOrganizationLabel }}</strong>.
+      Puedes continuar la configuracion o eliminarla.
+    </p>
+    <div class="actions">
+      <p-button type="button" label="Continuar configuracion" (onClick)="continuePendingSetup()"></p-button>
+      <p-button
+        type="button"
+        label="Eliminar"
+        severity="danger"
+        (onClick)="deletePendingSetup()"
+      ></p-button>
+      <p-button
+        type="button"
+        label="Ignorar por ahora"
+        severity="secondary"
+        [text]="true"
+        (onClick)="hidePending()"
+      ></p-button>
+    </div>
+  </p-card>
+
   <p-card header="Configura tu organizacion" class="entry-card">
     <p>Elige como quieres comenzar.</p>
     <div class="actions">
@@ -147,6 +170,28 @@
     <p class="state">No hay organizaciones ni membresias.</p>
   </p-card>
 </section>
+
+<p-dialog
+  header="Configurar organizacion"
+  [(visible)]="wizardDialogOpen"
+  [modal]="true"
+  [closable]="true"
+  [draggable]="false"
+  [style]="{ width: '880px' }"
+  (onHide)="onWizardCancelled()"
+>
+  <app-org-create-page
+    [organizationId]="wizardOrganizationId || undefined"
+    [startStep]="wizardStartStep"
+    [managePending]="false"
+    [navigateOnComplete]="false"
+    [visibleInDialog]="true"
+    (cancelled)="onWizardCancelled()"
+    (completed)="onWizardCompleted($event)"
+    (organizationCreated)="onWizardOrganizationCreated($event)"
+    (stepChanged)="onWizardStepChanged($event)"
+  ></app-org-create-page>
+</p-dialog>
 
 <p-dialog
   header="Editar organizacion"

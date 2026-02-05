@@ -1,0 +1,150 @@
+<div class="bc-step-panel">
+  <div class="bc-alerts" *ngIf="!hasOrganization">
+    <div class="bc-alert bc-alert--info">
+      <div class="bc-alert__icon">
+        <i class="pi pi-info-circle" aria-hidden="true"></i>
+      </div>
+      <div class="bc-alert__content">
+        <div class="bc-alert__title">Primero crea la organizacion</div>
+        <div class="bc-alert__text">Completa el paso anterior para habilitar esta seccion.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bc-alerts" *ngIf="hasOrganization && companies.length > 0 && branches.length === 0">
+    <div class="bc-alert bc-alert--warn">
+      <div class="bc-alert__icon">
+        <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+      </div>
+      <div class="bc-alert__content">
+        <div class="bc-alert__title">Faltan empresas</div>
+        <div class="bc-alert__text">Agrega al menos una empresa para continuar.</div>
+      </div>
+      <div class="bc-alert__action">
+        <p-button
+          label="Crear empresa"
+          icon="pi pi-plus"
+          severity="secondary"
+          text
+          size="small"
+          (onClick)="openCreateBranchDialog()"
+        />
+      </div>
+    </div>
+  </div>
+
+  <div class="bc-panel-header">
+    <h3>Compania</h3>
+  </div>
+  <p-select
+    inputId="companyFilter"
+    [options]="companies"
+    optionLabel="name"
+    optionValue="id"
+    class="w-full"
+    styleClass="w-full"
+    [formControl]="companyFilterControl"
+    (onChange)="onCompanyChange($event.value)"
+  >
+    <ng-template #selectedItem let-company>
+      <div class="select-item">
+        <i class="pi pi-building"></i>
+        <span>{{ company?.name }}</span>
+      </div>
+    </ng-template>
+    <ng-template #item let-company>
+      <div class="select-item">
+        <i class="pi pi-building"></i>
+        <span>{{ company.name }}</span>
+      </div>
+    </ng-template>
+    <ng-template #dropdownicon>
+      <i class="pi pi-chevron-down"></i>
+    </ng-template>
+  </p-select>
+
+  <div class="bc-panel-header bc-panel-header--spaced">
+    <h3>Empresas</h3>
+    <p-button
+      label="Agregar empresa"
+      icon="pi pi-plus"
+      severity="secondary"
+      text
+      size="small"
+      [disabled]="!selectedCompany"
+      (onClick)="openCreateBranchDialog()"
+    />
+  </div>
+  <div class="bc-list" *ngIf="branches.length > 0; else emptyBranches">
+    <div class="bc-list-item" *ngFor="let branch of branches">
+      <span>{{ branch.name }}</span>
+      <small class="bc-muted">{{ branch.type }}</small>
+    </div>
+  </div>
+  <ng-template #emptyBranches>
+    <div class="bc-empty">No hay empresas para la compania seleccionada.</div>
+  </ng-template>
+</div>
+
+<p-dialog
+  header="Nueva empresa"
+  [(visible)]="isBranchDialogOpen"
+  [modal]="true"
+  [closable]="true"
+  [draggable]="false"
+  [style]="{ width: '420px' }"
+>
+  <form [formGroup]="branchForm" class="bc-form">
+    <div class="bc-field-group">
+      <div class="bc-field">
+        <p-floatLabel>
+          <input id="branchName" type="text" pInputText formControlName="name" class="w-full" />
+          <label for="branchName">Nombre de empresa</label>
+        </p-floatLabel>
+      </div>
+    </div>
+
+    <div class="bc-field-group">
+      <div class="bc-field">
+        <p-floatLabel>
+          <p-select
+            inputId="branchCountry"
+            [options]="countries"
+            optionLabel="name"
+            optionValue="id"
+            class="w-full"
+            styleClass="w-full"
+            formControlName="countryId"
+          ></p-select>
+          <label for="branchCountry">Pais</label>
+        </p-floatLabel>
+      </div>
+    </div>
+
+    <div class="bc-field-group">
+      <div class="bc-field">
+        <p-floatLabel>
+          <p-select
+            inputId="branchType"
+            [options]="[
+              { label: 'Retail', value: 'retail' },
+              { label: 'Wholesale', value: 'wholesale' }
+            ]"
+            optionLabel="label"
+            optionValue="value"
+            class="w-full"
+            styleClass="w-full"
+            formControlName="type"
+          ></p-select>
+          <label for="branchType">Tipo</label>
+        </p-floatLabel>
+      </div>
+    </div>
+  </form>
+  <ng-template #footer>
+    <div class="bc-actions bc-actions--end">
+      <p-button label="Cancelar" severity="secondary" (onClick)="isBranchDialogOpen = false"></p-button>
+      <p-button label="Crear" icon="pi pi-check" [loading]="isSubmittingBranch" (onClick)="submitBranch()"></p-button>
+    </div>
+  </ng-template>
+</p-dialog>

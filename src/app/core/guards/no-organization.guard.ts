@@ -3,16 +3,28 @@ import { CanActivateFn, Router } from '@angular/router';
 
 import { SessionStateService } from '../services/session-state.service';
 
-export const NoOrganizationGuard: CanActivateFn = () => {
+export const NoOrganizationGuard: CanActivateFn = (_route, state) => {
   const sessionState = inject(SessionStateService);
   const router = inject(Router);
+  const redirect = (url: string) => {
+    router.navigateByUrl(url, { replaceUrl: true });
+    return false;
+  };
 
   if (!sessionState.isAuthenticated()) {
-    return router.parseUrl('/auth/login');
+    return redirect('/auth/login');
+  }
+
+  const pending = sessionState.getPendingOrgSetup();
+  if (pending) {
+    if (state.url.startsWith('/org/setup/create')) {
+      return history.state?.continueSetup ? true : redirect('/org/setup');
+    }
+    return true;
   }
 
   if (sessionState.hasOrganizations()) {
-    return router.parseUrl(sessionState.hasDefaults() ? '/app' : '/context/select');
+    return redirect(sessionState.hasDefaults() ? '/app' : '/context/select');
   }
 
   return true;

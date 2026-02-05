@@ -1,0 +1,153 @@
+<div class="bc-step-panel">
+  <div class="bc-alerts" *ngIf="!hasOrganization">
+    <div class="bc-alert bc-alert--info">
+      <div class="bc-alert__icon">
+        <i class="pi pi-info-circle" aria-hidden="true"></i>
+      </div>
+      <div class="bc-alert__content">
+        <div class="bc-alert__title">Primero crea la organizacion</div>
+        <div class="bc-alert__text">Completa el paso anterior para habilitar esta seccion.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bc-alerts" *ngIf="hasOrganization">
+    <div class="bc-alert bc-alert--warn" *ngIf="countries.length === 0">
+      <div class="bc-alert__icon">
+        <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+      </div>
+      <div class="bc-alert__content">
+        <div class="bc-alert__title">Falta crear un pais</div>
+        <div class="bc-alert__text">Debes crear al menos un pais antes de continuar.</div>
+      </div>
+      <div class="bc-alert__action">
+        <p-button
+          label="Crear pais"
+          icon="pi pi-plus"
+          severity="secondary"
+          text
+          size="small"
+          (onClick)="openCreateCountryDialog()"
+        />
+      </div>
+    </div>
+
+    <div class="bc-alert bc-alert--info" *ngIf="currencies.length === 0">
+      <div class="bc-alert__icon">
+        <i class="pi pi-info-circle" aria-hidden="true"></i>
+      </div>
+      <div class="bc-alert__content">
+        <div class="bc-alert__title">Falta crear una moneda</div>
+        <div class="bc-alert__text">Debes crear al menos una moneda antes de continuar.</div>
+      </div>
+      <div class="bc-alert__action">
+        <p-button
+          label="Crear moneda"
+          icon="pi pi-plus"
+          severity="secondary"
+          text
+          size="small"
+          (onClick)="openCreateCurrencyDialog()"
+        />
+      </div>
+    </div>
+  </div>
+
+  <div class="bc-grid">
+    <div class="bc-grid__item">
+      <div class="bc-panel-header">
+        <h3>Paises</h3>
+        <p-button
+          label="Agregar"
+          icon="pi pi-plus"
+          severity="secondary"
+          text
+          size="small"
+          [disabled]="!hasOrganization"
+          (onClick)="openCreateCountryDialog()"
+        />
+      </div>
+      <div class="bc-list" *ngIf="countries.length > 0; else emptyCountries">
+        <div class="bc-list-item" *ngFor="let country of countries">
+          <span>{{ country.name }}</span>
+          <small class="bc-muted">{{ country.code?.toUpperCase() }}</small>
+        </div>
+      </div>
+      <ng-template #emptyCountries>
+        <div class="bc-empty">No hay paises configurados.</div>
+      </ng-template>
+    </div>
+
+    <div class="bc-grid__item">
+      <div class="bc-panel-header">
+        <h3>Monedas</h3>
+        <p-button
+          label="Agregar"
+          icon="pi pi-plus"
+          severity="secondary"
+          text
+          size="small"
+          [disabled]="!hasOrganization"
+          (onClick)="openCreateCurrencyDialog()"
+        />
+      </div>
+      <div class="bc-list" *ngIf="currencies.length > 0; else emptyCurrencies">
+        <div class="bc-list-item" *ngFor="let currency of currencies">
+          <span>{{ currency.name }}</span>
+          <small class="bc-muted">{{ currency.symbol || currency.code }}</small>
+        </div>
+      </div>
+      <ng-template #emptyCurrencies>
+        <div class="bc-empty">No hay monedas configuradas.</div>
+      </ng-template>
+    </div>
+  </div>
+</div>
+
+<p-dialog
+  header="Nuevo pais"
+  [(visible)]="isCountryDialogOpen"
+  [modal]="true"
+  [closable]="true"
+  [draggable]="false"
+  [style]="{ width: '420px' }"
+>
+  <app-create-country-form
+    #countryForm
+    [showActions]="false"
+    [organizationId]="organizationId"
+    (created)="onCountryCreated($event); isCountryDialogOpen = false"
+    (cancelled)="isCountryDialogOpen = false"
+    (error)="onDialogError($event)"
+  ></app-create-country-form>
+  <ng-template #footer>
+    <div class="bc-actions bc-actions--end">
+      <p-button label="Cancelar" severity="secondary" (onClick)="countryForm.cancel()"></p-button>
+      <p-button label="Crear" icon="pi pi-check" (onClick)="countryForm.submit()"></p-button>
+    </div>
+  </ng-template>
+</p-dialog>
+
+<p-dialog
+  header="Nueva moneda"
+  [(visible)]="isCurrencyDialogOpen"
+  [modal]="true"
+  [closable]="true"
+  [draggable]="false"
+  [style]="{ width: '420px' }"
+>
+  <app-create-currency-form
+    #currencyForm
+    [showActions]="false"
+    [organizationId]="organizationId"
+    (created)="onCurrencyCreated($event); isCurrencyDialogOpen = false"
+    (cancelled)="isCurrencyDialogOpen = false"
+    (error)="onDialogError($event)"
+  ></app-create-currency-form>
+  <ng-template #footer>
+    <div class="bc-actions bc-actions--end">
+      <p-button label="Cancelar" severity="secondary" (onClick)="currencyForm.cancel()"></p-button>
+      <p-button label="Crear" icon="pi pi-check" (onClick)="currencyForm.submit()"></p-button>
+    </div>
+  </ng-template>
+</p-dialog>
