@@ -22,6 +22,7 @@ export class OrgStepCompaniesByCountryComponent implements OnChanges {
   private readonly messageService = inject(MessageService);
 
   @Input() organizationId: string | null = null;
+  @Input() refreshToken = 0;
 
   @Output() readyChange = new EventEmitter<boolean>();
   @Output() editCompany = new EventEmitter<Company>();
@@ -47,6 +48,9 @@ export class OrgStepCompaniesByCountryComponent implements OnChanges {
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['organizationId']) {
+      this.loadData();
+    }
+    if (changes['refreshToken'] && !changes['refreshToken'].firstChange) {
       this.loadData();
     }
   }
@@ -121,10 +125,6 @@ export class OrgStepCompaniesByCountryComponent implements OnChanges {
       ],
       defaultEnterpriseKey: { countryId, enterpriseIndex: 0 },
     };
-
-    // TEMP: remove after confirming payload is correct in devtools.
-    // eslint-disable-next-line no-console
-    console.log('[ORG] create company payload', payload);
 
     this.isSubmittingCompany = true;
     this.companiesApi

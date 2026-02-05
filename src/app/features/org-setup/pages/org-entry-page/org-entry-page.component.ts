@@ -448,27 +448,31 @@ export class OrgEntryPageComponent implements OnInit {
   }
 
   onWizardCompleted(payload: { organizationId: string }): void {
-    this.sessionState.clearPendingOrgSetup();
-    this.pendingSetup = null;
-    this.closeWizardDialog();
-    this.refreshLists();
-    if (payload.organizationId) {
-      this.selectOrganization({ id: payload.organizationId } as IOrganization);
-    }
+    queueMicrotask(() => {
+      this.sessionState.clearPendingOrgSetup();
+      this.pendingSetup = null;
+      this.closeWizardDialog();
+      this.refreshLists();
+      if (payload.organizationId) {
+        this.selectOrganization({ id: payload.organizationId } as IOrganization);
+      }
+    });
   }
 
   onWizardOrganizationCreated(payload: { organizationId: string }): void {
     if (!payload?.organizationId) {
       return;
     }
-    this.wizardOrganizationId = payload.organizationId;
-    this.sessionState.setPendingOrgSetup({
-      organizationId: payload.organizationId,
-      startedAt: new Date().toISOString(),
-      lastStep: 2,
+    queueMicrotask(() => {
+      this.wizardOrganizationId = payload.organizationId;
+      this.sessionState.setPendingOrgSetup({
+        organizationId: payload.organizationId,
+        startedAt: new Date().toISOString(),
+        lastStep: 2,
+      });
+      this.pendingSetup = this.sessionState.getPendingOrgSetup();
+      this.refreshLists();
     });
-    this.pendingSetup = this.sessionState.getPendingOrgSetup();
-    this.refreshLists();
   }
 
   onWizardStepChanged(step: number): void {
@@ -476,13 +480,15 @@ export class OrgEntryPageComponent implements OnInit {
     if (!orgId) {
       return;
     }
-    const startedAt = this.pendingSetup?.startedAt ?? new Date().toISOString();
-    this.sessionState.setPendingOrgSetup({
-      organizationId: orgId,
-      startedAt,
-      lastStep: step,
+    queueMicrotask(() => {
+      const startedAt = this.pendingSetup?.startedAt ?? new Date().toISOString();
+      this.sessionState.setPendingOrgSetup({
+        organizationId: orgId,
+        startedAt,
+        lastStep: step,
+      });
+      this.pendingSetup = this.sessionState.getPendingOrgSetup();
     });
-    this.pendingSetup = this.sessionState.getPendingOrgSetup();
   }
 
   continuePendingSetup(): void {

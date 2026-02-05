@@ -24,6 +24,7 @@ export class OrgStepBranchesByCompanyComponent implements OnChanges {
   private readonly messageService = inject(MessageService);
 
   @Input() organizationId: string | null = null;
+  @Input() refreshToken = 0;
 
   @Output() finished = new EventEmitter<void>();
   @Output() editBranch = new EventEmitter<Branch>();
@@ -48,6 +49,9 @@ export class OrgStepBranchesByCompanyComponent implements OnChanges {
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['organizationId']) {
+      this.loadData();
+    }
+    if (changes['refreshToken'] && !changes['refreshToken'].firstChange) {
       this.loadData();
     }
   }

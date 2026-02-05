@@ -17,6 +17,7 @@ export class OrgStepCountriesCurrenciesComponent implements OnChanges {
   private readonly messageService = inject(MessageService);
 
   @Input() organizationId: string | null = null;
+  @Input() refreshToken = 0;
 
   @Output() readyChange = new EventEmitter<boolean>();
   @Output() editCountry = new EventEmitter<SelectOption>();
@@ -33,6 +34,9 @@ export class OrgStepCountriesCurrenciesComponent implements OnChanges {
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['organizationId']) {
+      this.loadCoreSettings();
+    }
+    if (changes['refreshToken'] && !changes['refreshToken'].firstChange) {
       this.loadCoreSettings();
     }
   }

@@ -1,11 +1,16 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, OnInit, Output, inject } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { Button } from 'primeng/button';
 import { Card } from 'primeng/card';
 import { ConfirmDialog } from 'primeng/confirmdialog';
+import { Dialog } from 'primeng/dialog';
+import { FloatLabel } from 'primeng/floatlabel';
+import { InputText } from 'primeng/inputtext';
+import { Select } from 'primeng/select';
 import { StepperModule } from 'primeng/stepper';
 
 import { OrgSetupComponentsModule } from '../../components/org-setup-components.module';
@@ -14,19 +19,42 @@ import { ActiveContextStateService } from '../../../../core/context/active-conte
 import { SessionStateService } from '../../../../core/services/session-state.service';
 import { take } from 'rxjs/operators';
 import { OrganizationCoreApiService } from '../../../../core/api/organization-core-api.service';
+import { CompaniesApiService } from '../../../../core/api/companies-api.service';
+import { BranchesApiService } from '../../../../core/api/branches-api.service';
+import { CoreCountry, CoreCurrency, OrganizationCoreSettings } from '../../../../shared/models/organization-core.model';
+import { Company } from '../../../../shared/models/company.model';
+import { Branch, BranchType } from '../../../../shared/models/branch.model';
+
+type EditableCountry = { id: string; name: string; code?: string };
+type EditableCurrency = { id: string; name: string; code?: string; symbol?: string };
 
 @Component({
   selector: 'app-org-create-page',
   standalone: true,
-  imports: [CommonModule, Button, Card, ConfirmDialog, StepperModule, OrgSetupComponentsModule],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    Button,
+    Card,
+    ConfirmDialog,
+    Dialog,
+    FloatLabel,
+    InputText,
+    Select,
+    StepperModule,
+    OrgSetupComponentsModule,
+  ],
   templateUrl: './org-create-page.component.html',
   styleUrl: './org-create-page.component.scss',
   providers: [ConfirmationService],
 })
 export class OrgCreatePageComponent implements OnInit {
   private readonly router = inject(Router);
+  private readonly fb = inject(FormBuilder);
   private readonly organizationsApi = inject(OrganizationsService);
   private readonly organizationCoreApi = inject(OrganizationCoreApiService);
+  private readonly companiesApi = inject(CompaniesApiService);
+  private readonly branchesApi = inject(BranchesApiService);
   private readonly activeContextState = inject(ActiveContextStateService);
   private readonly sessionState = inject(SessionStateService);
   private readonly messageService = inject(MessageService);
@@ -54,6 +82,40 @@ export class OrgCreatePageComponent implements OnInit {
   step2Ready = false;
   step3Ready = false;
   step4Ready = false;
+
+  step2RefreshToken = 0;
+  step3RefreshToken = 0;
+  step4RefreshToken = 0;
+
+  editCountryDialogOpen = false;
+  editCurrencyDialogOpen = false;
+  editCompanyDialogOpen = false;
+  editBranchDialogOpen = false;
+
+  editingCountry: EditableCountry | null = null;
+  editingCurrency: EditableCurrency | null = null;
+  editingCompany: Company | null = null;
+  editingBranch: Branch | null = null;
+
+  readonly editCountryForm = this.fb.nonNullable.group({
+    name: this.fb.nonNullable.control('', [Validators.required, Validators.minLength(2)]),
+    code: this.fb.nonNullable.control('', [Validators.required, Validators.minLength(2), Validators.maxLength(3)]),
+  });
+
+  readonly editCurrencyForm = this.fb.nonNullable.group({
+    name: this.fb.nonNullable.control('', [Validators.required, Validators.minLength(2)]),
+    code: this.fb.nonNullable.control('', [Validators.required, Validators.minLength(2), Validators.maxLength(4)]),
+    symbol: this.fb.control<string | null>(null),
+  });
+
+  readonly editCompanyForm = this.fb.nonNullable.group({
+    name: this.fb.nonNullable.control('', [Validators.required, Validators.minLength(2)]),
+  });
+
+  readonly editBranchForm = this.fb.nonNullable.group({
+    name: this.fb.nonNullable.control('', [Validators.required, Validators.minLength(2)]),
+    type: this.fb.nonNullable.control<BranchType>('retail', [Validators.required]),
+  });
 
   get activeStep(): number {
     return this._activeStep;
@@ -113,100 +175,250 @@ export class OrgCreatePageComponent implements OnInit {
     this.step4Ready = true;
   }
 
-  onEditCountry(_country: unknown): void {
-    this.messageService.add({
-      severity: 'info',
-      summary: 'Pais',
-      detail: 'Edicion no disponible por el momento.',
+  onEditCountry(country: EditableCountry): void {
+    if (!country?.id) {
+      return;
+    }
+    this.editingCountry = country;
+    this.editCountryForm.reset({
+      name: country.name,
+      code: country.code ?? '',
     });
+    this.editCountryDialogOpen = true;
   }
 
-  onDeleteCountry(_country: unknown): void {
+  onDeleteCountry(country: EditableCountry): void {
+    if (!country?.id) {
+      return;
+    }
     this.confirmationService.confirm({
-      header: 'Eliminar pais',
-      message: '¿Deseas eliminar este pais? Esta accion no esta disponible por el momento.',
-      acceptLabel: 'Aceptar',
-      rejectLabel: 'Cancelar',
+      header: "Eliminar pais",
+      message: "Deseas eliminar este pais?",
+      acceptLabel: "Eliminar",
+      rejectLabel: "Cancelar",
       accept: () => {
-        this.messageService.add({
-          severity: 'info',
-          summary: 'Pais',
-          detail: 'Eliminacion no disponible por el momento.',
+        this.updateCoreSettings({
+          countries: (settings) => settings.countries.filter((item) => item.id !== country.id),
         });
       },
     });
   }
 
-  onEditCurrency(_currency: unknown): void {
-    this.messageService.add({
-      severity: 'info',
-      summary: 'Moneda',
-      detail: 'Edicion no disponible por el momento.',
+  onEditCurrency(currency: EditableCurrency): void {
+    if (!currency?.id) {
+      return;
+    }
+    this.editingCurrency = currency;
+    this.editCurrencyForm.reset({
+      name: currency.name,
+      code: currency.code ?? '',
+      symbol: currency.symbol ?? null,
     });
+    this.editCurrencyDialogOpen = true;
   }
 
-  onDeleteCurrency(_currency: unknown): void {
+  onDeleteCurrency(currency: EditableCurrency): void {
+    if (!currency?.id) {
+      return;
+    }
     this.confirmationService.confirm({
-      header: 'Eliminar moneda',
-      message: '¿Deseas eliminar esta moneda? Esta accion no esta disponible por el momento.',
-      acceptLabel: 'Aceptar',
-      rejectLabel: 'Cancelar',
+      header: "Eliminar moneda",
+      message: "Deseas eliminar esta moneda?",
+      acceptLabel: "Eliminar",
+      rejectLabel: "Cancelar",
       accept: () => {
-        this.messageService.add({
-          severity: 'info',
-          summary: 'Moneda',
-          detail: 'Eliminacion no disponible por el momento.',
+        this.updateCoreSettings({
+          currencies: (settings) => settings.currencies.filter((item) => item.id !== currency.id),
         });
       },
     });
   }
 
-  onEditCompany(_company: unknown): void {
-    this.messageService.add({
-      severity: 'info',
-      summary: 'Compania',
-      detail: 'Edicion no disponible por el momento.',
+  onEditCompany(company: Company): void {
+    if (!company?.id) {
+      return;
+    }
+    this.editingCompany = company;
+    this.editCompanyForm.reset({
+      name: company.name ?? "",
     });
+    this.editCompanyDialogOpen = true;
   }
 
-  onDeleteCompany(_company: unknown): void {
+  onDeleteCompany(company: Company): void {
+    if (!company?.id) {
+      return;
+    }
     this.confirmationService.confirm({
-      header: 'Eliminar compania',
-      message: '¿Deseas eliminar esta compania? Esta accion no esta disponible por el momento.',
-      acceptLabel: 'Aceptar',
-      rejectLabel: 'Cancelar',
+      header: "Eliminar compania",
+      message: "Deseas eliminar esta compania? Esta accion no esta disponible por el momento.",
+      acceptLabel: "Entendido",
+      rejectLabel: "Cancelar",
       accept: () => {
         this.messageService.add({
-          severity: 'info',
-          summary: 'Compania',
-          detail: 'Eliminacion no disponible por el momento.',
+          severity: "info",
+          summary: "Compania",
+          detail: "Eliminacion no disponible por el momento.",
         });
       },
     });
   }
 
-  onEditBranch(_branch: unknown): void {
-    this.messageService.add({
-      severity: 'info',
-      summary: 'Empresa',
-      detail: 'Edicion no disponible por el momento.',
+  onEditBranch(branch: Branch): void {
+    if (!branch?.id) {
+      return;
+    }
+    this.editingBranch = branch;
+    this.editBranchForm.reset({
+      name: branch.name ?? "",
+      type: branch.type ?? "retail",
     });
+    this.editBranchDialogOpen = true;
   }
 
-  onDeleteBranch(_branch: unknown): void {
+  onDeleteBranch(branch: Branch): void {
+    if (!branch?.id) {
+      return;
+    }
     this.confirmationService.confirm({
-      header: 'Eliminar empresa',
-      message: '¿Deseas eliminar esta empresa? Esta accion no esta disponible por el momento.',
-      acceptLabel: 'Aceptar',
-      rejectLabel: 'Cancelar',
+      header: "Eliminar empresa",
+      message: "Deseas eliminar esta empresa? Esta accion no esta disponible por el momento.",
+      acceptLabel: "Entendido",
+      rejectLabel: "Cancelar",
       accept: () => {
         this.messageService.add({
-          severity: 'info',
-          summary: 'Empresa',
-          detail: 'Eliminacion no disponible por el momento.',
+          severity: "info",
+          summary: "Empresa",
+          detail: "Eliminacion no disponible por el momento.",
         });
       },
     });
+  }
+  saveCountryEdit(): void {
+    if (!this.editingCountry?.id || this.editCountryForm.invalid) {
+      this.editCountryForm.markAllAsTouched();
+      return;
+    }
+    const { name, code } = this.editCountryForm.getRawValue();
+    this.updateCoreSettings({
+      countries: (settings) =>
+        settings.countries.map((item) =>
+          item.id === this.editingCountry?.id
+            ? { ...item, name: name.trim(), code: code.trim().toUpperCase() }
+            : item,
+        ),
+    });
+    this.editCountryDialogOpen = false;
+  }
+
+  saveCurrencyEdit(): void {
+    if (!this.editingCurrency?.id || this.editCurrencyForm.invalid) {
+      this.editCurrencyForm.markAllAsTouched();
+      return;
+    }
+    const { name, code, symbol } = this.editCurrencyForm.getRawValue();
+    this.updateCoreSettings({
+      currencies: (settings) =>
+        settings.currencies.map((item) =>
+          item.id === this.editingCurrency?.id
+            ? { ...item, name: name.trim(), code: code.trim().toUpperCase(), symbol: symbol ?? undefined }
+            : item,
+        ),
+    });
+    this.editCurrencyDialogOpen = false;
+  }
+
+  saveCompanyEdit(): void {
+    if (!this.editingCompany?.id || this.editCompanyForm.invalid) {
+      this.editCompanyForm.markAllAsTouched();
+      return;
+    }
+    const name = this.editCompanyForm.getRawValue().name.trim();
+    this.companiesApi
+      .update(this.editingCompany.id, { name })
+      .pipe(take(1))
+      .subscribe({
+        next: () => {
+          this.messageService.add({ severity: 'success', summary: 'Listo', detail: 'Compania actualizada.' });
+          this.editCompanyDialogOpen = false;
+          this.step3RefreshToken += 1;
+          this.step4RefreshToken += 1;
+        },
+        error: () => {
+          this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudo actualizar la compania.' });
+        },
+      });
+  }
+
+  saveBranchEdit(): void {
+    if (!this.editingBranch?.id || this.editBranchForm.invalid) {
+      this.editBranchForm.markAllAsTouched();
+      return;
+    }
+    const { name, type } = this.editBranchForm.getRawValue();
+    this.branchesApi
+      .update(this.editingBranch.id, { name: name.trim(), type })
+      .pipe(take(1))
+      .subscribe({
+        next: () => {
+          this.messageService.add({ severity: 'success', summary: 'Listo', detail: 'Empresa actualizada.' });
+          this.editBranchDialogOpen = false;
+          this.step4RefreshToken += 1;
+        },
+        error: () => {
+          this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudo actualizar la empresa.' });
+        },
+      });
+  }
+
+  private updateCoreSettings(update: {
+    countries?: (settings: OrganizationCoreSettings) => CoreCountry[];
+    currencies?: (settings: OrganizationCoreSettings) => CoreCurrency[];
+  }): void {
+    if (!this.createdOrganizationId) {
+      return;
+    }
+    this.organizationCoreApi
+      .getCoreSettings(this.createdOrganizationId)
+      .pipe(take(1))
+      .subscribe({
+        next: (response) => {
+          const settings = response?.result;
+          if (!settings) {
+            return;
+          }
+          const payload: { countries?: CoreCountry[]; currencies?: CoreCurrency[] } = {};
+          if (update.countries) {
+            payload.countries = update.countries(settings);
+          }
+          if (update.currencies) {
+            payload.currencies = update.currencies(settings);
+          }
+          this.organizationCoreApi
+            .updateCoreSettings(this.createdOrganizationId ?? '', payload)
+            .pipe(take(1))
+            .subscribe({
+              next: () => {
+                this.messageService.add({ severity: 'success', summary: 'Listo', detail: 'Datos actualizados.' });
+                this.step2RefreshToken += 1;
+              },
+              error: () => {
+                this.messageService.add({
+                  severity: 'error',
+                  summary: 'Error',
+                  detail: 'No se pudieron actualizar los datos.',
+                });
+              },
+            });
+        },
+        error: () => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'No se pudieron cargar los datos.',
+          });
+        },
+      });
   }
 
   goBack(): void {
@@ -235,6 +447,33 @@ export class OrgCreatePageComponent implements OnInit {
     if (this.activeStep < 4) {
       this.activeStep += 1;
     }
+  }
+
+  onStepperValueChange(next: number | undefined): void {
+    if (typeof next !== 'number') {
+      return;
+    }
+    if (this.canActivateStep(next)) {
+      this.activeStep = next;
+    }
+  }
+
+  canActivateStep(step: number): boolean {
+    return step <= this.maxEnabledStep;
+  }
+
+  get maxEnabledStep(): number {
+    let max = 1;
+    if (this.step1Valid && this.createdOrganizationId) {
+      max = 2;
+    }
+    if (this.step2Ready) {
+      max = 3;
+    }
+    if (this.step3Ready) {
+      max = 4;
+    }
+    return Math.max(max, this.activeStep);
   }
 
   finish(): void {

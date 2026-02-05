@@ -1,11 +1,11 @@
 <section [class.bc-page-center]="mode === 'page'" [class.bc-dialog-wrapper]="mode === 'dialog'">
   <p-card header="Crear organizacion" class="bc-card">
-    <p-stepper [(value)]="activeStep">
+    <p-stepper [value]="activeStep" (valueChange)="onStepperValueChange($event)">
       <p-step-list>
         <p-step [value]="1">Organizacion</p-step>
-        <p-step [value]="2">Paises y Monedas</p-step>
-        <p-step [value]="3">Companias por Pais</p-step>
-        <p-step [value]="4">Empresas por Compania</p-step>
+        <p-step [value]="2" [disabled]="!canActivateStep(2)">Paises y Monedas</p-step>
+        <p-step [value]="3" [disabled]="!canActivateStep(3)">Companias por Pais</p-step>
+        <p-step [value]="4" [disabled]="!canActivateStep(4)">Empresas por Compania</p-step>
       </p-step-list>
 
       <p-step-panels>
@@ -25,6 +25,7 @@
           <ng-template #content>
             <app-org-step-countries-currencies
               [organizationId]="createdOrganizationId"
+              [refreshToken]="step2RefreshToken"
               (readyChange)="onStep2ReadyChange($event)"
               (editCountry)="onEditCountry($event)"
               (deleteCountry)="onDeleteCountry($event)"
@@ -38,6 +39,7 @@
           <ng-template #content>
             <app-org-step-companies-by-country
               [organizationId]="createdOrganizationId"
+              [refreshToken]="step3RefreshToken"
               (readyChange)="onStep3ReadyChange($event)"
               (editCompany)="onEditCompany($event)"
               (deleteCompany)="onDeleteCompany($event)"
@@ -49,6 +51,7 @@
           <ng-template #content>
             <app-org-step-branches-by-company
               [organizationId]="createdOrganizationId"
+              [refreshToken]="step4RefreshToken"
               (finished)="onStep4Finished()"
               (editBranch)="onEditBranch($event)"
               (deleteBranch)="onDeleteBranch($event)"
@@ -88,4 +91,136 @@
     </div>
   </p-card>
 </section>
+
+<p-dialog
+  header="Editar pais"
+  [(visible)]="editCountryDialogOpen"
+  [modal]="true"
+  [closable]="true"
+  [draggable]="false"
+  [style]="{ width: '420px' }"
+>
+  <form [formGroup]="editCountryForm" class="bc-form">
+    <div class="bc-field">
+      <p-floatLabel>
+        <input id="editCountryName" type="text" pInputText formControlName="name" class="w-full" />
+        <label for="editCountryName">Nombre</label>
+      </p-floatLabel>
+    </div>
+    <div class="bc-field">
+      <p-floatLabel>
+        <input id="editCountryCode" type="text" pInputText formControlName="code" class="w-full" />
+        <label for="editCountryCode">Codigo</label>
+      </p-floatLabel>
+    </div>
+  </form>
+  <ng-template #footer>
+    <div class="bc-actions bc-actions--end">
+      <p-button label="Cancelar" severity="secondary" (onClick)="editCountryDialogOpen = false"></p-button>
+      <p-button label="Guardar" icon="pi pi-check" (onClick)="saveCountryEdit()"></p-button>
+    </div>
+  </ng-template>
+</p-dialog>
+
+<p-dialog
+  header="Editar moneda"
+  [(visible)]="editCurrencyDialogOpen"
+  [modal]="true"
+  [closable]="true"
+  [draggable]="false"
+  [style]="{ width: '420px' }"
+>
+  <form [formGroup]="editCurrencyForm" class="bc-form">
+    <div class="bc-field">
+      <p-floatLabel>
+        <input id="editCurrencyName" type="text" pInputText formControlName="name" class="w-full" />
+        <label for="editCurrencyName">Nombre</label>
+      </p-floatLabel>
+    </div>
+    <div class="bc-field">
+      <p-floatLabel>
+        <input id="editCurrencyCode" type="text" pInputText formControlName="code" class="w-full" />
+        <label for="editCurrencyCode">Codigo</label>
+      </p-floatLabel>
+    </div>
+    <div class="bc-field">
+      <p-floatLabel>
+        <input id="editCurrencySymbol" type="text" pInputText formControlName="symbol" class="w-full" />
+        <label for="editCurrencySymbol">Simbolo</label>
+      </p-floatLabel>
+    </div>
+  </form>
+  <ng-template #footer>
+    <div class="bc-actions bc-actions--end">
+      <p-button label="Cancelar" severity="secondary" (onClick)="editCurrencyDialogOpen = false"></p-button>
+      <p-button label="Guardar" icon="pi pi-check" (onClick)="saveCurrencyEdit()"></p-button>
+    </div>
+  </ng-template>
+</p-dialog>
+
+<p-dialog
+  header="Editar compania"
+  [(visible)]="editCompanyDialogOpen"
+  [modal]="true"
+  [closable]="true"
+  [draggable]="false"
+  [style]="{ width: '420px' }"
+>
+  <form [formGroup]="editCompanyForm" class="bc-form">
+    <div class="bc-field">
+      <p-floatLabel>
+        <input id="editCompanyName" type="text" pInputText formControlName="name" class="w-full" />
+        <label for="editCompanyName">Nombre</label>
+      </p-floatLabel>
+    </div>
+  </form>
+  <ng-template #footer>
+    <div class="bc-actions bc-actions--end">
+      <p-button label="Cancelar" severity="secondary" (onClick)="editCompanyDialogOpen = false"></p-button>
+      <p-button label="Guardar" icon="pi pi-check" (onClick)="saveCompanyEdit()"></p-button>
+    </div>
+  </ng-template>
+</p-dialog>
+
+<p-dialog
+  header="Editar empresa"
+  [(visible)]="editBranchDialogOpen"
+  [modal]="true"
+  [closable]="true"
+  [draggable]="false"
+  [style]="{ width: '420px' }"
+>
+  <form [formGroup]="editBranchForm" class="bc-form">
+    <div class="bc-field">
+      <p-floatLabel>
+        <input id="editBranchName" type="text" pInputText formControlName="name" class="w-full" />
+        <label for="editBranchName">Nombre</label>
+      </p-floatLabel>
+    </div>
+    <div class="bc-field">
+      <p-floatLabel>
+        <p-select
+          inputId="editBranchType"
+          [options]="[
+            { label: 'Retail', value: 'retail' },
+            { label: 'Wholesale', value: 'wholesale' }
+          ]"
+          optionLabel="label"
+          optionValue="value"
+          class="w-full"
+          styleClass="w-full"
+          formControlName="type"
+        ></p-select>
+        <label for="editBranchType">Tipo</label>
+      </p-floatLabel>
+    </div>
+  </form>
+  <ng-template #footer>
+    <div class="bc-actions bc-actions--end">
+      <p-button label="Cancelar" severity="secondary" (onClick)="editBranchDialogOpen = false"></p-button>
+      <p-button label="Guardar" icon="pi pi-check" (onClick)="saveBranchEdit()"></p-button>
+    </div>
+  </ng-template>
+</p-dialog>
+
 <p-confirmDialog></p-confirmDialog>
