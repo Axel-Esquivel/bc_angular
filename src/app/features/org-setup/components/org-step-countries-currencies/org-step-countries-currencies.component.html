@@ -75,16 +75,14 @@
               icon="pi pi-pencil"
               text
               size="small"
-              [disabled]="true"
-              title="Editar no disponible"
+              (onClick)="editCountry.emit(country)"
             ></p-button>
             <p-button
               icon="pi pi-trash"
               severity="danger"
               text
               size="small"
-              [disabled]="true"
-              title="Eliminar no disponible"
+              (onClick)="deleteCountry.emit(country)"
             ></p-button>
           </div>
         </div>
@@ -115,16 +113,14 @@
               icon="pi pi-pencil"
               text
               size="small"
-              [disabled]="true"
-              title="Editar no disponible"
+              (onClick)="editCurrency.emit(currency)"
             ></p-button>
             <p-button
               icon="pi pi-trash"
               severity="danger"
               text
               size="small"
-              [disabled]="true"
-              title="Eliminar no disponible"
+              (onClick)="deleteCurrency.emit(currency)"
             ></p-button>
           </div>
         </div>

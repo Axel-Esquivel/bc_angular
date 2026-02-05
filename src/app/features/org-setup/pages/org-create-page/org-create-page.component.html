@@ -26,6 +26,10 @@
             <app-org-step-countries-currencies
               [organizationId]="createdOrganizationId"
               (readyChange)="onStep2ReadyChange($event)"
+              (editCountry)="onEditCountry($event)"
+              (deleteCountry)="onDeleteCountry($event)"
+              (editCurrency)="onEditCurrency($event)"
+              (deleteCurrency)="onDeleteCurrency($event)"
             ></app-org-step-countries-currencies>
           </ng-template>
         </p-step-panel>
@@ -35,6 +39,8 @@
             <app-org-step-companies-by-country
               [organizationId]="createdOrganizationId"
               (readyChange)="onStep3ReadyChange($event)"
+              (editCompany)="onEditCompany($event)"
+              (deleteCompany)="onDeleteCompany($event)"
             ></app-org-step-companies-by-country>
           </ng-template>
         </p-step-panel>
@@ -44,6 +50,8 @@
             <app-org-step-branches-by-company
               [organizationId]="createdOrganizationId"
               (finished)="onStep4Finished()"
+              (editBranch)="onEditBranch($event)"
+              (deleteBranch)="onDeleteBranch($event)"
             ></app-org-step-branches-by-company>
           </ng-template>
         </p-step-panel>

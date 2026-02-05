@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
@@ -59,6 +60,15 @@ export class OrgEntryPageComponent implements OnInit {
 
   ngOnInit(): void {
     this.pendingSetup = this.sessionState.getPendingOrgSetup();
+    if (!this.authService.isAuthenticated()) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Sesion',
+        detail: 'Debes iniciar sesion.',
+      });
+      this.router.navigateByUrl('/auth/login');
+      return;
+    }
     if (history.state?.refresh) {
       this.refreshLists();
       return;
@@ -101,9 +111,19 @@ export class OrgEntryPageComponent implements OnInit {
           this.ownerOrganizations = userId ? orgs.filter((org) => org.ownerUserId === userId) : [];
           this.loadMemberships();
         },
-        error: () => {
+        error: (err: unknown) => {
           this.loading = false;
           this.ownerOrganizations = [];
+          const status = err instanceof HttpErrorResponse ? err.status : null;
+          if (status === 401 || status === 403) {
+            this.messageService.add({
+              severity: 'warn',
+              summary: 'Sesion',
+              detail: 'Debes iniciar sesion.',
+            });
+            this.router.navigateByUrl('/auth/login');
+            return;
+          }
           this.messageService.add({
             severity: 'error',
             summary: 'Organizaciones',
@@ -123,9 +143,19 @@ export class OrgEntryPageComponent implements OnInit {
           this.memberships = response?.result ?? [];
           this.loading = false;
         },
-        error: () => {
+        error: (err: unknown) => {
           this.memberships = [];
           this.loading = false;
+          const status = err instanceof HttpErrorResponse ? err.status : null;
+          if (status === 401 || status === 403) {
+            this.messageService.add({
+              severity: 'warn',
+              summary: 'Sesion',
+              detail: 'Debes iniciar sesion.',
+            });
+            this.router.navigateByUrl('/auth/login');
+            return;
+          }
           this.messageService.add({
             severity: 'error',
             summary: 'Organizaciones',
@@ -389,9 +419,20 @@ export class OrgEntryPageComponent implements OnInit {
   }
 
   goCreate(): void {
-    this.wizardOrganizationId = null;
-    this.wizardStartStep = 1;
-    this.wizardDialogOpen = true;
+    if (!this.authService.isAuthenticated()) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Sesion',
+        detail: 'Debes iniciar sesion.',
+      });
+      this.router.navigateByUrl('/auth/login');
+      return;
+    }
+    queueMicrotask(() => {
+      this.wizardOrganizationId = null;
+      this.wizardStartStep = 1;
+      this.wizardDialogOpen = true;
+    });
   }
 
   goJoin(): void {
@@ -448,10 +489,21 @@ export class OrgEntryPageComponent implements OnInit {
     if (!this.pendingSetup?.organizationId) {
       return;
     }
-    this.wizardOrganizationId = this.pendingSetup.organizationId;
+    if (!this.authService.isAuthenticated()) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Sesion',
+        detail: 'Debes iniciar sesion.',
+      });
+      this.router.navigateByUrl('/auth/login');
+      return;
+    }
     const pendingStep = this.pendingSetup.lastStep ?? 2;
-    this.wizardStartStep = pendingStep < 1 ? 1 : pendingStep;
-    this.wizardDialogOpen = true;
+    queueMicrotask(() => {
+      this.wizardOrganizationId = this.pendingSetup?.organizationId ?? null;
+      this.wizardStartStep = pendingStep < 1 ? 1 : pendingStep;
+      this.wizardDialogOpen = true;
+    });
   }
 
   deletePendingSetup(): void {

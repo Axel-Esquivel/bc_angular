@@ -19,6 +19,10 @@ export class OrgStepCountriesCurrenciesComponent implements OnChanges {
   @Input() organizationId: string | null = null;
 
   @Output() readyChange = new EventEmitter<boolean>();
+  @Output() editCountry = new EventEmitter<SelectOption>();
+  @Output() deleteCountry = new EventEmitter<SelectOption>();
+  @Output() editCurrency = new EventEmitter<SelectOption>();
+  @Output() deleteCurrency = new EventEmitter<SelectOption>();
 
   countries: SelectOption[] = [];
   currencies: SelectOption[] = [];

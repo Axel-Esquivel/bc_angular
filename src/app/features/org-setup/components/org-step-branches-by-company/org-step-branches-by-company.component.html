@@ -76,11 +76,30 @@
     />
   </div>
   <div class="bc-list" *ngIf="branches.length > 0; else emptyBranches">
-    <div class="bc-list-item" *ngFor="let branch of branches">
-      <span>{{ branch.name }}</span>
-      <small class="bc-muted">{{ branch.type }}</small>
+  <div class="bc-list-item" *ngFor="let branch of branches">
+    <div class="bc-list-item__content">
+      <div class="bc-list-item__title">{{ branch.name }}</div>
+      <div class="bc-list-item__meta">
+        <span>{{ branch.type }}</span>
+      </div>
+    </div>
+    <div class="bc-actions">
+      <p-button
+        icon="pi pi-pencil"
+        text
+        size="small"
+        (onClick)="editBranch.emit(branch)"
+      ></p-button>
+      <p-button
+        icon="pi pi-trash"
+        severity="danger"
+        text
+        size="small"
+        (onClick)="deleteBranch.emit(branch)"
+      ></p-button>
     </div>
   </div>
+</div>
   <ng-template #emptyBranches>
     <div class="bc-empty">No hay empresas para la compania seleccionada.</div>
   </ng-template>

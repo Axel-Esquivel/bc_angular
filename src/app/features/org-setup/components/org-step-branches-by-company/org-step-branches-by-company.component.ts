@@ -26,6 +26,8 @@ export class OrgStepBranchesByCompanyComponent implements OnChanges {
   @Input() organizationId: string | null = null;
 
   @Output() finished = new EventEmitter<void>();
+  @Output() editBranch = new EventEmitter<Branch>();
+  @Output() deleteBranch = new EventEmitter<Branch>();
 
   companies: Company[] = [];
   branches: Branch[] = [];

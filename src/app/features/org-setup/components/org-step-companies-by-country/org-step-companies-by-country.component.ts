@@ -24,6 +24,8 @@ export class OrgStepCompaniesByCountryComponent implements OnChanges {
   @Input() organizationId: string | null = null;
 
   @Output() readyChange = new EventEmitter<boolean>();
+  @Output() editCompany = new EventEmitter<Company>();
+  @Output() deleteCompany = new EventEmitter<Company>();
 
   countries: SelectOption[] = [];
   currencies: SelectOption[] = [];

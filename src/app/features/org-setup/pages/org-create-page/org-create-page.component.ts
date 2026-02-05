@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, OnInit, Output, inject } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { Button } from 'primeng/button';
@@ -12,6 +13,7 @@ import { OrganizationsService } from '../../../../core/api/organizations-api.ser
 import { ActiveContextStateService } from '../../../../core/context/active-context-state.service';
 import { SessionStateService } from '../../../../core/services/session-state.service';
 import { take } from 'rxjs/operators';
+import { OrganizationCoreApiService } from '../../../../core/api/organization-core-api.service';
 
 @Component({
   selector: 'app-org-create-page',
@@ -24,9 +26,11 @@ import { take } from 'rxjs/operators';
 export class OrgCreatePageComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly organizationsApi = inject(OrganizationsService);
+  private readonly organizationCoreApi = inject(OrganizationCoreApiService);
   private readonly activeContextState = inject(ActiveContextStateService);
   private readonly sessionState = inject(SessionStateService);
   private readonly messageService = inject(MessageService);
+  private readonly confirmationService = inject(ConfirmationService);
 
   @Input() organizationId?: string;
   @Input() startStep = 1;
@@ -94,7 +98,7 @@ export class OrgCreatePageComponent implements OnInit {
     this.step2Ready = false;
     this.step3Ready = false;
     this.step4Ready = false;
-    this.activeStep = 2;
+    this.verifyAndAdvanceToStep2(organizationId);
   }
 
   onStep2ReadyChange(ready: boolean): void {
@@ -107,6 +111,102 @@ export class OrgCreatePageComponent implements OnInit {
 
   onStep4Finished(): void {
     this.step4Ready = true;
+  }
+
+  onEditCountry(_country: unknown): void {
+    this.messageService.add({
+      severity: 'info',
+      summary: 'Pais',
+      detail: 'Edicion no disponible por el momento.',
+    });
+  }
+
+  onDeleteCountry(_country: unknown): void {
+    this.confirmationService.confirm({
+      header: 'Eliminar pais',
+      message: '¿Deseas eliminar este pais? Esta accion no esta disponible por el momento.',
+      acceptLabel: 'Aceptar',
+      rejectLabel: 'Cancelar',
+      accept: () => {
+        this.messageService.add({
+          severity: 'info',
+          summary: 'Pais',
+          detail: 'Eliminacion no disponible por el momento.',
+        });
+      },
+    });
+  }
+
+  onEditCurrency(_currency: unknown): void {
+    this.messageService.add({
+      severity: 'info',
+      summary: 'Moneda',
+      detail: 'Edicion no disponible por el momento.',
+    });
+  }
+
+  onDeleteCurrency(_currency: unknown): void {
+    this.confirmationService.confirm({
+      header: 'Eliminar moneda',
+      message: '¿Deseas eliminar esta moneda? Esta accion no esta disponible por el momento.',
+      acceptLabel: 'Aceptar',
+      rejectLabel: 'Cancelar',
+      accept: () => {
+        this.messageService.add({
+          severity: 'info',
+          summary: 'Moneda',
+          detail: 'Eliminacion no disponible por el momento.',
+        });
+      },
+    });
+  }
+
+  onEditCompany(_company: unknown): void {
+    this.messageService.add({
+      severity: 'info',
+      summary: 'Compania',
+      detail: 'Edicion no disponible por el momento.',
+    });
+  }
+
+  onDeleteCompany(_company: unknown): void {
+    this.confirmationService.confirm({
+      header: 'Eliminar compania',
+      message: '¿Deseas eliminar esta compania? Esta accion no esta disponible por el momento.',
+      acceptLabel: 'Aceptar',
+      rejectLabel: 'Cancelar',
+      accept: () => {
+        this.messageService.add({
+          severity: 'info',
+          summary: 'Compania',
+          detail: 'Eliminacion no disponible por el momento.',
+        });
+      },
+    });
+  }
+
+  onEditBranch(_branch: unknown): void {
+    this.messageService.add({
+      severity: 'info',
+      summary: 'Empresa',
+      detail: 'Edicion no disponible por el momento.',
+    });
+  }
+
+  onDeleteBranch(_branch: unknown): void {
+    this.confirmationService.confirm({
+      header: 'Eliminar empresa',
+      message: '¿Deseas eliminar esta empresa? Esta accion no esta disponible por el momento.',
+      acceptLabel: 'Aceptar',
+      rejectLabel: 'Cancelar',
+      accept: () => {
+        this.messageService.add({
+          severity: 'info',
+          summary: 'Empresa',
+          detail: 'Eliminacion no disponible por el momento.',
+        });
+      },
+    });
   }
 
   goBack(): void {
@@ -183,6 +283,35 @@ export class OrgCreatePageComponent implements OnInit {
       startedAt: this.pendingStartedAt,
       lastStep: this._activeStep,
     });
+  }
+
+  private verifyAndAdvanceToStep2(organizationId: string): void {
+    if (!organizationId) {
+      return;
+    }
+    this.organizationCoreApi
+      .getCoreSettings(organizationId)
+      .pipe(take(1))
+      .subscribe({
+        next: () => {
+          this.activeStep = 2;
+        },
+        error: (err: unknown) => {
+          const status = err instanceof HttpErrorResponse ? err.status : null;
+          const detail =
+            status === 401 || status === 403
+              ? 'Debes iniciar sesion para continuar.'
+              : 'No se pudo cargar la configuracion de la organizacion.';
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail,
+          });
+          if (status === 401 || status === 403) {
+            this.router.navigateByUrl('/auth/login');
+          }
+        },
+      });
   }
 
   private normalizeStep(value?: number): number {

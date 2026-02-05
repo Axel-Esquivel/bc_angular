@@ -88,16 +88,14 @@
         icon="pi pi-pencil"
         text
         size="small"
-        [disabled]="true"
-        title="Editar no disponible"
+        (onClick)="editCompany.emit(company)"
       ></p-button>
       <p-button
         icon="pi pi-trash"
         severity="danger"
         text
         size="small"
-        [disabled]="true"
-        title="Eliminar no disponible"
+        (onClick)="deleteCompany.emit(company)"
       ></p-button>
     </div>
   </div>
