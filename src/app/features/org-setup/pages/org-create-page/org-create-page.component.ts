@@ -150,17 +150,19 @@ export class OrgCreatePageComponent implements OnInit {
   }
 
   onOrganizationCreated(organizationId: string): void {
-    this.isSubmittingOrg = false;
-    if (!organizationId) {
-      return;
-    }
-    this.createdOrganizationId = organizationId;
-    this.pendingStartedAt = new Date().toISOString();
-    this.organizationCreated.emit({ organizationId });
-    this.step2Ready = false;
-    this.step3Ready = false;
-    this.step4Ready = false;
-    this.verifyAndAdvanceToStep2(organizationId);
+    queueMicrotask(() => {
+      this.isSubmittingOrg = false;
+      if (!organizationId) {
+        return;
+      }
+      this.createdOrganizationId = organizationId;
+      this.pendingStartedAt = new Date().toISOString();
+      this.organizationCreated.emit({ organizationId });
+      this.step2Ready = false;
+      this.step3Ready = false;
+      this.step4Ready = false;
+      this.verifyAndAdvanceToStep2(organizationId);
+    });
   }
 
   onStep2ReadyChange(ready: boolean): void {
