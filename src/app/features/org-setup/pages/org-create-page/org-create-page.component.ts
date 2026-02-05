@@ -10,7 +10,6 @@ import { ConfirmDialog } from 'primeng/confirmdialog';
 import { Dialog } from 'primeng/dialog';
 import { FloatLabel } from 'primeng/floatlabel';
 import { InputText } from 'primeng/inputtext';
-import { Select } from 'primeng/select';
 import { StepperModule } from 'primeng/stepper';
 
 import { OrgSetupComponentsModule } from '../../components/org-setup-components.module';
@@ -23,7 +22,7 @@ import { CompaniesApiService } from '../../../../core/api/companies-api.service'
 import { BranchesApiService } from '../../../../core/api/branches-api.service';
 import { CoreCountry, CoreCurrency, OrganizationCoreSettings } from '../../../../shared/models/organization-core.model';
 import { Company } from '../../../../shared/models/company.model';
-import { Branch, BranchType } from '../../../../shared/models/branch.model';
+import { Branch } from '../../../../shared/models/branch.model';
 
 type EditableCountry = { id: string; name: string; code?: string };
 type EditableCurrency = { id: string; name: string; code?: string; symbol?: string };
@@ -40,7 +39,6 @@ type EditableCurrency = { id: string; name: string; code?: string; symbol?: stri
     Dialog,
     FloatLabel,
     InputText,
-    Select,
     StepperModule,
     OrgSetupComponentsModule,
   ],
@@ -114,7 +112,6 @@ export class OrgCreatePageComponent implements OnInit {
 
   readonly editBranchForm = this.fb.nonNullable.group({
     name: this.fb.nonNullable.control('', [Validators.required, Validators.minLength(2)]),
-    type: this.fb.nonNullable.control<BranchType>('retail', [Validators.required]),
   });
 
   get activeStep(): number {
@@ -273,7 +270,6 @@ export class OrgCreatePageComponent implements OnInit {
     this.editingBranch = branch;
     this.editBranchForm.reset({
       name: branch.name ?? "",
-      type: branch.type ?? "retail",
     });
     this.editBranchDialogOpen = true;
   }
@@ -357,9 +353,9 @@ export class OrgCreatePageComponent implements OnInit {
       this.editBranchForm.markAllAsTouched();
       return;
     }
-    const { name, type } = this.editBranchForm.getRawValue();
+    const { name } = this.editBranchForm.getRawValue();
     this.branchesApi
-      .update(this.editingBranch.id, { name: name.trim(), type })
+      .update(this.editingBranch.id, { name: name.trim() })
       .pipe(take(1))
       .subscribe({
         next: () => {

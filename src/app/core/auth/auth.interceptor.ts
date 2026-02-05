@@ -76,10 +76,14 @@ export class AuthInterceptor implements HttpInterceptor {
       return throwError(() => error);
     }
 
+    if (this.isAuthEndpoint(originalRequest.url)) {
+      return throwError(() => error);
+    }
+
     return this.authService.refreshToken().pipe(
       switchMap((tokens) => {
         if (!tokens?.accessToken) {
-          this.authService.logout();
+          this.authService.logoutLocal();
           return throwError(() => error);
         }
 
@@ -89,7 +93,7 @@ export class AuthInterceptor implements HttpInterceptor {
       catchError((refreshError) => {
         const status = refreshError instanceof HttpErrorResponse ? refreshError.status : null;
         if (status === 401 || status === 419) {
-          this.authService.logout();
+          this.authService.logoutLocal();
         }
         return throwError(() => refreshError);
       })
@@ -100,5 +104,9 @@ export class AuthInterceptor implements HttpInterceptor {
     return req.clone({
       setHeaders: { Authorization: `Bearer ${token}` },
     });
+  }
+
+  private isAuthEndpoint(url: string): boolean {
+    return url.includes('/auth/logout') || url.includes('/auth/me') || url.includes('/auth/refresh');
   }
 }

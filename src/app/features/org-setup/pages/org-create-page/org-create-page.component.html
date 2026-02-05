@@ -197,24 +197,6 @@
         <label for="editBranchName">Nombre</label>
       </p-floatLabel>
     </div>
-    <div class="bc-field">
-      <p-floatLabel>
-        <p-select
-          inputId="editBranchType"
-          [options]="[
-            { label: 'Retail', value: 'retail' },
-            { label: 'Wholesale', value: 'wholesale' }
-          ]"
-          optionLabel="label"
-          optionValue="value"
-          class="w-full"
-          styleClass="w-full"
-          formControlName="type"
-          appendTo="body"
-        ></p-select>
-        <label for="editBranchType">Tipo</label>
-      </p-floatLabel>
-    </div>
   </form>
   <ng-template #footer>
     <div class="bc-actions bc-actions--end">

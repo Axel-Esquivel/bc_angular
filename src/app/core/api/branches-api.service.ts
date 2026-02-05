@@ -21,7 +21,6 @@ export class BranchesApiService {
   create(companyId: string, payload: {
     name: string;
     countryId: string;
-    type: 'retail' | 'wholesale';
     currencyIds?: string[];
     settings?: Record<string, any>;
   }): Observable<ApiResponse<Branch>> {

@@ -40,6 +40,7 @@ export class AuthService {
   private readonly authStateSubject = new BehaviorSubject<boolean>(false);
   private readonly refreshSubject = new BehaviorSubject<AuthTokens | null>(null);
   private isRefreshing = false;
+  private isLoggingOut = false;
 
   constructor(
     private readonly authApi: AuthApiService,
@@ -83,15 +84,11 @@ export class AuthService {
   }
 
   logout(): void {
-    const deviceId = this.tokenStorage.getDeviceId();
-    this.authApi
-      .logout(deviceId)
-      .pipe(
-        take(1),
-        catchError(() => of(null))
-      )
-      .subscribe();
-    this.finalizeLogout();
+    this.performLogout(true);
+  }
+
+  logoutLocal(): void {
+    this.performLogout(false);
   }
 
   loadMe(): Observable<AuthUser | null> {
@@ -116,7 +113,7 @@ export class AuthService {
       catchError((error) => {
         const status = error instanceof HttpErrorResponse ? error.status : null;
         if (status === 401 || status === 419) {
-          this.logout();
+          this.logoutLocal();
           return of(null);
         }
         const cached = this.getCurrentUser();
@@ -193,7 +190,7 @@ export class AuthService {
       catchError((error) => {
         const status = error instanceof HttpErrorResponse ? error.status : null;
         if (status === 401 || status === 419) {
-          this.logout();
+          this.logoutLocal();
         }
         return throwError(() => error);
       }),
@@ -276,6 +273,34 @@ export class AuthService {
   private clearAuthStorage(): void {
     localStorage.removeItem(AuthService.TOKEN_KEY);
     localStorage.removeItem(AuthService.USER_KEY);
+  }
+
+  private performLogout(callApi: boolean): void {
+    if (this.isLoggingOut) {
+      return;
+    }
+    this.isLoggingOut = true;
+    const deviceId = this.tokenStorage.getDeviceId();
+    const hasSession = this.hasToken();
+    const shouldCallApi = callApi && hasSession && !!deviceId;
+
+    if (shouldCallApi) {
+      this.authApi
+        .logout(deviceId)
+        .pipe(
+          take(1),
+          catchError(() => of(null)),
+          finalize(() => {
+            this.finalizeLogout();
+            this.isLoggingOut = false;
+          })
+        )
+        .subscribe();
+      return;
+    }
+
+    this.finalizeLogout();
+    this.isLoggingOut = false;
   }
 
   private finalizeLogout(): void {

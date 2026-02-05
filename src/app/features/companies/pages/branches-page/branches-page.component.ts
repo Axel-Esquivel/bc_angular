@@ -24,15 +24,10 @@ export class BranchesPageComponent implements OnInit {
   companyId = '';
 
   countryOptions: Array<{ label: string; value: string }> = [];
-  readonly typeOptions = [
-    { label: 'Retail', value: 'retail' },
-    { label: 'Wholesale', value: 'wholesale' },
-  ];
 
   form!: FormGroup<{
     name: FormControl<string>;
     countryId: FormControl<string>;
-    type: FormControl<'retail' | 'wholesale'>;
     currencyIds: FormControl<string>;
   }>;
 
@@ -46,7 +41,6 @@ export class BranchesPageComponent implements OnInit {
     this.form = this.fb.nonNullable.group({
       name: ['', [Validators.required, Validators.minLength(2)]],
       countryId: ['', [Validators.required]],
-      type: ['retail' as 'retail' | 'wholesale'],
       currencyIds: [''],
     });
   }
@@ -62,7 +56,7 @@ export class BranchesPageComponent implements OnInit {
 
   openCreate(): void {
     this.editingBranch = null;
-    this.form.reset({ name: '', countryId: this.countryOptions[0]?.value ?? '', type: 'retail', currencyIds: '' });
+    this.form.reset({ name: '', countryId: this.countryOptions[0]?.value ?? '', currencyIds: '' });
     this.dialogOpen = true;
   }
 
@@ -71,7 +65,6 @@ export class BranchesPageComponent implements OnInit {
     this.form.reset({
       name: branch.name,
       countryId: branch.countryId,
-      type: branch.type,
       currencyIds: (branch.currencyIds ?? []).join(', '),
     });
     this.dialogOpen = true;
@@ -93,13 +86,11 @@ export class BranchesPageComponent implements OnInit {
       ? this.branchesApi.update(this.editingBranch.id, {
           name: payload.name,
           countryId: payload.countryId,
-          type: payload.type,
           currencyIds,
         })
       : this.branchesApi.create(this.companyId, {
           name: payload.name,
           countryId: payload.countryId,
-          type: payload.type,
           currencyIds,
         });
 

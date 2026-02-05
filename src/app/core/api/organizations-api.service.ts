@@ -52,7 +52,7 @@ export class OrganizationsService {
       countryId: string;
       baseCurrencyId?: string;
       currencyIds?: string[];
-      branches?: Array<{ name: string; tempKey?: string; countryId?: string; type?: 'retail' | 'wholesale' }>;
+      branches?: Array<{ name: string; tempKey?: string; countryId?: string }>;
       warehouses?: Array<{ name: string; branchId?: string; branchTempKey?: string; type?: string }>;
     }>;
   }): Observable<ApiResponse<{

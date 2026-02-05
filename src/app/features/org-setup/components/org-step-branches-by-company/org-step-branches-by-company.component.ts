@@ -44,7 +44,6 @@ export class OrgStepBranchesByCompanyComponent implements OnChanges {
   readonly branchForm = this.fb.nonNullable.group({
     name: this.fb.nonNullable.control('', [Validators.required, Validators.minLength(2)]),
     countryId: this.fb.control<string | null>(null, [Validators.required]),
-    type: this.fb.nonNullable.control<'retail' | 'wholesale'>('retail', [Validators.required]),
   });
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -81,7 +80,6 @@ export class OrgStepBranchesByCompanyComponent implements OnChanges {
     this.branchForm.reset({
       name: '',
       countryId: defaultCountryId,
-      type: 'retail',
     });
     this.isBranchDialogOpen = true;
   }
@@ -105,7 +103,7 @@ export class OrgStepBranchesByCompanyComponent implements OnChanges {
       return;
     }
 
-    const { name, countryId, type } = this.branchForm.getRawValue();
+    const { name, countryId } = this.branchForm.getRawValue();
     if (!name?.trim() || !countryId) {
       this.branchForm.markAllAsTouched();
       return;
@@ -116,7 +114,6 @@ export class OrgStepBranchesByCompanyComponent implements OnChanges {
       .create(companyId, {
         name: name.trim(),
         countryId,
-        type,
         currencyIds: this.currencies.length ? this.currencies.map((currency) => currency.id) : undefined,
       })
       .pipe(take(1))

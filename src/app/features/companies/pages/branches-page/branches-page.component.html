@@ -12,7 +12,6 @@
       <ng-template pTemplate="header">
         <tr>
           <th>Nombre</th>
-          <th>Tipo</th>
           <th>Pais</th>
           <th>Monedas</th>
           <th></th>
@@ -21,7 +20,6 @@
       <ng-template pTemplate="body" let-branch>
         <tr>
           <td>{{ branch.name }}</td>
-          <td>{{ branch.type }}</td>
           <td>{{ branch.countryId }}</td>
           <td>{{ branch.currencyIds?.join(', ') || '-' }}</td>
           <td>
@@ -37,9 +35,6 @@
   <form [formGroup]="form" class="dialog-form">
     <label>Nombre</label>
     <input pInputText formControlName="name" />
-
-    <label>Tipo</label>
-    <p-select [options]="typeOptions" formControlName="type" appendTo="body"></p-select>
 
     <label>Pais</label>
     <p-select [options]="countryOptions" formControlName="countryId" [filter]="true" appendTo="body"></p-select>
