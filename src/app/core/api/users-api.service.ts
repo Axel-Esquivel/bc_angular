@@ -30,6 +30,14 @@ export class UsersApiService {
     return this.http.patch<ApiResponse<AuthUser>>(`${this.baseUrl}/me/default-company`, { companyId });
   }
 
+  setDefaultEnterprise(enterpriseId: string): Observable<ApiResponse<AuthUser>> {
+    return this.http.patch<ApiResponse<AuthUser>>(`${this.baseUrl}/me/default-enterprise`, { enterpriseId });
+  }
+
+  setDefaultCurrency(currencyId: string): Observable<ApiResponse<AuthUser>> {
+    return this.http.patch<ApiResponse<AuthUser>>(`${this.baseUrl}/me/default-currency`, { currencyId });
+  }
+
   resolve(ids: string[]): Observable<ResolvedUser[]> {
     const unique = Array.from(new Set((ids ?? []).filter(Boolean)));
     const missing = unique.filter((id) => !this.resolvedCache.has(id));

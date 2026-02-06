@@ -8,6 +8,8 @@ export interface AuthUser {
   phone: string;
   defaultOrganizationId?: string;
   defaultCompanyId?: string;
+  defaultEnterpriseId?: string;
+  defaultCurrencyId?: string;
   displayName?: string;
   roles?: string[];
   isFirstTime?: boolean;

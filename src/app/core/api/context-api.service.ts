@@ -32,4 +32,12 @@ export class ContextApiService {
   setDefaultCompany(companyId: string): Observable<ApiResponse<AuthUser>> {
     return this.usersApi.setDefaultCompany(companyId);
   }
+
+  setDefaultEnterprise(enterpriseId: string): Observable<ApiResponse<AuthUser>> {
+    return this.usersApi.setDefaultEnterprise(enterpriseId);
+  }
+
+  setDefaultCurrency(currencyId: string): Observable<ApiResponse<AuthUser>> {
+    return this.usersApi.setDefaultCurrency(currencyId);
+  }
 }

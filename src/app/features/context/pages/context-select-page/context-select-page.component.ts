@@ -12,8 +12,12 @@ import { take } from 'rxjs';
 import { ContextApiService } from '../../../../core/api/context-api.service';
 import { ContextStateService } from '../../../../core/context/context-state.service';
 import { AuthService } from '../../../../core/auth/auth.service';
+import { CountriesApiService } from '../../../../core/api/countries-api.service';
+import { CurrenciesApiService } from '../../../../core/api/currencies-api.service';
 import { IOrganization } from '../../../../shared/models/organization.model';
-import { Company } from '../../../../shared/models/company.model';
+import { Company, CompanyEnterprise } from '../../../../shared/models/company.model';
+import { Country } from '../../../../shared/models/country.model';
+import { Currency } from '../../../../shared/models/currency.model';
 
 @Component({
   selector: 'app-context-select-page',
@@ -28,11 +32,18 @@ export class ContextSelectPageComponent implements OnInit {
   private readonly contextApi = inject(ContextApiService);
   private readonly contextState = inject(ContextStateService);
   private readonly authService = inject(AuthService);
+  private readonly countriesApi = inject(CountriesApiService);
+  private readonly currenciesApi = inject(CurrenciesApiService);
   private readonly router = inject(Router);
   private readonly messageService = inject(MessageService);
 
   organizations: IOrganization[] = [];
   companies: Company[] = [];
+  enterprises: CompanyEnterprise[] = [];
+  currencyOptions: Array<{ label: string; value: string }> = [];
+  countryLabel = '';
+  private countries: Country[] = [];
+  private currencies: Currency[] = [];
   loadingOrganizations = false;
   loadingCompanies = false;
   submitting = false;
@@ -40,17 +51,32 @@ export class ContextSelectPageComponent implements OnInit {
   readonly form = this.fb.group({
     organizationId: this.fb.nonNullable.control('', [Validators.required]),
     companyId: this.fb.nonNullable.control('', [Validators.required]),
+    enterpriseId: this.fb.nonNullable.control('', [Validators.required]),
+    currencyId: this.fb.nonNullable.control('', [Validators.required]),
   });
 
   ngOnInit(): void {
     this.loadOrganizations();
+    this.loadCountries();
+    this.loadCurrencies();
     this.form.controls.organizationId.valueChanges.subscribe((orgId) => {
       if (!orgId) {
         this.companies = [];
         this.form.controls.companyId.setValue('');
+        this.enterprises = [];
+        this.currencyOptions = [];
+        this.form.controls.enterpriseId.setValue('');
+        this.form.controls.currencyId.setValue('');
+        this.countryLabel = '';
         return;
       }
       this.loadCompanies(orgId);
+    });
+    this.form.controls.companyId.valueChanges.subscribe((companyId) => {
+      this.applyCompanySelection(companyId);
+    });
+    this.form.controls.enterpriseId.valueChanges.subscribe((enterpriseId) => {
+      this.applyEnterpriseSelection(enterpriseId);
     });
   }
 
@@ -116,6 +142,111 @@ export class ContextSelectPageComponent implements OnInit {
       });
   }
 
+  private loadCountries(): void {
+    this.countriesApi
+      .list()
+      .pipe(take(1))
+      .subscribe({
+        next: ({ result }) => {
+          this.countries = result ?? [];
+        },
+        error: () => {
+          this.countries = [];
+        },
+      });
+  }
+
+  private loadCurrencies(): void {
+    this.currenciesApi
+      .list()
+      .pipe(take(1))
+      .subscribe({
+        next: ({ result }) => {
+          this.currencies = result ?? [];
+        },
+        error: () => {
+          this.currencies = [];
+        },
+      });
+  }
+
+  private applyCompanySelection(companyId: string): void {
+    const company = this.companies.find((item) => item.id === companyId) ?? null;
+    this.enterprises = company?.enterprises ?? [];
+    this.form.controls.enterpriseId.setValue('', { emitEvent: false });
+    this.form.controls.currencyId.setValue('', { emitEvent: false });
+    this.currencyOptions = [];
+    if (!company || this.enterprises.length === 0) {
+      this.countryLabel = company?.baseCountryId ?? '';
+      return;
+    }
+
+    const preferredEnterpriseId = this.resolveEnterpriseId(company);
+    this.form.controls.enterpriseId.setValue(preferredEnterpriseId ?? '', { emitEvent: false });
+    this.applyEnterpriseSelection(preferredEnterpriseId);
+  }
+
+  private applyEnterpriseSelection(enterpriseId: string | null | undefined): void {
+    const enterprise =
+      this.enterprises.find((item) => item.id === enterpriseId) ?? null;
+    const currencyIds = enterprise?.currencyIds ?? [];
+    this.currencyOptions = currencyIds.map((id) => ({
+      value: id,
+      label: this.resolveCurrencyLabel(id),
+    }));
+
+    const resolvedCurrencyId = this.resolveCurrencyId(enterprise);
+    this.form.controls.currencyId.setValue(resolvedCurrencyId ?? '', { emitEvent: false });
+    this.updateCountryLabel(enterprise);
+  }
+
+  private resolveEnterpriseId(company: Company): string | null {
+    const preferred = this.authService.getCurrentUser()?.defaultEnterpriseId ?? null;
+    if (preferred && this.enterprises.some((item) => item.id === preferred)) {
+      return preferred;
+    }
+    if (company.defaultEnterpriseId && this.enterprises.some((item) => item.id === company.defaultEnterpriseId)) {
+      return company.defaultEnterpriseId;
+    }
+    return this.enterprises[0]?.id ?? null;
+  }
+
+  private resolveCurrencyId(enterprise: CompanyEnterprise | null): string | null {
+    const preferred = this.authService.getCurrentUser()?.defaultCurrencyId ?? null;
+    if (preferred && enterprise?.currencyIds?.includes(preferred)) {
+      return preferred;
+    }
+    if (enterprise?.defaultCurrencyId && enterprise.currencyIds?.includes(enterprise.defaultCurrencyId)) {
+      return enterprise.defaultCurrencyId;
+    }
+    return enterprise?.currencyIds?.[0] ?? null;
+  }
+
+  private resolveCurrencyLabel(id: string): string {
+    const currency = this.currencies.find((item) => item.id === id || item.code === id);
+    if (!currency) {
+      return id;
+    }
+    const label = currency.symbol ? `${currency.name} (${currency.symbol})` : currency.name;
+    return label || id;
+  }
+
+  private updateCountryLabel(enterprise: CompanyEnterprise | null): void {
+    const companyId = this.form.controls.companyId.value;
+    const company = this.companies.find((item) => item.id === companyId) ?? null;
+    const countryId = enterprise?.countryId ?? company?.baseCountryId ?? '';
+    if (!countryId) {
+      this.countryLabel = '';
+      return;
+    }
+    const country = this.countries.find((item) => item.iso2 === countryId || item.id === countryId);
+    if (country) {
+      this.countryLabel = `${country.nameEs || country.nameEn || country.iso2} (${country.iso2})`;
+      return;
+    }
+    this.countryLabel = countryId;
+  }
+
   save(): void {
     if (this.form.invalid || this.submitting) {
       this.form.markAllAsTouched();
@@ -124,6 +255,8 @@ export class ContextSelectPageComponent implements OnInit {
 
     const orgId = this.form.controls.organizationId.value;
     const companyId = this.form.controls.companyId.value;
+    const enterpriseId = this.form.controls.enterpriseId.value;
+    const currencyId = this.form.controls.currencyId.value;
     const company = this.companies.find((item) => item.id === companyId);
     if (!company || !company.id) {
       this.messageService.add({
@@ -133,10 +266,26 @@ export class ContextSelectPageComponent implements OnInit {
       });
       return;
     }
+    if (!enterpriseId) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Contexto',
+        detail: 'Selecciona una empresa valida.',
+      });
+      return;
+    }
+    if (!currencyId) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Contexto',
+        detail: 'Selecciona una moneda valida.',
+      });
+      return;
+    }
 
     this.submitting = true;
     this.contextState
-      .setDefaults(orgId, company)
+      .setDefaults(orgId, company, enterpriseId, currencyId)
       .pipe(take(1))
       .subscribe({
         next: () => {

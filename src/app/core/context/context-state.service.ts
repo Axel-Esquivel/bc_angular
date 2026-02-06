@@ -17,14 +17,21 @@ export class ContextStateService {
     private readonly authService: AuthService,
   ) {}
 
-  setDefaults(organizationId: string, company: Company): Observable<void> {
+  setDefaults(
+    organizationId: string,
+    company: Company,
+    enterpriseId: string,
+    currencyId: string,
+  ): Observable<void> {
     return this.contextApi
       .setDefaultOrganization(organizationId)
       .pipe(
         switchMap(() => this.contextApi.setDefaultCompany(company.id ?? '')),
+        switchMap(() => this.contextApi.setDefaultEnterprise(enterpriseId)),
+        switchMap(() => this.contextApi.setDefaultCurrency(currencyId)),
         switchMap(() => this.authService.loadMe()),
         tap(() => {
-          const context = this.buildActiveContext(organizationId, company);
+          const context = this.buildActiveContext(organizationId, company, enterpriseId, currencyId);
           this.activeContext.setActiveContext(context);
           if (company.id) {
             this.companyState.setActiveCompanyId(company.id);
@@ -35,23 +42,26 @@ export class ContextStateService {
       );
   }
 
-  buildActiveContext(organizationId: string, company: Company): ActiveContext {
-    const enterpriseId =
-      company.defaultEnterpriseId ??
-      company.enterprises?.[0]?.id ??
+  buildActiveContext(
+    organizationId: string,
+    company: Company,
+    enterpriseId: string | null,
+    currencyId: string | null,
+  ): ActiveContext {
+    const enterprise = company.enterprises?.find((item) => item.id === enterpriseId) ?? null;
+    const resolvedCurrencyId =
+      currencyId ??
+      enterprise?.defaultCurrencyId ??
+      company.defaultCurrencyId ??
+      company.baseCurrencyId ??
       null;
-    const enterpriseCurrency =
-      company.enterprises?.find((enterprise) => enterprise.id === enterpriseId)?.defaultCurrencyId ??
-      company.enterprises?.[0]?.defaultCurrencyId ??
-      null;
-    const currencyId = company.defaultCurrencyId ?? company.baseCurrencyId ?? enterpriseCurrency ?? null;
 
     return {
       organizationId,
       companyId: company.id ?? null,
-      countryId: company.baseCountryId ?? null,
-      enterpriseId,
-      currencyId,
+      countryId: enterprise?.countryId ?? company.baseCountryId ?? null,
+      enterpriseId: enterprise?.id ?? null,
+      currencyId: resolvedCurrencyId,
     };
   }
 }

@@ -31,6 +31,39 @@
         </p-floatLabel>
       </div>
 
+      <div class="field">
+        <p-floatLabel>
+          <p-select
+            inputId="enterpriseId"
+            [options]="enterprises"
+            optionLabel="name"
+            optionValue="id"
+            formControlName="enterpriseId"
+            appendTo="body"
+          ></p-select>
+          <label for="enterpriseId">Empresa</label>
+        </p-floatLabel>
+      </div>
+
+      <div class="field">
+        <p-floatLabel>
+          <p-select
+            inputId="currencyId"
+            [options]="currencyOptions"
+            optionLabel="label"
+            optionValue="value"
+            formControlName="currencyId"
+            appendTo="body"
+          ></p-select>
+          <label for="currencyId">Moneda</label>
+        </p-floatLabel>
+      </div>
+
+      <div class="field">
+        <label>Pais</label>
+        <div class="context-readonly">{{ countryLabel || '-' }}</div>
+      </div>
+
       <div class="actions">
         <p-button type="submit" label="Guardar" [disabled]="form.invalid || submitting"></p-button>
       </div>
