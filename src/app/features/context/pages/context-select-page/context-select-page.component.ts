@@ -245,9 +245,17 @@ export class ContextSelectPageComponent implements OnInit {
     if (this.enterprises.length === 0) {
       this.form.controls.enterpriseId.setValue(null, { emitEvent: false });
       this.form.controls.enterpriseId.disable({ emitEvent: false });
-      this.currencyOptions = [];
-      this.form.controls.currencyId.setValue(null, { emitEvent: false });
-      this.form.controls.currencyId.disable({ emitEvent: false });
+      const currencyIds = this.resolveAllowedCurrencyIds(company, null);
+      this.currencyOptions = this.buildCurrencyOptions(currencyIds);
+      const allowedValues = this.currencyOptions.map((option) => option.value);
+      if (allowedValues.length === 0) {
+        this.form.controls.currencyId.setValue(null, { emitEvent: false });
+        this.form.controls.currencyId.disable({ emitEvent: false });
+      } else {
+        this.form.controls.currencyId.enable({ emitEvent: false });
+        const resolvedCurrencyId = this.resolveCurrencyId(company, null, allowedValues);
+        this.form.controls.currencyId.setValue(resolvedCurrencyId ?? null, { emitEvent: false });
+      }
       return;
     }
     this.form.controls.enterpriseId.enable({ emitEvent: false });
@@ -260,15 +268,11 @@ export class ContextSelectPageComponent implements OnInit {
   }
 
   private applyEnterpriseSelection(enterpriseId: string | null): void {
-    if (!enterpriseId) {
-      this.currencyOptions = [];
-      this.form.controls.currencyId.setValue(null, { emitEvent: false });
-      this.form.controls.currencyId.disable({ emitEvent: false });
-      return;
-    }
     const companyId = this.form.controls.companyId.value;
     const company = this.companies.find((item) => item.id === companyId) ?? null;
-    const enterprise = this.enterprises.find((item) => item.id === enterpriseId) ?? null;
+    const enterprise = enterpriseId
+      ? this.enterprises.find((item) => item.id === enterpriseId) ?? null
+      : null;
     const currencyIds = this.resolveAllowedCurrencyIds(company, enterprise);
     this.currencyOptions = this.buildCurrencyOptions(currencyIds);
     const allowedValues = this.currencyOptions.map((option) => option.value);
