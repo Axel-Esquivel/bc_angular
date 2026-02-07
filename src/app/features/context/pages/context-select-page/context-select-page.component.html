@@ -48,6 +48,20 @@
       <div class="field">
         <p-floatLabel>
           <p-select
+            inputId="countryId"
+            [options]="countryOptions"
+            optionLabel="label"
+            optionValue="value"
+            formControlName="countryId"
+            appendTo="body"
+          ></p-select>
+          <label for="countryId">Pais</label>
+        </p-floatLabel>
+      </div>
+
+      <div class="field">
+        <p-floatLabel>
+          <p-select
             inputId="currencyId"
             [options]="currencyOptions"
             optionLabel="label"
@@ -57,11 +71,6 @@
           ></p-select>
           <label for="currencyId">Moneda</label>
         </p-floatLabel>
-      </div>
-
-      <div class="field">
-        <label>Pais</label>
-        <div class="context-readonly">{{ countryLabel || '-' }}</div>
       </div>
 
       <div class="actions">

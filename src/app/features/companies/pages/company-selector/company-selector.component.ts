@@ -128,7 +128,8 @@ export class CompanySelectorComponent implements OnInit {
 
   ngOnInit(): void {
     const context = this.activeContextState.getActiveContext();
-    const fallbackOrg = this.authService.getCurrentUser()?.defaultOrganizationId ?? null;
+    const user = this.authService.getCurrentUser();
+    const fallbackOrg = user?.defaults?.organizationId ?? user?.defaultOrganizationId ?? null;
     this.organizationId = context.organizationId ?? fallbackOrg;
 
     if (!this.organizationId) {

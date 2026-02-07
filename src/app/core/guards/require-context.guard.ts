@@ -3,7 +3,7 @@ import { CanActivateFn, Router } from '@angular/router';
 
 import { SessionStateService } from '../services/session-state.service';
 
-export const RequireContextGuard: CanActivateFn = () => {
+export const RequireContextGuard: CanActivateFn = (_route, state) => {
   const sessionState = inject(SessionStateService);
   const router = inject(Router);
   const redirect = (url: string) => {
@@ -13,6 +13,10 @@ export const RequireContextGuard: CanActivateFn = () => {
 
   if (!sessionState.isAuthenticated()) {
     return redirect('/auth/login');
+  }
+
+  if (state.url.startsWith('/context')) {
+    return true;
   }
 
   const pending = sessionState.getPendingOrgSetup();

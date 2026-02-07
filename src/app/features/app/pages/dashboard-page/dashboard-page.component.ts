@@ -24,9 +24,11 @@ export class AppDashboardPageComponent implements OnInit {
   loading = false;
 
   ngOnInit(): void {
+    const user = this.authService.getCurrentUser();
     const organizationId =
       this.activeContextState.getActiveContext().organizationId ??
-      this.authService.getCurrentUser()?.defaultOrganizationId ??
+      user?.defaults?.organizationId ??
+      user?.defaultOrganizationId ??
       null;
     if (!organizationId) {
       this.modules = [];

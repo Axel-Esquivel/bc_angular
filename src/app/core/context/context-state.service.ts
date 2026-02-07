@@ -17,25 +17,35 @@ export class ContextStateService {
     private readonly authService: AuthService,
   ) {}
 
-  setDefaults(
-    organizationId: string,
-    company: Company,
-    enterpriseId: string,
-    currencyId: string,
-  ): Observable<void> {
+  setDefaults(payload: {
+    organizationId: string;
+    company: Company;
+    enterpriseId: string;
+    countryId: string;
+    currencyId: string;
+  }): Observable<void> {
     return this.contextApi
-      .setDefaultOrganization(organizationId)
+      .setDefaults({
+        organizationId: payload.organizationId,
+        companyId: payload.company.id ?? '',
+        enterpriseId: payload.enterpriseId,
+        countryId: payload.countryId,
+        currencyId: payload.currencyId,
+      })
       .pipe(
-        switchMap(() => this.contextApi.setDefaultCompany(company.id ?? '')),
-        switchMap(() => this.contextApi.setDefaultEnterprise(enterpriseId)),
-        switchMap(() => this.contextApi.setDefaultCurrency(currencyId)),
         switchMap(() => this.authService.loadMe()),
         tap(() => {
-          const context = this.buildActiveContext(organizationId, company, enterpriseId, currencyId);
+          const context = this.buildActiveContext(
+            payload.organizationId,
+            payload.company,
+            payload.enterpriseId,
+            payload.countryId,
+            payload.currencyId,
+          );
           this.activeContext.setActiveContext(context);
-          if (company.id) {
-            this.companyState.setActiveCompanyId(company.id);
-            this.companyState.setDefaultCompanyId(company.id);
+          if (payload.company.id) {
+            this.companyState.setActiveCompanyId(payload.company.id);
+            this.companyState.setDefaultCompanyId(payload.company.id);
           }
         }),
         map(() => undefined)
@@ -46,6 +56,7 @@ export class ContextStateService {
     organizationId: string,
     company: Company,
     enterpriseId: string | null,
+    countryId: string | null,
     currencyId: string | null,
   ): ActiveContext {
     const enterprise = company.enterprises?.find((item) => item.id === enterpriseId) ?? null;
@@ -59,7 +70,7 @@ export class ContextStateService {
     return {
       organizationId,
       companyId: company.id ?? null,
-      countryId: enterprise?.countryId ?? company.baseCountryId ?? null,
+      countryId: countryId ?? enterprise?.countryId ?? company.baseCountryId ?? null,
       enterpriseId: enterprise?.id ?? null,
       currencyId: resolvedCurrencyId,
     };

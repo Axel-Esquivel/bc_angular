@@ -23,9 +23,11 @@ export class ModulePlaceholderPageComponent implements OnInit {
   installed: boolean | null = null;
 
   ngOnInit(): void {
+    const user = this.authService.getCurrentUser();
     const organizationId =
       this.activeContextState.getActiveContext().organizationId ??
-      this.authService.getCurrentUser()?.defaultOrganizationId ??
+      user?.defaults?.organizationId ??
+      user?.defaultOrganizationId ??
       null;
     if (!organizationId || !this.moduleKey) {
       this.installed = null;

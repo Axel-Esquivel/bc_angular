@@ -31,9 +31,11 @@ export class ModuleMenuService {
       catchError(() => of(null))
     );
 
+    const user = this.authService.getCurrentUser();
     const organizationId =
       this.activeContextState.getActiveContext().organizationId ??
-      this.authService.getCurrentUser()?.defaultOrganizationId ??
+      user?.defaults?.organizationId ??
+      user?.defaultOrganizationId ??
       null;
     if (!organizationId) {
       return overview$.pipe(

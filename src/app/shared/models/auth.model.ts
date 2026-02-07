@@ -1,5 +1,13 @@
 import { ActiveContext } from './active-context.model';
 
+export interface AuthUserDefaults {
+  organizationId?: string;
+  companyId?: string;
+  enterpriseId?: string;
+  countryId?: string;
+  currencyId?: string;
+}
+
 export interface AuthUser {
   id: string;
   email: string;
@@ -10,6 +18,7 @@ export interface AuthUser {
   defaultCompanyId?: string;
   defaultEnterpriseId?: string;
   defaultCurrencyId?: string;
+  defaults?: AuthUserDefaults;
   displayName?: string;
   roles?: string[];
   isFirstTime?: boolean;
