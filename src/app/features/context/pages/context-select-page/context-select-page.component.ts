@@ -291,7 +291,7 @@ export class ContextSelectPageComponent implements OnInit {
     if (preferred && enterprises.some((item) => item.id === preferred)) {
       return preferred;
     }
-    return enterprises[0]?.id ?? null;
+    return null;
   }
 
   private resolveCurrencyId(

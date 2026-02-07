@@ -171,7 +171,7 @@
         (onClick)="addEnterpriseControl()"
       />
     </div>
-    <div class="bc-list" *ngIf="enterpriseControls.length > 0">
+    <div class="bc-list" *ngIf="enterpriseControls.length > 0; else emptyEnterprises">
       <div class="bc-list-item" *ngFor="let control of enterpriseControls.controls; let i = index">
         <div class="bc-list-item__content">
           <div class="bc-field">
@@ -193,12 +193,14 @@
             severity="danger"
             text
             size="small"
-            [disabled]="enterpriseControls.length <= 1"
             (onClick)="removeEnterpriseControl(i)"
           ></p-button>
         </div>
       </div>
     </div>
+    <ng-template #emptyEnterprises>
+      <div class="bc-empty">Sin empresas.</div>
+    </ng-template>
   </form>
   <ng-template #footer>
     <div class="bc-actions bc-actions--end">

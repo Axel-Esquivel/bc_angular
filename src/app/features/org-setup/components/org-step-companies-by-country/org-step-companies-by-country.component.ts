@@ -108,10 +108,7 @@ export class OrgStepCompaniesByCountryComponent implements OnChanges {
     }
 
     const enterpriseNames = this.normalizeEnterpriseNames();
-    if (enterpriseNames.length === 0) {
-      this.enterpriseControls.markAllAsTouched();
-      this.addEnterpriseControl('Principal');
-    } else if (new Set(enterpriseNames.map((value) => value.toLowerCase())).size !== enterpriseNames.length) {
+    if (enterpriseNames.length > 0 && new Set(enterpriseNames.map((value) => value.toLowerCase())).size !== enterpriseNames.length) {
       this.messageService.add({
         severity: 'warn',
         summary: 'Empresas',
@@ -120,13 +117,32 @@ export class OrgStepCompaniesByCountryComponent implements OnChanges {
       return;
     }
 
-    const payload = {
+    const payload: {
+      name: string;
+      countryId: string;
+      baseCountryId: string;
+      baseCurrencyId: string;
+      operatingCountryIds: string[];
+      currencies: string[];
+      currencyIds: string[];
+      defaultCurrencyId: string;
+      enterprisesByCountry?: Array<{
+        countryId: string;
+        enterprises: Array<{ name: string; allowedCurrencyIds: string[]; baseCurrencyId: string }>;
+      }>;
+      defaultEnterpriseKey?: { countryId: string; enterpriseIndex: number };
+    } = {
       name: name.trim(),
       countryId,
+      baseCountryId: countryId,
+      baseCurrencyId: currencyId,
       operatingCountryIds: [countryId],
+      currencies: [currencyId],
       currencyIds: [currencyId],
       defaultCurrencyId: currencyId,
-      enterprisesByCountry: [
+    };
+    if (enterpriseNames.length > 0) {
+      payload.enterprisesByCountry = [
         {
           countryId,
           enterprises: enterpriseNames.map((enterpriseName) => ({
@@ -135,9 +151,9 @@ export class OrgStepCompaniesByCountryComponent implements OnChanges {
             baseCurrencyId: currencyId,
           })),
         },
-      ],
-      defaultEnterpriseKey: { countryId, enterpriseIndex: 0 },
-    };
+      ];
+      payload.defaultEnterpriseKey = { countryId, enterpriseIndex: 0 };
+    }
 
     this.isSubmittingCompany = true;
     this.companiesApi
@@ -180,7 +196,7 @@ export class OrgStepCompaniesByCountryComponent implements OnChanges {
   }
 
   removeEnterpriseControl(index: number): void {
-    if (this.enterpriseControls.length <= 1) {
+    if (this.enterpriseControls.length === 0) {
       return;
     }
     const confirmed = window.confirm('Deseas eliminar esta empresa?');
@@ -194,7 +210,6 @@ export class OrgStepCompaniesByCountryComponent implements OnChanges {
     while (this.enterpriseControls.length > 0) {
       this.enterpriseControls.removeAt(0);
     }
-    this.addEnterpriseControl('Principal');
   }
 
   private normalizeEnterpriseNames(): string[] {
