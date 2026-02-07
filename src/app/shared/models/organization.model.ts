@@ -1,4 +1,5 @@
 import { AuthUser } from './auth.model';
+import { OrganizationCoreSettings } from './organization-core.model';
 
 export type OrganizationMembershipStatus = 'pending' | 'active';
 
@@ -32,6 +33,7 @@ export interface IOrganization {
   createdBy?: string;
   countryIds?: string[];
   currencyIds?: string[];
+  coreSettings?: OrganizationCoreSettings;
   members?: IOrganizationMember[];
   roles?: IOrganizationRole[];
   createdAt?: string;

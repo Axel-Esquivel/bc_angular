@@ -20,6 +20,22 @@
       <div class="field">
         <p-floatLabel>
           <p-select
+            inputId="countryId"
+            [options]="countryOptions"
+            optionLabel="label"
+            optionValue="value"
+            [loading]="loadingCore"
+            placeholder="Selecciona un pais"
+            formControlName="countryId"
+            appendTo="body"
+          ></p-select>
+          <label for="countryId">Pais</label>
+        </p-floatLabel>
+      </div>
+
+      <div class="field">
+        <p-floatLabel>
+          <p-select
             inputId="companyId"
             [options]="companies"
             optionLabel="name"
@@ -45,22 +61,6 @@
             appendTo="body"
           ></p-select>
           <label for="enterpriseId">Empresa</label>
-        </p-floatLabel>
-      </div>
-
-      <div class="field">
-        <p-floatLabel>
-          <p-select
-            inputId="countryId"
-            [options]="countryOptions"
-            optionLabel="label"
-            optionValue="value"
-            [loading]="loadingCore"
-            placeholder="Selecciona un pais"
-            formControlName="countryId"
-            appendTo="body"
-          ></p-select>
-          <label for="countryId">Pais</label>
         </p-floatLabel>
       </div>
 
