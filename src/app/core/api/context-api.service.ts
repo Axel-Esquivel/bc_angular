@@ -29,8 +29,10 @@ export class ContextApiService {
     return this.organizationsApi.list().pipe(map((response) => response.result ?? []));
   }
 
-  listCompanies(organizationId: string): Observable<Company[]> {
-    return this.companiesApi.listByOrganization(organizationId).pipe(map((response) => response.result ?? []));
+  listCompanies(organizationId: string, countryId?: string): Observable<Company[]> {
+    return this.companiesApi
+      .listByOrganization(organizationId, countryId)
+      .pipe(map((response) => response.result ?? []));
   }
 
   setDefaultOrganization(organizationId: string): Observable<ApiResponse<OrganizationDefaultResult>> {

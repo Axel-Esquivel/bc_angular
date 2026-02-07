@@ -9,6 +9,7 @@
             optionLabel="name"
             optionValue="id"
             [loading]="loadingOrganizations"
+            placeholder="Selecciona una organizacion"
             formControlName="organizationId"
             appendTo="body"
           ></p-select>
@@ -24,6 +25,7 @@
             optionLabel="name"
             optionValue="id"
             [loading]="loadingCompanies"
+            placeholder="Selecciona una compania"
             formControlName="companyId"
             appendTo="body"
           ></p-select>
@@ -38,6 +40,7 @@
             [options]="enterprises"
             optionLabel="name"
             optionValue="id"
+            placeholder="Selecciona una empresa"
             formControlName="enterpriseId"
             appendTo="body"
           ></p-select>
@@ -52,6 +55,8 @@
             [options]="countryOptions"
             optionLabel="label"
             optionValue="value"
+            [loading]="loadingCore"
+            placeholder="Selecciona un pais"
             formControlName="countryId"
             appendTo="body"
           ></p-select>
@@ -66,6 +71,7 @@
             [options]="currencyOptions"
             optionLabel="label"
             optionValue="value"
+            placeholder="Selecciona una moneda"
             formControlName="currencyId"
             appendTo="body"
           ></p-select>

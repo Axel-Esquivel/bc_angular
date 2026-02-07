@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
@@ -16,8 +16,9 @@ export class CompaniesApiService {
     this.baseUrl = `${this.config.apiBaseUrl}`;
   }
 
-  listByOrganization(orgId: string): Observable<ApiResponse<Company[]>> {
-    return this.http.get<ApiResponse<Company[]>>(`${this.baseUrl}/organizations/${orgId}/companies`);
+  listByOrganization(orgId: string, countryId?: string): Observable<ApiResponse<Company[]>> {
+    const params = countryId ? new HttpParams().set('countryId', countryId) : undefined;
+    return this.http.get<ApiResponse<Company[]>>(`${this.baseUrl}/organizations/${orgId}/companies`, { params });
   }
 
   create(orgId: string, payload: CreateOrganizationCompanyDto): Observable<ApiResponse<Company>> {
