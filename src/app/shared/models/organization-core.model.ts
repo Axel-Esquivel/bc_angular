@@ -28,6 +28,9 @@ export interface CoreCompany {
 export interface CoreEnterprise {
   id: string;
   name: string;
+  countryId?: string;
+  allowedCurrencyIds?: string[];
+  baseCurrencyId?: string;
 }
 
 export interface CoreCountryCreatePayload {
@@ -78,6 +81,9 @@ export interface CoreCompanyConfigInput {
 export interface CoreEnterpriseInput {
   id?: string;
   name: string;
+  countryId?: string;
+  allowedCurrencyIds?: string[];
+  baseCurrencyId?: string;
 }
 
 export interface OrganizationCoreSettings {

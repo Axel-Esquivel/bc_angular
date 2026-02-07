@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, inject } from '@angular/core';
-import { FormBuilder, Validators } from '@angular/forms';
+import { FormArray, FormBuilder, FormControl, Validators } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { take } from 'rxjs/operators';
 
@@ -44,6 +44,7 @@ export class OrgStepCompaniesByCountryComponent implements OnChanges {
     name: this.fb.nonNullable.control('', [Validators.required, Validators.minLength(2)]),
     countryId: this.fb.control<string | null>(null, [Validators.required]),
     currencyId: this.fb.control<string | null>(null, [Validators.required]),
+    enterprises: new FormArray<FormControl<string>>([]),
   });
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -86,6 +87,7 @@ export class OrgStepCompaniesByCountryComponent implements OnChanges {
       countryId: defaultCountryId,
       currencyId: defaultCurrencyId,
     });
+    this.resetEnterpriseControls();
     this.isCompanyDialogOpen = true;
   }
 
@@ -105,6 +107,19 @@ export class OrgStepCompaniesByCountryComponent implements OnChanges {
       return;
     }
 
+    const enterpriseNames = this.normalizeEnterpriseNames();
+    if (enterpriseNames.length === 0) {
+      this.enterpriseControls.markAllAsTouched();
+      this.addEnterpriseControl('Principal');
+    } else if (new Set(enterpriseNames.map((value) => value.toLowerCase())).size !== enterpriseNames.length) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Empresas',
+        detail: 'No puedes repetir nombres de empresa.',
+      });
+      return;
+    }
+
     const payload = {
       name: name.trim(),
       countryId,
@@ -114,13 +129,11 @@ export class OrgStepCompaniesByCountryComponent implements OnChanges {
       enterprisesByCountry: [
         {
           countryId,
-          enterprises: [
-            {
-              name: 'Principal',
-              allowedCurrencyIds: [currencyId],
-              baseCurrencyId: currencyId,
-            },
-          ],
+          enterprises: enterpriseNames.map((enterpriseName) => ({
+            name: enterpriseName,
+            allowedCurrencyIds: [currencyId],
+            baseCurrencyId: currencyId,
+          })),
         },
       ],
       defaultEnterpriseKey: { countryId, enterpriseIndex: 0 },
@@ -154,6 +167,40 @@ export class OrgStepCompaniesByCountryComponent implements OnChanges {
           });
         },
       });
+  }
+
+  get enterpriseControls(): FormArray<FormControl<string>> {
+    return this.companyForm.controls.enterprises as FormArray<FormControl<string>>;
+  }
+
+  addEnterpriseControl(name = ''): void {
+    this.enterpriseControls.push(
+      this.fb.nonNullable.control(name, [Validators.required, Validators.minLength(2)]),
+    );
+  }
+
+  removeEnterpriseControl(index: number): void {
+    if (this.enterpriseControls.length <= 1) {
+      return;
+    }
+    const confirmed = window.confirm('Deseas eliminar esta empresa?');
+    if (!confirmed) {
+      return;
+    }
+    this.enterpriseControls.removeAt(index);
+  }
+
+  private resetEnterpriseControls(): void {
+    while (this.enterpriseControls.length > 0) {
+      this.enterpriseControls.removeAt(0);
+    }
+    this.addEnterpriseControl('Principal');
+  }
+
+  private normalizeEnterpriseNames(): string[] {
+    return this.enterpriseControls.controls
+      .map((control) => control.value.trim())
+      .filter((value) => value.length > 0);
   }
 
   private loadData(): void {

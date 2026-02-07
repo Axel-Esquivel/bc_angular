@@ -56,7 +56,7 @@
             [options]="enterprises"
             optionLabel="name"
             optionValue="id"
-            placeholder="Selecciona una empresa"
+            [placeholder]="enterprises.length === 0 ? 'Sin empresas' : 'Selecciona una empresa'"
             formControlName="enterpriseId"
             appendTo="body"
           ></p-select>

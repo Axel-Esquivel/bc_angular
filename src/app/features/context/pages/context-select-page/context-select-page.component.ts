@@ -268,7 +268,8 @@ export class ContextSelectPageComponent implements OnInit {
     }
     const companyId = this.form.controls.companyId.value;
     const company = this.companies.find((item) => item.id === companyId) ?? null;
-    const currencyIds = this.resolveAllowedCurrencyIds(company);
+    const enterprise = this.enterprises.find((item) => item.id === enterpriseId) ?? null;
+    const currencyIds = this.resolveAllowedCurrencyIds(company, enterprise);
     this.currencyOptions = this.buildCurrencyOptions(currencyIds);
     const allowedValues = this.currencyOptions.map((option) => option.value);
     if (allowedValues.length === 0) {
@@ -277,7 +278,7 @@ export class ContextSelectPageComponent implements OnInit {
       return;
     }
     this.form.controls.currencyId.enable({ emitEvent: false });
-    const resolvedCurrencyId = this.resolveCurrencyId(company, allowedValues);
+    const resolvedCurrencyId = this.resolveCurrencyId(company, enterprise, allowedValues);
     this.form.controls.currencyId.setValue(resolvedCurrencyId ?? null, { emitEvent: false });
   }
 
@@ -295,6 +296,7 @@ export class ContextSelectPageComponent implements OnInit {
 
   private resolveCurrencyId(
     company: CoreCompanyConfig | null,
+    enterprise: CoreEnterprise | null,
     allowedCurrencyIds: string[],
   ): string | null {
     const user = this.authService.getCurrentUser();
@@ -302,12 +304,24 @@ export class ContextSelectPageComponent implements OnInit {
     if (preferred && allowedCurrencyIds.includes(preferred)) {
       return preferred;
     }
+    const enterpriseDefault = this.normalizeCurrencyId(enterprise?.baseCurrencyId ?? null);
+    if (enterpriseDefault && allowedCurrencyIds.includes(enterpriseDefault)) {
+      return enterpriseDefault;
+    }
     return allowedCurrencyIds[0] ?? null;
   }
 
-  private resolveAllowedCurrencyIds(company: CoreCompanyConfig | null): string[] {
+  private resolveAllowedCurrencyIds(company: CoreCompanyConfig | null, enterprise: CoreEnterprise | null): string[] {
     const ids = new Set<string>();
-    if (company?.currencyIds?.length) {
+    const enterpriseAllowed = enterprise?.allowedCurrencyIds;
+    if (enterpriseAllowed && enterpriseAllowed.length > 0) {
+      enterpriseAllowed.forEach((id) => {
+        const normalized = this.normalizeCurrencyId(id);
+        if (normalized) {
+          ids.add(normalized);
+        }
+      });
+    } else if (company?.currencyIds?.length) {
       company.currencyIds.forEach((id) => {
         const normalized = this.normalizeCurrencyId(id);
         if (normalized) {
@@ -565,13 +579,20 @@ export class ContextSelectPageComponent implements OnInit {
       ? company.currencyIds
       : this.coreCurrencies.map((currency) => currency.id);
     const baseCurrencyId = currencyIds[0] ?? '';
-    const enterprises: CompanyEnterprise[] = (company.enterprises ?? []).map((enterprise) => ({
-      id: enterprise.id,
-      name: enterprise.name,
-      countryId,
-      currencyIds,
-      defaultCurrencyId: baseCurrencyId,
-    }));
+    const enterprises: CompanyEnterprise[] = (company.enterprises ?? []).map((enterprise) => {
+      const allowedCurrencyIds = (enterprise.allowedCurrencyIds ?? currencyIds).filter(Boolean);
+      const resolvedAllowed = allowedCurrencyIds.length > 0 ? allowedCurrencyIds : currencyIds;
+      const resolvedBase = enterprise.baseCurrencyId && resolvedAllowed.includes(enterprise.baseCurrencyId)
+        ? enterprise.baseCurrencyId
+        : resolvedAllowed[0] ?? baseCurrencyId;
+      return {
+        id: enterprise.id,
+        name: enterprise.name,
+        countryId: enterprise.countryId ?? countryId,
+        currencyIds: resolvedAllowed,
+        defaultCurrencyId: resolvedBase,
+      };
+    });
     return {
       id: company.id,
       organizationId: this.activeOrganization?.id ?? '',
