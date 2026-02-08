@@ -8,15 +8,18 @@ import { Card } from 'primeng/card';
 import { FloatLabel } from 'primeng/floatlabel';
 import { Select } from 'primeng/select';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { catchError, distinctUntilChanged, finalize, map, of, startWith, switchMap, tap } from 'rxjs';
+import { catchError, combineLatest, distinctUntilChanged, finalize, map, of, startWith, switchMap, tap } from 'rxjs';
 
 import { ContextApiService } from '../../../../core/api/context-api.service';
 import { ContextStateService } from '../../../../core/context/context-state.service';
 import { AuthService } from '../../../../core/auth/auth.service';
 import { OrganizationsService } from '../../../../core/api/organizations-api.service';
+import { CompaniesApiService } from '../../../../core/api/companies-api.service';
+import { BranchesApiService } from '../../../../core/api/branches-api.service';
 import { IOrganization } from '../../../../shared/models/organization.model';
 import { Company, CompanyEnterprise } from '../../../../shared/models/company.model';
-import { CoreCompanyConfig, CoreCountry, CoreCurrency, CoreEnterprise } from '../../../../shared/models/organization-core.model';
+import { Branch } from '../../../../shared/models/branch.model';
+import { CoreCountry, CoreCurrency } from '../../../../shared/models/organization-core.model';
 
 type SelectOption = { label: string; value: string };
 
@@ -35,12 +38,15 @@ export class ContextSelectPageComponent implements OnInit {
   private readonly contextState = inject(ContextStateService);
   private readonly authService = inject(AuthService);
   private readonly organizationsApi = inject(OrganizationsService);
+  private readonly companiesApi = inject(CompaniesApiService);
+  private readonly branchesApi = inject(BranchesApiService);
   private readonly router = inject(Router);
   private readonly messageService = inject(MessageService);
 
   organizations: IOrganization[] = [];
-  companies: CoreCompanyConfig[] = [];
-  enterprises: CoreEnterprise[] = [];
+  companies: Company[] = [];
+  branches: Branch[] = [];
+  enterpriseOptions: SelectOption[] = [];
   countryOptions: SelectOption[] = [];
   currencyOptions: SelectOption[] = [];
   private coreCountries: CoreCountry[] = [];
@@ -48,6 +54,7 @@ export class ContextSelectPageComponent implements OnInit {
   private activeOrganization: IOrganization | null = null;
   loadingOrganizations = false;
   loadingCompanies = false;
+  loadingBranches = false;
   loadingCore = false;
   submitting = false;
 
@@ -93,22 +100,25 @@ export class ContextSelectPageComponent implements OnInit {
         this.applyOrganization(organization);
       });
 
-    countryId$
+    combineLatest([organizationId$, countryId$])
       .pipe(
         tap(() => this.handleCountryChange()),
+        switchMap(([orgId, countryId]) => this.fetchCompanies(orgId, countryId)),
         takeUntilDestroyed(this.destroyRef),
       )
-      .subscribe((countryId) => {
-        this.applyCountrySelection(countryId);
+      .subscribe(({ companies, countryId }) => {
+        this.applyCompanies(companies, countryId);
       });
 
     companyId$
       .pipe(
         tap(() => this.handleCompanyChange()),
+        switchMap((companyId) => this.fetchBranches(companyId)),
         takeUntilDestroyed(this.destroyRef),
       )
-      .subscribe((companyId) => {
+      .subscribe(({ branches, companyId }) => {
         this.applyCompanySelection(companyId);
+        this.applyBranches(branches);
       });
 
     enterpriseId$
@@ -176,6 +186,57 @@ export class ContextSelectPageComponent implements OnInit {
     );
   }
 
+  private fetchCompanies(organizationId: string | null, countryId: string | null) {
+    if (!organizationId || !countryId) {
+      this.loadingCompanies = false;
+      return of({ companies: [] as Company[], countryId });
+    }
+    this.loadingCompanies = true;
+    const normalizedCountryId = this.normalizeCountryId(countryId);
+    return this.companiesApi.listByOrganization(organizationId, normalizedCountryId ?? undefined).pipe(
+      map((response) => ({
+        companies: Array.isArray(response?.result) ? response.result : [],
+        countryId,
+      })),
+      catchError(() => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Contexto',
+          detail: 'No se pudieron cargar las companias.',
+        });
+        return of({ companies: [] as Company[], countryId });
+      }),
+      finalize(() => {
+        this.loadingCompanies = false;
+      }),
+    );
+  }
+
+  private fetchBranches(companyId: string | null) {
+    if (!companyId) {
+      this.loadingBranches = false;
+      return of({ branches: [] as Branch[], companyId });
+    }
+    this.loadingBranches = true;
+    return this.branchesApi.listByCompany(companyId).pipe(
+      map((response) => ({
+        branches: Array.isArray(response?.result) ? response.result : [],
+        companyId,
+      })),
+      catchError(() => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Contexto',
+          detail: 'No se pudieron cargar las empresas.',
+        });
+        return of({ branches: [] as Branch[], companyId });
+      }),
+      finalize(() => {
+        this.loadingBranches = false;
+      }),
+    );
+  }
+
   private applyOrganization(organization: IOrganization | null): void {
     this.activeOrganization = organization;
     const settings = organization?.coreSettings ?? null;
@@ -195,7 +256,8 @@ export class ContextSelectPageComponent implements OnInit {
       this.form.controls.countryId.setValue(null, { emitEvent: false });
       this.form.controls.countryId.disable({ emitEvent: false });
       this.companies = [];
-      this.enterprises = [];
+      this.branches = [];
+      this.enterpriseOptions = [];
       this.currencyOptions = [];
       this.form.controls.companyId.reset(null, { emitEvent: false });
       this.form.controls.companyId.disable({ emitEvent: false });
@@ -207,22 +269,26 @@ export class ContextSelectPageComponent implements OnInit {
   }
 
   private applyCountrySelection(countryId: string | null): void {
+    if (!countryId) {
+      this.applyCompanies([], null);
+    }
+  }
+
+  private applyCompanies(companies: Company[], countryId: string | null): void {
     const normalizedCountryId = this.normalizeCountryId(countryId);
-    const country = this.coreCountries.find((item) => item.id === normalizedCountryId) ?? null;
-    this.companies = country?.companies ?? [];
+    const filtered = normalizedCountryId
+      ? companies.filter((company) => this.getCompanyCountryId(company) === normalizedCountryId)
+      : [];
+    this.companies = filtered;
     if (this.companies.length === 0) {
-      this.enterprises = [];
-      this.currencyOptions = [];
-      this.form.controls.companyId.setValue(null, { emitEvent: false });
-      this.form.controls.companyId.disable({ emitEvent: false });
-      this.form.controls.enterpriseId.setValue(null, { emitEvent: false });
-      this.form.controls.enterpriseId.disable({ emitEvent: false });
-      this.form.controls.currencyId.setValue(null, { emitEvent: false });
-      this.form.controls.currencyId.disable({ emitEvent: false });
+      this.resetCountryDependents();
       return;
     }
     this.form.controls.companyId.enable({ emitEvent: false });
-    const resolvedCompanyId = this.resolveDefaultCompanyId(this.companies);
+    const currentCompanyId = this.form.controls.companyId.value;
+    const hasCurrent =
+      currentCompanyId && this.companies.some((company) => company.id === currentCompanyId);
+    const resolvedCompanyId = hasCurrent ? currentCompanyId : this.resolveDefaultCompanyId(this.companies);
     if (resolvedCompanyId) {
       this.form.controls.companyId.setValue(resolvedCompanyId);
     } else {
@@ -232,7 +298,8 @@ export class ContextSelectPageComponent implements OnInit {
 
   private applyCompanySelection(companyId: string | null): void {
     if (!companyId) {
-      this.enterprises = [];
+      this.branches = [];
+      this.enterpriseOptions = [];
       this.form.controls.enterpriseId.setValue(null, { emitEvent: false });
       this.form.controls.enterpriseId.disable({ emitEvent: false });
       this.currencyOptions = [];
@@ -241,25 +308,26 @@ export class ContextSelectPageComponent implements OnInit {
       return;
     }
     const company = this.companies.find((item) => item.id === companyId) ?? null;
-    this.enterprises = company?.enterprises ?? [];
-    if (this.enterprises.length === 0) {
+    this.applyCompanyCurrencies(company);
+  }
+
+  private applyBranches(branches: Branch[]): void {
+    this.branches = branches.filter((branch) => Boolean(branch.id));
+    this.enterpriseOptions = this.branches
+      .filter((branch) => Boolean(branch.id))
+      .map((branch) => ({ value: branch.id as string, label: branch.name }));
+    if (this.enterpriseOptions.length === 0) {
       this.form.controls.enterpriseId.setValue(null, { emitEvent: false });
       this.form.controls.enterpriseId.disable({ emitEvent: false });
-      const currencyIds = this.resolveAllowedCurrencyIds(company, null);
-      this.currencyOptions = this.buildCurrencyOptions(currencyIds);
-      const allowedValues = this.currencyOptions.map((option) => option.value);
-      if (allowedValues.length === 0) {
-        this.form.controls.currencyId.setValue(null, { emitEvent: false });
-        this.form.controls.currencyId.disable({ emitEvent: false });
-      } else {
-        this.form.controls.currencyId.enable({ emitEvent: false });
-        const resolvedCurrencyId = this.resolveCurrencyId(company, null, allowedValues);
-        this.form.controls.currencyId.setValue(resolvedCurrencyId ?? null, { emitEvent: false });
-      }
       return;
     }
     this.form.controls.enterpriseId.enable({ emitEvent: false });
-    const resolvedEnterpriseId = this.resolveEnterpriseId(company, this.enterprises);
+    const currentEnterpriseId = this.form.controls.enterpriseId.value;
+    const hasCurrent =
+      currentEnterpriseId && this.branches.some((branch) => branch.id === currentEnterpriseId);
+    const resolvedEnterpriseId = hasCurrent
+      ? currentEnterpriseId
+      : this.resolveEnterpriseId(this.branches);
     if (resolvedEnterpriseId) {
       this.form.controls.enterpriseId.setValue(resolvedEnterpriseId);
     } else {
@@ -270,10 +338,10 @@ export class ContextSelectPageComponent implements OnInit {
   private applyEnterpriseSelection(enterpriseId: string | null): void {
     const companyId = this.form.controls.companyId.value;
     const company = this.companies.find((item) => item.id === companyId) ?? null;
-    const enterprise = enterpriseId
-      ? this.enterprises.find((item) => item.id === enterpriseId) ?? null
+    const branch = enterpriseId
+      ? this.branches.find((item) => item.id === enterpriseId) ?? null
       : null;
-    const currencyIds = this.resolveAllowedCurrencyIds(company, enterprise);
+    const currencyIds = this.resolveAllowedCurrencyIds(company, branch);
     this.currencyOptions = this.buildCurrencyOptions(currencyIds);
     const allowedValues = this.currencyOptions.map((option) => option.value);
     if (allowedValues.length === 0) {
@@ -282,25 +350,25 @@ export class ContextSelectPageComponent implements OnInit {
       return;
     }
     this.form.controls.currencyId.enable({ emitEvent: false });
-    const resolvedCurrencyId = this.resolveCurrencyId(company, enterprise, allowedValues);
+    const resolvedCurrencyId = this.resolveCurrencyId(company, branch, allowedValues);
     this.form.controls.currencyId.setValue(resolvedCurrencyId ?? null, { emitEvent: false });
   }
 
-  private resolveEnterpriseId(company: CoreCompanyConfig | null, enterprises: CoreEnterprise[]): string | null {
-    if (!company || enterprises.length === 0) {
+  private resolveEnterpriseId(branches: Branch[]): string | null {
+    if (branches.length === 0) {
       return null;
     }
     const user = this.authService.getCurrentUser();
     const preferred = user?.defaults?.enterpriseId ?? user?.defaultEnterpriseId ?? null;
-    if (preferred && enterprises.some((item) => item.id === preferred)) {
+    if (preferred && branches.some((item) => item.id === preferred)) {
       return preferred;
     }
     return null;
   }
 
   private resolveCurrencyId(
-    company: CoreCompanyConfig | null,
-    enterprise: CoreEnterprise | null,
+    company: Company | null,
+    branch: Branch | null,
     allowedCurrencyIds: string[],
   ): string | null {
     const user = this.authService.getCurrentUser();
@@ -308,25 +376,29 @@ export class ContextSelectPageComponent implements OnInit {
     if (preferred && allowedCurrencyIds.includes(preferred)) {
       return preferred;
     }
-    const enterpriseDefault = this.normalizeCurrencyId(enterprise?.baseCurrencyId ?? null);
-    if (enterpriseDefault && allowedCurrencyIds.includes(enterpriseDefault)) {
-      return enterpriseDefault;
+    const branchDefault = this.normalizeCurrencyId(branch?.currencyIds?.[0] ?? null);
+    if (branchDefault && allowedCurrencyIds.includes(branchDefault)) {
+      return branchDefault;
+    }
+    const companyDefault = this.normalizeCurrencyId(company?.baseCurrencyId ?? company?.defaultCurrencyId ?? null);
+    if (companyDefault && allowedCurrencyIds.includes(companyDefault)) {
+      return companyDefault;
     }
     return allowedCurrencyIds[0] ?? null;
   }
 
-  private resolveAllowedCurrencyIds(company: CoreCompanyConfig | null, enterprise: CoreEnterprise | null): string[] {
+  private resolveAllowedCurrencyIds(company: Company | null, branch: Branch | null): string[] {
     const ids = new Set<string>();
-    const enterpriseAllowed = enterprise?.allowedCurrencyIds;
-    if (enterpriseAllowed && enterpriseAllowed.length > 0) {
-      enterpriseAllowed.forEach((id) => {
+    const branchAllowed = branch?.currencyIds;
+    if (branchAllowed && branchAllowed.length > 0) {
+      branchAllowed.forEach((id) => {
         const normalized = this.normalizeCurrencyId(id);
         if (normalized) {
           ids.add(normalized);
         }
       });
-    } else if (company?.currencyIds?.length) {
-      company.currencyIds.forEach((id) => {
+    } else if (company?.currencies?.length) {
+      company.currencies.forEach((id) => {
         const normalized = this.normalizeCurrencyId(id);
         if (normalized) {
           ids.add(normalized);
@@ -397,7 +469,7 @@ export class ContextSelectPageComponent implements OnInit {
     return available[0] ?? null;
   }
 
-  private resolveDefaultCompanyId(companies: CoreCompanyConfig[]): string | null {
+  private resolveDefaultCompanyId(companies: Company[]): string | null {
     if (companies.length === 0) {
       return null;
     }
@@ -433,7 +505,8 @@ export class ContextSelectPageComponent implements OnInit {
     this.coreCurrencies = [];
     this.countryOptions = [];
     this.companies = [];
-    this.enterprises = [];
+    this.branches = [];
+    this.enterpriseOptions = [];
     this.currencyOptions = [];
     this.form.controls.countryId.reset(null, { emitEvent: false });
     this.form.controls.countryId.disable({ emitEvent: false });
@@ -447,7 +520,8 @@ export class ContextSelectPageComponent implements OnInit {
 
   private resetCountryDependents(): void {
     this.companies = [];
-    this.enterprises = [];
+    this.branches = [];
+    this.enterpriseOptions = [];
     this.currencyOptions = [];
     this.form.controls.companyId.reset(null, { emitEvent: false });
     this.form.controls.companyId.disable({ emitEvent: false });
@@ -458,7 +532,8 @@ export class ContextSelectPageComponent implements OnInit {
   }
 
   private resetCompanyDependents(): void {
-    this.enterprises = [];
+    this.branches = [];
+    this.enterpriseOptions = [];
     this.currencyOptions = [];
     this.form.controls.enterpriseId.reset(null, { emitEvent: false });
     this.form.controls.enterpriseId.disable({ emitEvent: false });
@@ -506,6 +581,35 @@ export class ContextSelectPageComponent implements OnInit {
     return trimmed;
   }
 
+  private getCompanyCountryId(company: Company): string {
+    const direct = company.baseCountryId || (company as { countryId?: string }).countryId || '';
+    return this.normalizeCountryId(direct) ?? direct;
+  }
+
+  private applyCompanyCurrencies(company: Company | null): void {
+    const currencyIds = this.resolveAllowedCurrencyIds(company, null);
+    this.currencyOptions = this.buildCurrencyOptions(currencyIds);
+    const allowedValues = this.currencyOptions.map((option) => option.value);
+    if (allowedValues.length === 0) {
+      this.form.controls.currencyId.setValue(null, { emitEvent: false });
+      this.form.controls.currencyId.disable({ emitEvent: false });
+      return;
+    }
+    this.form.controls.currencyId.enable({ emitEvent: false });
+    const resolvedCurrencyId = this.resolveCurrencyId(company, null, allowedValues);
+    this.form.controls.currencyId.setValue(resolvedCurrencyId ?? null, { emitEvent: false });
+  }
+
+  private normalizeCurrencyList(values: string[] | undefined, fallback: string[]): string[] {
+    const normalized = (values ?? [])
+      .map((value) => this.normalizeCurrencyId(value))
+      .filter((value): value is string => Boolean(value));
+    if (normalized.length > 0) {
+      return normalized;
+    }
+    return fallback;
+  }
+
   save(): void {
     if (this.form.invalid || this.submitting) {
       this.form.markAllAsTouched();
@@ -517,8 +621,8 @@ export class ContextSelectPageComponent implements OnInit {
     const enterpriseId = this.form.controls.enterpriseId.value;
     const countryId = this.form.controls.countryId.value;
     const currencyId = this.form.controls.currencyId.value;
-    const companyConfig = this.companies.find((item) => item.id === companyId) ?? null;
-    if (!companyConfig || !companyConfig.id) {
+    const company = this.companies.find((item) => item.id === companyId) ?? null;
+    if (!company || !company.id) {
       this.messageService.add({
         severity: 'warn',
         summary: 'Contexto',
@@ -526,7 +630,7 @@ export class ContextSelectPageComponent implements OnInit {
       });
       return;
     }
-    if (!enterpriseId) {
+    if (this.enterpriseOptions.length > 0 && !enterpriseId) {
       this.messageService.add({
         severity: 'warn',
         summary: 'Contexto',
@@ -552,12 +656,12 @@ export class ContextSelectPageComponent implements OnInit {
     }
 
     this.submitting = true;
-    const company = this.buildCompanyFromConfig(companyConfig, countryId);
+    const companyForContext = this.buildCompanyFromSelection(company, countryId, this.branches);
     this.contextState
       .setDefaults({
         organizationId: orgId ?? '',
-        company,
-        enterpriseId,
+        company: companyForContext,
+        enterpriseId: enterpriseId ?? '',
         countryId,
         currencyId,
       })
@@ -578,36 +682,32 @@ export class ContextSelectPageComponent implements OnInit {
       });
   }
 
-  private buildCompanyFromConfig(company: CoreCompanyConfig, countryId: string): Company {
-    const currencyIds = company.currencyIds.length > 0
-      ? company.currencyIds
-      : this.coreCurrencies.map((currency) => currency.id);
-    const baseCurrencyId = currencyIds[0] ?? '';
-    const enterprises: CompanyEnterprise[] = (company.enterprises ?? []).map((enterprise) => {
-      const allowedCurrencyIds = (enterprise.allowedCurrencyIds ?? currencyIds).filter(Boolean);
-      const resolvedAllowed = allowedCurrencyIds.length > 0 ? allowedCurrencyIds : currencyIds;
-      const resolvedBase = enterprise.baseCurrencyId && resolvedAllowed.includes(enterprise.baseCurrencyId)
-        ? enterprise.baseCurrencyId
-        : resolvedAllowed[0] ?? baseCurrencyId;
-      return {
-        id: enterprise.id,
-        name: enterprise.name,
-        countryId: enterprise.countryId ?? countryId,
-        currencyIds: resolvedAllowed,
-        defaultCurrencyId: resolvedBase,
-      };
-    });
+  private buildCompanyFromSelection(company: Company, countryId: string, branches: Branch[]): Company {
+    const resolvedCurrencies = this.resolveAllowedCurrencyIds(company, null);
+    const baseCurrencyId = company.baseCurrencyId || company.defaultCurrencyId || resolvedCurrencies[0] || '';
+    const enterprises: CompanyEnterprise[] = branches
+      .filter((branch) => Boolean(branch.id))
+      .map((branch) => {
+        const allowed = this.normalizeCurrencyList(branch.currencyIds, resolvedCurrencies);
+        const resolvedAllowed = allowed.length > 0 ? allowed : resolvedCurrencies;
+        const defaultCurrencyId = resolvedAllowed[0] ?? baseCurrencyId;
+        return {
+          id: branch.id as string,
+          name: branch.name,
+          countryId: branch.countryId ?? countryId,
+          currencyIds: resolvedAllowed,
+          defaultCurrencyId,
+        };
+      });
     return {
-      id: company.id,
-      organizationId: this.activeOrganization?.id ?? '',
-      name: company.name,
-      baseCountryId: countryId,
+      ...company,
+      baseCountryId: company.baseCountryId || countryId,
       baseCurrencyId,
-      currencies: currencyIds,
-      operatingCountryIds: [countryId],
+      currencies: resolvedCurrencies,
+      operatingCountryIds: company.operatingCountryIds ?? [countryId],
       enterprises,
-      defaultEnterpriseId: enterprises[0]?.id ?? null,
-      defaultCurrencyId: baseCurrencyId || null,
+      defaultEnterpriseId: company.defaultEnterpriseId ?? enterprises[0]?.id ?? null,
+      defaultCurrencyId: company.defaultCurrencyId ?? baseCurrencyId ?? null,
     };
   }
 }

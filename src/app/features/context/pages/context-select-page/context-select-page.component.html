@@ -53,10 +53,11 @@
         <p-floatLabel>
           <p-select
             inputId="enterpriseId"
-            [options]="enterprises"
-            optionLabel="name"
-            optionValue="id"
-            [placeholder]="enterprises.length === 0 ? 'Sin empresas' : 'Selecciona una empresa'"
+            [options]="enterpriseOptions"
+            optionLabel="label"
+            optionValue="value"
+            [loading]="loadingBranches"
+            [placeholder]="enterpriseOptions.length === 0 ? 'Sin empresas' : 'Selecciona una empresa'"
             formControlName="enterpriseId"
             appendTo="body"
           ></p-select>
