@@ -92,7 +92,7 @@
         <p-button
           type="button"
           label="Continuar"
-          [disabled]="submitting"
+          [disabled]="submitting || !canContinue"
           (onClick)="continue()"
         ></p-button>
       </div>

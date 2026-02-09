@@ -718,8 +718,9 @@ export class ContextSelectPageComponent implements OnInit {
     if (this.submitting) {
       return;
     }
-    const missing = this.buildMissingFields();
-    if (missing.length > 0) {
+    if (!this.canContinue) {
+      this.form.markAllAsTouched();
+      const missing = this.buildMissingFields();
       this.messageService.add({
         severity: 'error',
         summary: 'Contexto incompleto',
@@ -748,17 +749,33 @@ export class ContextSelectPageComponent implements OnInit {
           if (!payload) {
             return of(null);
           }
-          return this.contextState.setDefaults(payload);
+          return this.contextState.setDefaults(payload).pipe(
+            switchMap(() => this.organizationsApi.getById(payload.organizationId)),
+            map((orgResponse) => orgResponse?.result ?? null),
+          );
         }),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
-        next: (result) => {
+        next: (organization) => {
           this.submitting = false;
-          if (!result) {
+          if (!organization) {
             return;
           }
-          this.router.navigateByUrl('/dashboard');
+          const user = this.authService.getCurrentUser();
+          const userId = user?.id ?? null;
+          const isOwner =
+            (organization.ownerUserId && organization.ownerUserId === userId) ||
+            (organization.members ?? []).some(
+              (member) => member.userId === userId && member.roleKey === 'owner',
+            );
+          if (!isOwner) {
+            this.router.navigateByUrl('/dashboard');
+            return;
+          }
+          const setupStatus = organization.setupStatus ?? 'pending';
+          const target = setupStatus === 'pending' ? '/org/setup/modules' : '/dashboard';
+          this.router.navigateByUrl(target);
         },
         error: () => {
           this.submitting = false;
@@ -877,6 +894,17 @@ export class ContextSelectPageComponent implements OnInit {
       currencyId: 'Moneda',
     };
     return keys.map((key) => labels[key] ?? key);
+  }
+
+  get canContinue(): boolean {
+    const values = this.form.getRawValue();
+    return Boolean(
+      values.organizationId &&
+        values.countryId &&
+        values.companyId &&
+        values.enterpriseId &&
+        values.currencyId,
+    );
   }
 
   private buildCompanyFromSelection(company: Company, countryId: string, branches: Branch[]): Company {
