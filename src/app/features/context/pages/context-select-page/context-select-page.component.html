@@ -1,6 +1,6 @@
 <section class="context-page">
   <p-card header="Selecciona contexto" class="context-card">
-    <form [formGroup]="form" (ngSubmit)="save()" class="form">
+    <form [formGroup]="form" class="form">
       <div class="field">
         <p-floatLabel>
           <p-select
@@ -81,7 +81,20 @@
       </div>
 
       <div class="actions">
-        <p-button type="submit" label="Guardar" [disabled]="form.invalid || submitting"></p-button>
+        <p-button
+          type="button"
+          label="Guardar como predeterminado"
+          severity="secondary"
+          [disabled]="submitting"
+          (onClick)="saveDefaultContext()"
+        ></p-button>
+        
+        <p-button
+          type="button"
+          label="Continuar"
+          [disabled]="submitting"
+          (onClick)="continue()"
+        ></p-button>
       </div>
     </form>
   </p-card>

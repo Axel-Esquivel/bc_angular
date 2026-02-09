@@ -30,5 +30,10 @@ export const routes: Routes = [
     canActivate: [AuthGuard, RequireContextGuard],
     loadChildren: () => import('./features/app/app.routes').then((m) => m.appRoutes),
   },
+  {
+    path: 'dashboard',
+    canActivate: [AuthGuard, RequireContextGuard],
+    loadChildren: () => import('./features/app/app.routes').then((m) => m.appRoutes),
+  },
   { path: '**', canActivate: [RootRedirectGuard], component: RootRedirectPageComponent },
 ];

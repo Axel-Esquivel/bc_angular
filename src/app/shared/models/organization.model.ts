@@ -31,6 +31,7 @@ export interface IOrganization {
   code?: string;
   ownerUserId?: string;
   createdBy?: string;
+  setupStatus?: 'pending' | 'completed';
   countryIds?: string[];
   currencyIds?: string[];
   coreSettings?: OrganizationCoreSettings;

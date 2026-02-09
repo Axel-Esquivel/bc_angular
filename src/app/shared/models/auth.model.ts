@@ -1,4 +1,5 @@
 import { ActiveContext } from './active-context.model';
+import { DefaultContext } from './default-context.model';
 
 export interface AuthUserDefaults {
   organizationId?: string;
@@ -19,6 +20,9 @@ export interface AuthUser {
   defaultEnterpriseId?: string;
   defaultCurrencyId?: string;
   defaults?: AuthUserDefaults;
+  preferences?: {
+    defaultContext?: DefaultContext;
+  };
   displayName?: string;
   roles?: string[];
   isFirstTime?: boolean;

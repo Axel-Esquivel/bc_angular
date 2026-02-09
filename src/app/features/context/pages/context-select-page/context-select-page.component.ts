@@ -16,10 +16,12 @@ import { AuthService } from '../../../../core/auth/auth.service';
 import { OrganizationsService } from '../../../../core/api/organizations-api.service';
 import { CompaniesApiService } from '../../../../core/api/companies-api.service';
 import { BranchesApiService } from '../../../../core/api/branches-api.service';
+import { UsersApiService } from '../../../../core/api/users-api.service';
 import { IOrganization } from '../../../../shared/models/organization.model';
 import { Company, CompanyEnterprise } from '../../../../shared/models/company.model';
 import { Branch } from '../../../../shared/models/branch.model';
 import { CoreCountry, CoreCurrency } from '../../../../shared/models/organization-core.model';
+import { DefaultContext } from '../../../../shared/models/default-context.model';
 
 type SelectOption = { label: string; value: string };
 
@@ -40,6 +42,7 @@ export class ContextSelectPageComponent implements OnInit {
   private readonly organizationsApi = inject(OrganizationsService);
   private readonly companiesApi = inject(CompaniesApiService);
   private readonly branchesApi = inject(BranchesApiService);
+  private readonly usersApi = inject(UsersApiService);
   private readonly router = inject(Router);
   private readonly messageService = inject(MessageService);
 
@@ -52,6 +55,8 @@ export class ContextSelectPageComponent implements OnInit {
   private coreCountries: CoreCountry[] = [];
   private coreCurrencies: CoreCurrency[] = [];
   private activeOrganization: IOrganization | null = null;
+  private readonly defaultContext: DefaultContext | null;
+  private validatedDefaultContext: DefaultContext | null = null;
   loadingOrganizations = false;
   loadingCompanies = false;
   loadingBranches = false;
@@ -66,8 +71,14 @@ export class ContextSelectPageComponent implements OnInit {
     currencyId: this.fb.control<string | null>({ value: null, disabled: true }, [Validators.required]),
   });
 
+  constructor() {
+    const user = this.authService.getCurrentUser();
+    this.defaultContext = user?.preferences?.defaultContext ?? null;
+  }
+
   ngOnInit(): void {
     this.resetOrganizationDependents();
+    this.loadDefaultContext();
     this.loadOrganizations();
 
     const organizationId$ = this.form.controls.organizationId.valueChanges.pipe(
@@ -141,11 +152,14 @@ export class ContextSelectPageComponent implements OnInit {
           this.organizations = organizations ?? [];
           this.loadingOrganizations = false;
           const user = this.authService.getCurrentUser();
-          const defaultOrgId = user?.defaults?.organizationId ?? user?.defaultOrganizationId;
+          const defaultOrgId =
+            this.validatedDefaultContext?.organizationId ??
+            user?.defaults?.organizationId ??
+            user?.defaultOrganizationId;
           const resolved =
             defaultOrgId && this.organizations.some((org) => org.id === defaultOrgId)
               ? defaultOrgId
-              : this.organizations[0]?.id ?? null;
+              : null;
           if (resolved) {
             this.form.controls.organizationId.setValue(resolved);
           } else {
@@ -161,6 +175,19 @@ export class ContextSelectPageComponent implements OnInit {
             detail: 'No se pudieron cargar las organizaciones.',
           });
         },
+      });
+  }
+
+  private loadDefaultContext(): void {
+    if (!this.defaultContext) {
+      return;
+    }
+    this.usersApi
+      .validateDefaultContext(this.defaultContext)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((response) => {
+        const result = response.result;
+        this.validatedDefaultContext = result?.isValid ? (result.sanitizedContext ?? this.defaultContext) : null;
       });
   }
 
@@ -246,12 +273,16 @@ export class ContextSelectPageComponent implements OnInit {
 
     if (this.countryOptions.length > 0 && this.form.controls.organizationId.value) {
       this.form.controls.countryId.enable({ emitEvent: false });
-      const resolvedCountryId = this.resolveDefaultCountryId(this.countryOptions);
-      if (resolvedCountryId) {
-        this.form.controls.countryId.setValue(resolvedCountryId);
-      } else {
-        this.form.controls.countryId.setValue(null);
-      }
+      const current = this.form.controls.countryId.value;
+      const available = this.countryOptions.map((option) => option.value);
+      const preferred = this.shouldApplyDefaultContext()
+        ? this.normalizeCountryId(this.validatedDefaultContext?.countryId ?? null)
+        : null;
+      const resolved =
+        (current && available.includes(current) ? current : null) ??
+        (preferred && available.includes(preferred) ? preferred : null) ??
+        this.resolveDefaultCountryId(this.countryOptions);
+      this.form.controls.countryId.setValue(resolved ?? null);
     } else {
       this.form.controls.countryId.setValue(null, { emitEvent: false });
       this.form.controls.countryId.disable({ emitEvent: false });
@@ -286,9 +317,18 @@ export class ContextSelectPageComponent implements OnInit {
     }
     this.form.controls.companyId.enable({ emitEvent: false });
     const currentCompanyId = this.form.controls.companyId.value;
+    const preferredCompanyId = this.shouldApplyDefaultContext()
+      ? this.validatedDefaultContext?.companyId ?? null
+      : null;
     const hasCurrent =
       currentCompanyId && this.companies.some((company) => company.id === currentCompanyId);
-    const resolvedCompanyId = hasCurrent ? currentCompanyId : this.resolveDefaultCompanyId(this.companies);
+    const hasPreferred =
+      preferredCompanyId && this.companies.some((company) => company.id === preferredCompanyId);
+    const resolvedCompanyId = hasCurrent
+      ? currentCompanyId
+      : hasPreferred
+        ? preferredCompanyId
+        : null;
     if (resolvedCompanyId) {
       this.form.controls.companyId.setValue(resolvedCompanyId);
     } else {
@@ -323,11 +363,18 @@ export class ContextSelectPageComponent implements OnInit {
     }
     this.form.controls.enterpriseId.enable({ emitEvent: false });
     const currentEnterpriseId = this.form.controls.enterpriseId.value;
+    const preferredEnterpriseId = this.shouldApplyDefaultContext()
+      ? this.validatedDefaultContext?.enterpriseId ?? null
+      : null;
     const hasCurrent =
       currentEnterpriseId && this.branches.some((branch) => branch.id === currentEnterpriseId);
+    const hasPreferred =
+      preferredEnterpriseId && this.branches.some((branch) => branch.id === preferredEnterpriseId);
     const resolvedEnterpriseId = hasCurrent
       ? currentEnterpriseId
-      : this.resolveEnterpriseId(this.branches);
+      : hasPreferred
+        ? preferredEnterpriseId
+        : this.resolveEnterpriseId(this.branches);
     if (resolvedEnterpriseId) {
       this.form.controls.enterpriseId.setValue(resolvedEnterpriseId);
     } else {
@@ -372,6 +419,12 @@ export class ContextSelectPageComponent implements OnInit {
     allowedCurrencyIds: string[],
   ): string | null {
     const user = this.authService.getCurrentUser();
+    const preferredDefault = this.shouldApplyDefaultContext()
+      ? this.normalizeCurrencyId(this.validatedDefaultContext?.currencyId ?? null)
+      : null;
+    if (preferredDefault && allowedCurrencyIds.includes(preferredDefault)) {
+      return preferredDefault;
+    }
     const preferred = this.normalizeCurrencyId(user?.defaults?.currencyId ?? user?.defaultCurrencyId ?? null);
     if (preferred && allowedCurrencyIds.includes(preferred)) {
       return preferred;
@@ -384,7 +437,7 @@ export class ContextSelectPageComponent implements OnInit {
     if (companyDefault && allowedCurrencyIds.includes(companyDefault)) {
       return companyDefault;
     }
-    return allowedCurrencyIds[0] ?? null;
+    return null;
   }
 
   private resolveAllowedCurrencyIds(company: Company | null, branch: Branch | null): string[] {
@@ -467,18 +520,6 @@ export class ContextSelectPageComponent implements OnInit {
       return preferred;
     }
     return available[0] ?? null;
-  }
-
-  private resolveDefaultCompanyId(companies: Company[]): string | null {
-    if (companies.length === 0) {
-      return null;
-    }
-    const user = this.authService.getCurrentUser();
-    const preferred = user?.defaults?.companyId ?? user?.defaultCompanyId ?? null;
-    if (preferred && companies.some((company) => company.id === preferred)) {
-      return preferred;
-    }
-    return companies[0]?.id ?? null;
   }
 
   private handleOrganizationChange(organizationId: string | null): void {
@@ -610,66 +651,114 @@ export class ContextSelectPageComponent implements OnInit {
     return fallback;
   }
 
-  save(): void {
-    if (this.form.invalid || this.submitting) {
-      this.form.markAllAsTouched();
-      return;
+  private shouldApplyDefaultContext(): boolean {
+    if (!this.validatedDefaultContext?.organizationId) {
+      return false;
     }
+    return this.form.controls.organizationId.value === this.validatedDefaultContext.organizationId;
+  }
 
-    const orgId = this.form.controls.organizationId.value;
-    const companyId = this.form.controls.companyId.value;
-    const enterpriseId = this.form.controls.enterpriseId.value;
-    const countryId = this.form.controls.countryId.value;
-    const currencyId = this.form.controls.currencyId.value;
-    const company = this.companies.find((item) => item.id === companyId) ?? null;
-    if (!company || !company.id) {
-      this.messageService.add({
-        severity: 'warn',
-        summary: 'Contexto',
-        detail: 'Selecciona una compania valida.',
-      });
+  saveDefaultContext(): void {
+    if (this.submitting) {
       return;
     }
-    if (this.enterpriseOptions.length > 0 && !enterpriseId) {
+    const partial = this.buildPartialDefaultContext();
+    if (!partial.organizationId) {
       this.messageService.add({
         severity: 'warn',
         summary: 'Contexto',
-        detail: 'Selecciona una empresa valida.',
-      });
-      return;
-    }
-    if (!countryId) {
-      this.messageService.add({
-        severity: 'warn',
-        summary: 'Contexto',
-        detail: 'Selecciona un pais valido.',
-      });
-      return;
-    }
-    if (!currencyId) {
-      this.messageService.add({
-        severity: 'warn',
-        summary: 'Contexto',
-        detail: 'Selecciona una moneda valida.',
+        detail: 'Selecciona una organizacion para guardar un predeterminado.',
       });
       return;
     }
 
     this.submitting = true;
-    const companyForContext = this.buildCompanyFromSelection(company, countryId, this.branches);
-    this.contextState
-      .setDefaults({
-        organizationId: orgId ?? '',
-        company: companyForContext,
-        enterpriseId: enterpriseId ?? '',
-        countryId,
-        currencyId,
-      })
-      .pipe(takeUntilDestroyed(this.destroyRef))
+    this.usersApi
+      .validateDefaultContext(partial)
+      .pipe(
+        switchMap((response) => {
+          const result = response.result;
+          if (result && !result.isValid) {
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Contexto',
+              detail: 'La seleccion no es valida.',
+            });
+            return of(null);
+          }
+          const sanitized = result?.sanitizedContext ?? partial;
+          return this.usersApi.setDefaultContextPreferences(sanitized);
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
       .subscribe({
-        next: () => {
+        next: (result) => {
           this.submitting = false;
-          this.router.navigateByUrl('/app');
+          if (!result) {
+            return;
+          }
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Contexto',
+            detail: 'Predeterminado guardado.',
+          });
+        },
+        error: () => {
+          this.submitting = false;
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Contexto',
+            detail: 'No se pudo guardar el predeterminado.',
+          });
+        },
+      });
+  }
+
+  continue(): void {
+    if (this.submitting) {
+      return;
+    }
+    const missing = this.buildMissingFields();
+    if (missing.length > 0) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Contexto incompleto',
+        detail: `Falta seleccionar: ${missing.join(', ')}`,
+      });
+      return;
+    }
+
+    this.submitting = true;
+    const context = this.buildPartialDefaultContext();
+    this.usersApi
+      .validateDefaultContext(context)
+      .pipe(
+        switchMap((response) => {
+          const result = response.result;
+          if (!result?.isComplete || !result.isValid) {
+            const missingList = result?.missing?.length ? `Falta seleccionar: ${this.mapMissingLabels(result.missing).join(', ')}` : '';
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Contexto invalido',
+              detail: missingList || 'Verifica la configuracion del contexto.',
+            });
+            return of(null);
+          }
+          const payload = this.buildContextPayload();
+          if (!payload) {
+            return of(null);
+          }
+          return this.contextState.setDefaults(payload);
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: (result) => {
+          this.submitting = false;
+          if (!result) {
+            return;
+          }
+          this.router.navigateByUrl('/dashboard');
         },
         error: () => {
           this.submitting = false;
@@ -680,6 +769,114 @@ export class ContextSelectPageComponent implements OnInit {
           });
         },
       });
+  }
+
+  private buildContextPayload(): {
+    organizationId: string;
+    company: Company;
+    enterpriseId: string;
+    countryId: string;
+    currencyId: string;
+  } | null {
+    const orgId = this.form.controls.organizationId.value;
+    const companyId = this.form.controls.companyId.value;
+    const enterpriseId = this.form.controls.enterpriseId.value;
+    const countryId = this.form.controls.countryId.value;
+    const currencyId = this.form.controls.currencyId.value;
+
+    if (!orgId || !companyId || !countryId || !currencyId) {
+      return null;
+    }
+
+    const company = this.companies.find((item) => item.id === companyId) ?? null;
+    if (!company || !company.id) {
+      return null;
+    }
+    if (this.enterpriseOptions.length > 0 && !enterpriseId) {
+      return null;
+    }
+
+    const companyForContext = this.buildCompanyFromSelection(company, countryId, this.branches);
+    return {
+      organizationId: orgId,
+      company: companyForContext,
+      enterpriseId: enterpriseId ?? '',
+      countryId,
+      currencyId,
+    };
+  }
+
+  private buildPartialDefaultContext(): DefaultContext {
+    const context: DefaultContext = {};
+    const orgId = this.form.controls.organizationId.value;
+    const countryId = this.form.controls.countryId.value;
+    const companyId = this.form.controls.companyId.value;
+    const enterpriseId = this.form.controls.enterpriseId.value;
+    const currencyId = this.form.controls.currencyId.value;
+    if (orgId) {
+      context.organizationId = orgId;
+    }
+    if (countryId) {
+      context.countryId = countryId;
+    }
+    if (companyId) {
+      context.companyId = companyId;
+    }
+    if (enterpriseId) {
+      context.enterpriseId = enterpriseId;
+    }
+    if (currencyId) {
+      context.currencyId = currencyId;
+    }
+    return context;
+  }
+
+  private buildMissingFields(formValue?: {
+    organizationId: string | null;
+    countryId: string | null;
+    companyId: string | null;
+    enterpriseId: string | null;
+    currencyId: string | null;
+  }): string[] {
+    return this.mapMissingLabels(this.getMissingKeys(formValue));
+  }
+
+  private getMissingKeys(formValue?: {
+    organizationId: string | null;
+    countryId: string | null;
+    companyId: string | null;
+    enterpriseId: string | null;
+    currencyId: string | null;
+  }): string[] {
+    const values = formValue ?? this.form.getRawValue();
+    const missing: string[] = [];
+    if (!values.organizationId) {
+      missing.push('organizationId');
+    }
+    if (!values.countryId) {
+      missing.push('countryId');
+    }
+    if (!values.companyId) {
+      missing.push('companyId');
+    }
+    if (!values.enterpriseId) {
+      missing.push('enterpriseId');
+    }
+    if (!values.currencyId) {
+      missing.push('currencyId');
+    }
+    return missing;
+  }
+
+  private mapMissingLabels(keys: string[]): string[] {
+    const labels: Record<string, string> = {
+      organizationId: 'Organizacion',
+      countryId: 'Pais',
+      companyId: 'Compania',
+      enterpriseId: 'Empresa',
+      currencyId: 'Moneda',
+    };
+    return keys.map((key) => labels[key] ?? key);
   }
 
   private buildCompanyFromSelection(company: Company, countryId: string, branches: Branch[]): Company {

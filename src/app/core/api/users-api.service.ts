@@ -6,6 +6,7 @@ import { map } from 'rxjs/operators';
 import { APP_CONFIG_TOKEN, AppConfig } from '../config/app-config';
 import { ApiResponse } from '../../shared/models/api-response.model';
 import { AuthUser } from '../../shared/models/auth.model';
+import { DefaultContext, DefaultContextValidationResult } from '../../shared/models/default-context.model';
 
 export interface ResolvedUser {
   id: string;
@@ -36,6 +37,17 @@ export class UsersApiService {
 
   setDefaultCurrency(currencyId: string): Observable<ApiResponse<AuthUser>> {
     return this.http.patch<ApiResponse<AuthUser>>(`${this.baseUrl}/me/default-currency`, { currencyId });
+  }
+
+  setDefaultContextPreferences(defaultContext: DefaultContext): Observable<ApiResponse<AuthUser>> {
+    return this.http.put<ApiResponse<AuthUser>>(`${this.baseUrl}/me/preferences/default-context`, defaultContext);
+  }
+
+  validateDefaultContext(defaultContext: DefaultContext): Observable<ApiResponse<DefaultContextValidationResult>> {
+    return this.http.post<ApiResponse<DefaultContextValidationResult>>(
+      `${this.baseUrl}/me/preferences/default-context/validate`,
+      defaultContext,
+    );
   }
 
   resolve(ids: string[]): Observable<ResolvedUser[]> {
