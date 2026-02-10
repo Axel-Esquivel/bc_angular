@@ -35,7 +35,7 @@ export class ModulePlaceholderPageComponent implements OnInit {
     }
 
     this.organizationsApi
-      .getModules(organizationId)
+      .getModulesOverview(organizationId)
       .pipe(take(1))
       .subscribe({
         next: (response) => {

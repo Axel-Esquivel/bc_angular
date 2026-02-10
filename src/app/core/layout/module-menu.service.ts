@@ -47,7 +47,7 @@ export class ModuleMenuService {
       );
     }
 
-    const modules$ = this.organizationsApi.getModules(organizationId).pipe(
+    const modules$ = this.organizationsApi.getModulesOverview(organizationId).pipe(
       map((response) => response.result?.modules ?? []),
       catchError(() => of([] as OrganizationModuleOverviewItem[]))
     );

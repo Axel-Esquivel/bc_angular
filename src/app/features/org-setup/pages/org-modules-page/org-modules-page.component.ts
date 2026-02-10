@@ -55,7 +55,7 @@ export class OrgModulesPageComponent implements OnInit {
   private loadModules(organizationId: string): void {
     this.isLoading = true;
     this.organizationsApi
-      .getModules(organizationId)
+      .getModulesOverview(organizationId)
       .pipe(take(1))
       .subscribe({
         next: (response) => {

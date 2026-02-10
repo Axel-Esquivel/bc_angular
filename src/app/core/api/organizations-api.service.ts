@@ -18,6 +18,7 @@ import { OrganizationModulesOverviewResponse } from '../../shared/models/organiz
 import {
   OrganizationModuleInstallResponse,
   OrganizationModuleStoreResponse,
+  OrganizationModuleUninstallResponse,
 } from '../../shared/models/organization-module-store.model';
 import { Organization } from '../../shared/models/organization.model';
 
@@ -155,12 +156,12 @@ export class OrganizationsService {
     return this.http.get<ApiResponse<IOrganizationRole[]>>(`${this.baseUrl}/${id}/roles`);
   }
 
-  getModules(id: string): Observable<ApiResponse<OrganizationModulesOverviewResponse>> {
-    return this.http.get<ApiResponse<OrganizationModulesOverviewResponse>>(`${this.baseUrl}/${id}/modules`);
+  getModulesStore(id: string): Observable<ApiResponse<OrganizationModuleStoreResponse>> {
+    return this.http.get<ApiResponse<OrganizationModuleStoreResponse>>(`${this.baseUrl}/${id}/modules`);
   }
 
-  getAvailableModules(id: string): Observable<ApiResponse<OrganizationModuleStoreResponse>> {
-    return this.http.get<ApiResponse<OrganizationModuleStoreResponse>>(`${this.baseUrl}/${id}/modules/available`);
+  getModulesOverview(id: string): Observable<ApiResponse<OrganizationModulesOverviewResponse>> {
+    return this.http.get<ApiResponse<OrganizationModulesOverviewResponse>>(`${this.baseUrl}/${id}/modules/overview`);
   }
 
   updateModules(id: string, payload: { modules: string[] }): Observable<ApiResponse<OrganizationModulesOverviewResponse>> {
@@ -174,11 +175,26 @@ export class OrganizationsService {
     );
   }
 
+  uninstallModule(
+    id: string,
+    moduleKey: string,
+    cascade = false,
+  ): Observable<ApiResponse<OrganizationModuleUninstallResponse>> {
+    return this.http.post<ApiResponse<OrganizationModuleUninstallResponse>>(
+      `${this.baseUrl}/${id}/modules/uninstall`,
+      { moduleKey, cascade },
+    );
+  }
+
   disableModule(id: string, key: string): Observable<ApiResponse<OrganizationModulesOverviewResponse>> {
     return this.http.post<ApiResponse<OrganizationModulesOverviewResponse>>(
       `${this.baseUrl}/${id}/modules/disable`,
       { key }
     );
+  }
+
+  markSetupCompleted(id: string): Observable<ApiResponse<{ setupStatus: 'completed' }>> {
+    return this.http.patch<ApiResponse<{ setupStatus: 'completed' }>>(`${this.baseUrl}/${id}/setup/completed`, {});
   }
 
   createRole(

@@ -37,7 +37,7 @@ export class AppDashboardPageComponent implements OnInit {
 
     this.loading = true;
     this.organizationsApi
-      .getModules(organizationId)
+      .getModulesOverview(organizationId)
       .pipe(take(1))
       .subscribe({
         next: (response) => {

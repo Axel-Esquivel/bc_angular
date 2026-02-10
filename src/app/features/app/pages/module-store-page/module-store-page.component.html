@@ -1,0 +1,75 @@
+<section class="module-store">
+  <header class="module-store__header">
+    <div>
+      <h1>Tienda de modulos</h1>
+      <p>Instala y administra funcionalidades por organizacion.</p>
+    </div>
+    <div class="module-store__header-actions">
+      <p-tag *ngIf="organizationId" severity="success" value="Organizacion activa"></p-tag>
+      <p-button
+        *ngIf="organization && isOwner && organization.setupStatus !== 'completed'"
+        label="Finalizar configuracion"
+        icon="pi pi-check"
+        (onClick)="completeSetup()"
+      ></p-button>
+    </div>
+  </header>
+
+  <div class="module-store__empty" *ngIf="!organizationId">
+    Selecciona una organizacion para ver los modulos instalables.
+  </div>
+
+  <div class="module-store__loading" *ngIf="organizationId && isLoading">
+    <p-card class="module-card skeleton"></p-card>
+    <p-card class="module-card skeleton"></p-card>
+    <p-card class="module-card skeleton"></p-card>
+  </div>
+
+  <div class="module-store__grid" *ngIf="organizationId && !isLoading">
+    <p-card *ngFor="let module of modules" class="module-card">
+      <ng-template pTemplate="header">
+        <div class="module-card__header">
+          <div class="module-card__title">
+            <h3>{{ module.name || module.key }}</h3>
+            <span class="module-card__version">v{{ module.version || '1.0.0' }}</span>
+          </div>
+          <p-tag [severity]="module.installed ? 'success' : 'info'" [value]="module.installed ? 'Instalado' : 'Disponible'"></p-tag>
+        </div>
+      </ng-template>
+      <ng-template pTemplate="content">
+        <p class="module-card__description" *ngIf="module.description">{{ module.description }}</p>
+        <div class="module-card__meta" *ngIf="module.dependencies?.length">
+          <span class="module-card__label">Dependencias</span>
+          <div class="module-card__chips">
+            <p-chip *ngFor="let dependency of module.dependencies" [label]="dependency"></p-chip>
+          </div>
+        </div>
+        <div class="module-card__actions">
+          <p-button
+            *ngIf="!module.installed"
+            label="Instalar"
+            icon="pi pi-download"
+            [disabled]="isInstalling(module.key)"
+            [loading]="isInstalling(module.key)"
+            (onClick)="installModule(module)"
+          ></p-button>
+          <p-button
+            *ngIf="module.installed"
+            label="Desinstalar"
+            severity="danger"
+            icon="pi pi-trash"
+            [disabled]="isUninstalling(module.key)"
+            [loading]="isUninstalling(module.key)"
+            (onClick)="uninstallModule(module)"
+          ></p-button>
+        </div>
+      </ng-template>
+    </p-card>
+  </div>
+
+  <div class="module-store__empty" *ngIf="organizationId && !isLoading && modules.length === 0">
+    No hay modulos instalables disponibles.
+  </div>
+
+  <p-confirmDialog></p-confirmDialog>
+</section>
