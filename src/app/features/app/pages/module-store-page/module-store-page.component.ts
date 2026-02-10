@@ -106,12 +106,13 @@ export class ModuleStorePageComponent implements OnInit {
               this.installing.delete(module.key);
               this.reloadModules();
             },
-            error: () => {
+            error: (error: HttpErrorResponse) => {
               this.installing.delete(module.key);
+              const detail = this.buildErrorMessage(error) ?? 'No se pudo instalar el modulo.';
               this.messageService.add({
                 severity: 'error',
                 summary: 'Error',
-                detail: 'No se pudo instalar el modulo.',
+                detail,
               });
             },
           });
@@ -196,10 +197,11 @@ export class ModuleStorePageComponent implements OnInit {
             });
             return;
           }
+          const detail = this.buildErrorMessage(error) ?? 'No se pudo desinstalar el modulo.';
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
-            detail: 'No se pudo desinstalar el modulo.',
+            detail,
           });
         },
       });
@@ -289,5 +291,19 @@ export class ModuleStorePageComponent implements OnInit {
           this.isOwner = false;
         },
       });
+  }
+
+  private buildErrorMessage(error: HttpErrorResponse): string | null {
+    const apiMessage = error.error?.message;
+    if (Array.isArray(apiMessage)) {
+      return apiMessage.join(', ');
+    }
+    if (typeof apiMessage === 'string' && apiMessage.trim()) {
+      return apiMessage;
+    }
+    if (typeof error.message === 'string' && error.message.trim()) {
+      return error.message;
+    }
+    return null;
   }
 }

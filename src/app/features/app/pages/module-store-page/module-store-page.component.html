@@ -36,7 +36,7 @@
       class="module-card"
       [header]="(module.name || module.key) + ' · v' + (module.version || '1.0.0')"
     >
-      <div class="module-card__inner">
+      <div class="module-card__wrapper">
         <div class="module-card__top">
           <p-tag
             [severity]="module.installed ? 'success' : 'info'"
