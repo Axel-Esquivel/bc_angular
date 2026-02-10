@@ -39,6 +39,16 @@
   color: var(--text-color-secondary, #6b7280);
 }
 
+.module-store__error {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  border-radius: 12px;
+  background: var(--surface-card, #ffffff);
+  color: var(--text-color-secondary, #6b7280);
+}
+
 .module-card {
   height: 100%;
 }

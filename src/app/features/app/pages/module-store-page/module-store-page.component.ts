@@ -7,7 +7,7 @@ import { Card } from 'primeng/card';
 import { Chip } from 'primeng/chip';
 import { ConfirmDialog } from 'primeng/confirmdialog';
 import { Tag } from 'primeng/tag';
-import { finalize, map, distinctUntilChanged } from 'rxjs';
+import { finalize, map, distinctUntilChanged, timeout } from 'rxjs';
 
 import { OrganizationsService } from '../../../../core/api/organizations-api.service';
 import { ActiveContextStateService } from '../../../../core/context/active-context-state.service';
@@ -41,6 +41,7 @@ export class ModuleStorePageComponent implements OnInit {
   organizationId: string | null = null;
   organization: IOrganization | null = null;
   isOwner = false;
+  errorMessage: string | null = null;
   private readonly installing = new Set<string>();
   private readonly uninstalling = new Set<string>();
 
@@ -55,6 +56,10 @@ export class ModuleStorePageComponent implements OnInit {
         this.organizationId = organizationId;
         this.organization = null;
         this.isOwner = false;
+        if (environment.debugLogs) {
+          // eslint-disable-next-line no-console
+          console.debug('[ModuleStore] orgId', organizationId);
+        }
         if (!organizationId) {
           this.modules = [];
           return;
@@ -207,11 +212,20 @@ export class ModuleStorePageComponent implements OnInit {
     }
   }
 
+  retryLoad(): void {
+    const orgId = this.organizationId;
+    if (orgId) {
+      this.loadModules(orgId);
+    }
+  }
+
   private loadModules(organizationId: string): void {
     this.isLoading = true;
+    this.errorMessage = null;
     this.organizationsApi
       .getModulesStore(organizationId)
       .pipe(
+        timeout(8000),
         finalize(() => {
           this.isLoading = false;
         }),
@@ -224,6 +238,10 @@ export class ModuleStorePageComponent implements OnInit {
             console.debug('[ModuleStore] modules store response', response);
           }
           this.modules = this.normalizeModules(response);
+          if (environment.debugLogs) {
+            // eslint-disable-next-line no-console
+            console.debug('[ModuleStore] available length', this.modules.length);
+          }
           if (environment.debugLogs && this.modules.length === 0) {
             // eslint-disable-next-line no-console
             console.debug('[ModuleStore] no installable modules returned', response?.result);
@@ -231,6 +249,7 @@ export class ModuleStorePageComponent implements OnInit {
         },
         error: () => {
           this.modules = [];
+          this.errorMessage = 'No se pudo cargar modulos instalables.';
           this.messageService.add({
             severity: 'error',
             summary: 'Error',

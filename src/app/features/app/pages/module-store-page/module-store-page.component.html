@@ -25,7 +25,12 @@
     <p-card class="module-card skeleton"></p-card>
   </div>
 
-  <div class="module-store__grid" *ngIf="organizationId && !isLoading">
+  <div class="module-store__error" *ngIf="organizationId && !isLoading && errorMessage">
+    <span>{{ errorMessage }}</span>
+    <p-button label="Reintentar" icon="pi pi-refresh" (onClick)="retryLoad()"></p-button>
+  </div>
+
+  <div class="module-store__grid" *ngIf="organizationId && !isLoading && !errorMessage">
     <p-card *ngFor="let module of modules" class="module-card">
       <ng-template pTemplate="header">
         <div class="module-card__header">
@@ -67,7 +72,7 @@
     </p-card>
   </div>
 
-  <div class="module-store__empty" *ngIf="organizationId && !isLoading && modules.length === 0">
+  <div class="module-store__empty" *ngIf="organizationId && !isLoading && !errorMessage && modules.length === 0">
     No hay modulos instalables disponibles.
   </div>
 
