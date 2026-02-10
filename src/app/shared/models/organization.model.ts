@@ -25,6 +25,12 @@ export interface IOrganizationRole {
   isSystem?: boolean;
 }
 
+export interface IOrganizationInstalledModule {
+  key: string;
+  version: string;
+  installedAt: string;
+}
+
 export interface IOrganization {
   id?: string;
   name: string;
@@ -37,6 +43,7 @@ export interface IOrganization {
   coreSettings?: OrganizationCoreSettings;
   members?: IOrganizationMember[];
   roles?: IOrganizationRole[];
+  installedModules?: IOrganizationInstalledModule[];
   createdAt?: string;
 }
 

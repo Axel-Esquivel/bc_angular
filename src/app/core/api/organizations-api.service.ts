@@ -15,6 +15,10 @@ import {
   UpdateOrganizationRequest,
 } from '../../shared/models/organization.model';
 import { OrganizationModulesOverviewResponse } from '../../shared/models/organization-modules.model';
+import {
+  OrganizationModuleInstallResponse,
+  OrganizationModuleStoreResponse,
+} from '../../shared/models/organization-module-store.model';
 import { Organization } from '../../shared/models/organization.model';
 
 @Injectable({ providedIn: 'root' })
@@ -155,14 +159,18 @@ export class OrganizationsService {
     return this.http.get<ApiResponse<OrganizationModulesOverviewResponse>>(`${this.baseUrl}/${id}/modules`);
   }
 
+  getAvailableModules(id: string): Observable<ApiResponse<OrganizationModuleStoreResponse>> {
+    return this.http.get<ApiResponse<OrganizationModuleStoreResponse>>(`${this.baseUrl}/${id}/modules/available`);
+  }
+
   updateModules(id: string, payload: { modules: string[] }): Observable<ApiResponse<OrganizationModulesOverviewResponse>> {
     return this.http.patch<ApiResponse<OrganizationModulesOverviewResponse>>(`${this.baseUrl}/${id}/modules`, payload);
   }
 
-  installModule(id: string, key: string): Observable<ApiResponse<OrganizationModulesOverviewResponse>> {
-    return this.http.post<ApiResponse<OrganizationModulesOverviewResponse>>(
+  installModule(id: string, moduleKey: string): Observable<ApiResponse<OrganizationModuleInstallResponse>> {
+    return this.http.post<ApiResponse<OrganizationModuleInstallResponse>>(
       `${this.baseUrl}/${id}/modules/install`,
-      { key }
+      { moduleKey }
     );
   }
 
