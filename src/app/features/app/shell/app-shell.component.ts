@@ -7,11 +7,12 @@ import { Button } from 'primeng/button';
 import { Card } from 'primeng/card';
 import { Chip } from 'primeng/chip';
 import { Tag } from 'primeng/tag';
-import { distinctUntilChanged, map } from 'rxjs';
+import { distinctUntilChanged, finalize, map } from 'rxjs';
 
 import { OrganizationsService } from '../../../core/api/organizations-api.service';
 import { ActiveContextStateService } from '../../../core/context/active-context-state.service';
 import { OrganizationModuleStoreItem } from '../../../shared/models/organization-module-store.model';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-app-shell',
@@ -93,15 +94,33 @@ export class AppShellComponent implements OnInit {
     this.isLoading = true;
     this.organizationsApi
       .getAvailableModules(organizationId)
-      .pipe(takeUntilDestroyed(this.destroyRef))
+      .pipe(
+        finalize(() => {
+          this.isLoading = false;
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
       .subscribe({
         next: (response) => {
-          this.modules = response.result?.modules ?? [];
-          this.isLoading = false;
+          if (environment.debugLogs) {
+            // eslint-disable-next-line no-console
+            console.debug('[ModuleStore] available modules response', response);
+          }
+          const modules = response.result?.modules ?? [];
+          this.modules = modules.map((module) => ({
+            ...module,
+            name: module.name?.trim() || module.key,
+            version: module.version?.trim() || '1.0.0',
+            dependencies: Array.isArray(module.dependencies) ? module.dependencies : [],
+            installed: Boolean(module.installed),
+          }));
+          if (environment.debugLogs && this.modules.length === 0) {
+            // eslint-disable-next-line no-console
+            console.debug('[ModuleStore] no installable modules returned', response?.result);
+          }
         },
         error: () => {
           this.modules = [];
-          this.isLoading = false;
           this.messageService.add({
             severity: 'error',
             summary: 'Error',

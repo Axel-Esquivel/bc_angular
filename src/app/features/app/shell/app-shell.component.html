@@ -28,8 +28,8 @@
         <ng-template pTemplate="header">
           <div class="module-card__header">
             <div class="module-card__title">
-              <h3>{{ module.name }}</h3>
-              <span class="module-card__version">v{{ module.version }}</span>
+              <h3>{{ module.name || module.key }}</h3>
+              <span class="module-card__version">v{{ module.version || '1.0.0' }}</span>
             </div>
             <p-tag [severity]="module.installed ? 'success' : 'info'" [value]="module.installed ? 'Instalado' : 'Disponible'"></p-tag>
           </div>
