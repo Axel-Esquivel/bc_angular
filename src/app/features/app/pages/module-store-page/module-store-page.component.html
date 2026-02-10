@@ -31,22 +31,25 @@
   </div>
 
   <div class="module-store__grid" *ngIf="organizationId && !isLoading && !errorMessage">
-    <p-card *ngFor="let module of modules" class="module-card">
-      <ng-template pTemplate="header">
-        <div class="module-card__header">
-          <div class="module-card__title">
-            <h3>{{ module.name || module.key }}</h3>
-            <span class="module-card__version">v{{ module.version || '1.0.0' }}</span>
-          </div>
-          <p-tag [severity]="module.installed ? 'success' : 'info'" [value]="module.installed ? 'Instalado' : 'Disponible'"></p-tag>
+    <p-card
+      *ngFor="let module of modules"
+      class="module-card"
+      [header]="(module.name || module.key) + ' · v' + (module.version || '1.0.0')"
+    >
+      <div class="module-card__inner">
+        <div class="module-card__top">
+          <p-tag
+            [severity]="module.installed ? 'success' : 'info'"
+            [value]="module.installed ? 'Instalado' : 'Disponible'"
+          ></p-tag>
         </div>
-      </ng-template>
-      <ng-template pTemplate="content">
-        <p class="module-card__description" *ngIf="module.description">{{ module.description }}</p>
-        <div class="module-card__meta" *ngIf="module.dependencies?.length">
-          <span class="module-card__label">Dependencias</span>
-          <div class="module-card__chips">
-            <p-chip *ngFor="let dependency of module.dependencies" [label]="dependency"></p-chip>
+        <div class="module-card__body">
+          <p class="module-desc" *ngIf="module.description">{{ module.description }}</p>
+          <div class="module-deps" *ngIf="module.dependencies?.length">
+            <span class="module-card__label">Dependencias</span>
+            <div class="module-card__chips">
+              <p-chip *ngFor="let dependency of module.dependencies" [label]="dependency"></p-chip>
+            </div>
           </div>
         </div>
         <div class="module-card__actions">
@@ -68,7 +71,7 @@
             (onClick)="uninstallModule(module)"
           ></p-button>
         </div>
-      </ng-template>
+      </div>
     </p-card>
   </div>
 
