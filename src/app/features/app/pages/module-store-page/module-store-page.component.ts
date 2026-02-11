@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, DestroyRef, OnInit, inject } from '@angular/core';
+import { Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { Button } from 'primeng/button';
@@ -35,6 +36,7 @@ export class ModuleStorePageComponent implements OnInit {
   private readonly confirmationService = inject(ConfirmationService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
 
   modules: OrganizationModuleStoreItem[] = [];
   isLoading = false;
@@ -153,6 +155,7 @@ export class ModuleStorePageComponent implements OnInit {
             summary: 'Configuracion completa',
             detail: 'La organizacion quedo marcada como configurada.',
           });
+          this.router.navigateByUrl('/app');
         },
         error: () => {
           this.messageService.add({
