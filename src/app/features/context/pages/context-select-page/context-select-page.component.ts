@@ -770,12 +770,11 @@ export class ContextSelectPageComponent implements OnInit {
               (member) => member.userId === userId && member.roleKey === 'owner',
             );
           if (!isOwner) {
-            // Dashboard route lives at /app/home.
-            this.router.navigateByUrl('/app/home');
+            this.router.navigateByUrl('/app');
             return;
           }
           const setupStatus = organization.setupStatus ?? 'pending';
-          const target = setupStatus === 'pending' ? '/setup/modules/store' : '/app/home';
+          const target = setupStatus === 'pending' ? '/setup/modules/store' : '/app';
           this.router.navigateByUrl(target);
         },
         error: () => {

@@ -155,8 +155,7 @@ export class ModuleStorePageComponent implements OnInit {
             summary: 'Configuracion completa',
             detail: 'La organizacion quedo marcada como configurada.',
           });
-          // Dashboard route lives at /app/home.
-          this.router.navigateByUrl('/app/home');
+          this.router.navigateByUrl('/app');
         },
         error: () => {
           this.messageService.add({

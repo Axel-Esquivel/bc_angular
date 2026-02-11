@@ -38,8 +38,9 @@ export const routes: Routes = [
   {
     path: 'setup',
     canActivate: [AuthGuard],
-    loadChildren: () => import('./features/setup/setup.routes').then((m) => m.setupRoutes),
+    loadChildren: () => import('./features/setup/setup.routes').then((m) => m.SETUP_ROUTES),
   },
+  { path: 'app/modules/store', pathMatch: 'full', redirectTo: 'setup/modules/store' },
   {
     path: 'app',
     canActivate: [AuthGuard, RequireContextGuard],

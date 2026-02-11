@@ -23,7 +23,6 @@ export const appRoutes: Routes = [
     children: [
       { path: '', pathMatch: 'full', redirectTo: 'home' },
       { path: 'home', component: AppDashboardPageComponent },
-      { path: 'modules/store', redirectTo: '/setup/modules/store' },
       { matcher: moduleMatcher, component: ModulePlaceholderPageComponent },
     ],
   },

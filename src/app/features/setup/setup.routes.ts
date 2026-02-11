@@ -1,14 +1,16 @@
 import { Routes } from '@angular/router';
 
-import { ModuleStoreShellComponent } from './shells/module-store-shell/module-store-shell.component';
-import { ModuleStorePageComponent } from '../app/pages/module-store-page/module-store-page.component';
+import { ModuleStorePageComponent } from './pages/module-store-page/module-store-page.component';
+import { SetupShellComponent } from './shell/setup-shell.component';
+import { SetupModulesGuard } from '../../core/guards/setup-modules.guard';
 
-export const setupRoutes: Routes = [
+export const SETUP_ROUTES: Routes = [
   {
-    path: 'modules',
-    component: ModuleStoreShellComponent,
+    path: '',
+    component: SetupShellComponent,
+    canActivate: [SetupModulesGuard],
     children: [
-      { path: 'store', component: ModuleStorePageComponent },
+      { path: 'modules/store', component: ModuleStorePageComponent },
     ],
   },
 ];
