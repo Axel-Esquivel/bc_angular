@@ -8,7 +8,7 @@ import { CompaniesApiService } from '../../../../core/api/companies-api.service'
 import { OrganizationCoreApiService } from '../../../../core/api/organization-core-api.service';
 import { Branch } from '../../../../shared/models/branch.model';
 import { Company } from '../../../../shared/models/company.model';
-import { CoreCountry, CoreCurrency } from '../../../../shared/models/organization-core.model';
+import { CoreCurrency } from '../../../../shared/models/organization-core.model';
 
 @Component({
   selector: 'app-org-step-branches-by-company',
@@ -32,7 +32,6 @@ export class OrgStepBranchesByCompanyComponent implements OnChanges {
 
   companies: Company[] = [];
   branches: Branch[] = [];
-  countries: SelectOption[] = [];
   currencies: SelectOption[] = [];
 
   readonly companyFilterControl = this.fb.control<string | null>(null);
@@ -43,7 +42,6 @@ export class OrgStepBranchesByCompanyComponent implements OnChanges {
 
   readonly branchForm = this.fb.nonNullable.group({
     name: this.fb.nonNullable.control('', [Validators.required, Validators.minLength(2)]),
-    countryId: this.fb.control<string | null>(null, [Validators.required]),
   });
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -76,10 +74,8 @@ export class OrgStepBranchesByCompanyComponent implements OnChanges {
       });
       return;
     }
-    const defaultCountryId = this.selectedCompany.baseCountryId || this.countries[0]?.id || null;
     this.branchForm.reset({
       name: '',
-      countryId: defaultCountryId,
     });
     this.isBranchDialogOpen = true;
   }
@@ -103,9 +99,17 @@ export class OrgStepBranchesByCompanyComponent implements OnChanges {
       return;
     }
 
-    const { name, countryId } = this.branchForm.getRawValue();
+    const { name } = this.branchForm.getRawValue();
+    const countryId = this.resolveCompanyCountryId(this.selectedCompany);
     if (!name?.trim() || !countryId) {
       this.branchForm.markAllAsTouched();
+      if (!countryId) {
+        this.messageService.add({
+          severity: 'warn',
+          summary: 'Atencion',
+          detail: 'La compania seleccionada no tiene pais base.',
+        });
+      }
       return;
     }
 
@@ -143,7 +147,6 @@ export class OrgStepBranchesByCompanyComponent implements OnChanges {
     if (!this.organizationId) {
       this.companies = [];
       this.branches = [];
-      this.countries = [];
       this.currencies = [];
       return;
     }
@@ -155,15 +158,7 @@ export class OrgStepBranchesByCompanyComponent implements OnChanges {
       .subscribe({
         next: (response) => {
           const result = response?.result;
-          const countries = Array.isArray(result?.countries) ? result.countries : [];
           const currencies = Array.isArray(result?.currencies) ? result.currencies : [];
-          this.countries = countries
-            .map((country: CoreCountry) => ({
-              id: country.id,
-              name: country.name,
-              code: country.code,
-            }))
-            .filter((item) => item.id);
           this.currencies = currencies
             .map((currency: CoreCurrency) => ({
               id: currency.id,
@@ -251,6 +246,13 @@ export class OrgStepBranchesByCompanyComponent implements OnChanges {
           });
         },
       });
+  }
+
+  private resolveCompanyCountryId(company: Company | null): string | null {
+    if (!company) {
+      return null;
+    }
+    return company.baseCountryId || (company as { countryId?: string }).countryId || null;
   }
 }
 
