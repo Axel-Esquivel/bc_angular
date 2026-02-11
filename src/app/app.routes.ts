@@ -21,9 +21,24 @@ export const routes: Routes = [
     ],
   },
   {
+    path: 'organizations',
+    children: [
+      {
+        path: '',
+        canActivate: [AuthGuard, NoOrganizationGuard],
+        loadChildren: () => import('./features/org-setup/org-setup.routes').then((m) => m.orgSetupRoutes),
+      },
+    ],
+  },
+  {
     path: 'context',
     canActivate: [AuthGuard, HasOrganizationGuard],
     loadChildren: () => import('./features/context/context.routes').then((m) => m.contextRoutes),
+  },
+  {
+    path: 'setup',
+    canActivate: [AuthGuard],
+    loadChildren: () => import('./features/setup/setup.routes').then((m) => m.setupRoutes),
   },
   {
     path: 'app',

@@ -775,7 +775,7 @@ export class ContextSelectPageComponent implements OnInit {
             return;
           }
           const setupStatus = organization.setupStatus ?? 'pending';
-          const target = setupStatus === 'pending' ? '/app/modules/store' : '/app/home';
+          const target = setupStatus === 'pending' ? '/setup/modules/store' : '/app/home';
           this.router.navigateByUrl(target);
         },
         error: () => {

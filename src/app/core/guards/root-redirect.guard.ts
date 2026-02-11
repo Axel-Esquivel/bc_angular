@@ -1,12 +1,13 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
-import { catchError, map, of } from 'rxjs';
+import { catchError, map, of, switchMap } from 'rxjs';
 
 import { SessionStateService } from '../services/session-state.service';
 import { UsersApiService } from '../api/users-api.service';
 import { AuthService } from '../auth/auth.service';
 import { ActiveContextStateService } from '../context/active-context-state.service';
 import { CompanyStateService } from '../company/company-state.service';
+import { OrganizationsService } from '../api/organizations-api.service';
 
 export const RootRedirectGuard: CanActivateFn = () => {
   const sessionState = inject(SessionStateService);
@@ -14,6 +15,7 @@ export const RootRedirectGuard: CanActivateFn = () => {
   const authService = inject(AuthService);
   const activeContextState = inject(ActiveContextStateService);
   const companyState = inject(CompanyStateService);
+  const organizationsApi = inject(OrganizationsService);
   const router = inject(Router);
   const redirect = (url: string) => {
     router.navigateByUrl(url, { replaceUrl: true });
@@ -40,24 +42,40 @@ export const RootRedirectGuard: CanActivateFn = () => {
   }
 
   return usersApi.validateDefaultContext(defaultContext).pipe(
-    map((response) => {
+    switchMap((response) => {
       const result = response.result;
-      if (result?.isComplete && result.isValid && result.sanitizedContext) {
-        const ctx = result.sanitizedContext;
-        activeContextState.setActiveContext({
-          organizationId: ctx.organizationId ?? null,
-          companyId: ctx.companyId ?? null,
-          countryId: ctx.countryId ?? null,
-          enterpriseId: ctx.enterpriseId ?? null,
-          currencyId: ctx.currencyId ?? null,
-        });
-        if (ctx.companyId) {
-          companyState.setActiveCompanyId(ctx.companyId);
-          companyState.setDefaultCompanyId(ctx.companyId);
-        }
-        return redirect('/dashboard');
+      if (!result?.isComplete || !result.isValid || !result.sanitizedContext) {
+        return of(redirect('/context/select'));
       }
-      return redirect('/context/select');
+      const ctx = result.sanitizedContext;
+      activeContextState.setActiveContext({
+        organizationId: ctx.organizationId ?? null,
+        companyId: ctx.companyId ?? null,
+        countryId: ctx.countryId ?? null,
+        enterpriseId: ctx.enterpriseId ?? null,
+        currencyId: ctx.currencyId ?? null,
+      });
+      if (ctx.companyId) {
+        companyState.setActiveCompanyId(ctx.companyId);
+        companyState.setDefaultCompanyId(ctx.companyId);
+      }
+      if (!ctx.organizationId) {
+        return of(redirect('/context/select'));
+      }
+      return organizationsApi.getById(ctx.organizationId).pipe(
+        map((orgResponse) => {
+          const organization = orgResponse.result;
+          const user = authService.getCurrentUser();
+          const userId = user?.id ?? null;
+          const isOwner =
+            Boolean(organization?.ownerUserId && organization.ownerUserId === userId) ||
+            (organization?.members ?? []).some((member) => member.userId === userId && member.roleKey === 'owner');
+          if (isOwner && organization?.setupStatus === 'pending') {
+            return redirect('/setup/modules/store');
+          }
+          return redirect('/app/home');
+        }),
+      );
     }),
     catchError(() => of(redirect('/context/select'))),
   );

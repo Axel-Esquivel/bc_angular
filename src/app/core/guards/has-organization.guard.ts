@@ -25,7 +25,7 @@ export const HasOrganizationGuard: CanActivateFn = (_route, state) => {
   }
 
   if (sessionState.hasDefaults()) {
-    return redirect('/app');
+    return redirect('/app/home');
   }
 
   return true;
