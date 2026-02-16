@@ -1,14 +1,56 @@
-<section class="dashboard-page">
-  <p-card header="Modulos instalados" class="dashboard-card">
-    <div class="state" *ngIf="loading">Cargando modulos...</div>
-    <div class="state" *ngIf="!loading && enabledModules.length === 0">
-      No hay modulos instalados.
-    </div>
-    <div class="module-list" *ngIf="!loading && enabledModules.length > 0">
-      <div class="module-row" *ngFor="let module of enabledModules">
-        <span class="module-name">{{ module.name || module.key }}</span>
-        <p-tag [value]="module.state.status || 'enabled'" severity="success"></p-tag>
+<p-toast></p-toast>
+<section class="home-launcher">
+  <header class="home-header">
+    <h1>Inicio</h1>
+    <p>Selecciona un módulo para comenzar.</p>
+  </header>
+
+  <div class="card-grid" *ngIf="loading">
+    <p-card class="module-card skeleton-card" *ngFor="let item of skeletonCards">
+      <div class="card-body">
+        <p-skeleton width="3rem" height="3rem" borderRadius="12px"></p-skeleton>
+        <div class="card-text">
+          <p-skeleton width="70%" height="1rem"></p-skeleton>
+          <p-skeleton width="90%" height="0.85rem"></p-skeleton>
+        </div>
+        <p-skeleton width="6rem" height="2.25rem" borderRadius="8px"></p-skeleton>
       </div>
-    </div>
-  </p-card>
+    </p-card>
+  </div>
+
+  <div class="card-grid" *ngIf="!loading && cards.length > 0">
+    <p-card
+      class="module-card"
+      *ngFor="let card of cards; trackBy: trackByKey"
+      [ngClass]="{ disabled: !card.hasRoute }"
+      (click)="onCardClick(card)"
+      role="button"
+      tabindex="0"
+    >
+      <div class="card-body">
+        <div class="card-icon">
+          <i [class]="card.icon"></i>
+        </div>
+        <div class="card-text">
+          <h3>{{ card.name }}</h3>
+          <p *ngIf="card.description">{{ card.description }}</p>
+        </div>
+        <p-button
+          label="Abrir"
+          icon="pi pi-arrow-right"
+          [disabled]="!card.hasRoute"
+        ></p-button>
+      </div>
+    </p-card>
+  </div>
+
+  <div class="empty-state" *ngIf="!loading && cards.length === 0">
+    <h2>No hay módulos activos</h2>
+    <p>Instala módulos para continuar con tu operación.</p>
+    <p-button
+      label="Ir al Marketplace"
+      icon="pi pi-store"
+      (onClick)="goToStore()"
+    ></p-button>
+  </div>
 </section>

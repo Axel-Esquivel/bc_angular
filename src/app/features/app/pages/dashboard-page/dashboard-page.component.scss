@@ -1,33 +1,90 @@
-.dashboard-page {
-  display: grid;
-  gap: 1rem;
-}
-
-.dashboard-card {
-  width: 100%;
-  max-width: 640px;
-}
-
-.module-list {
-  display: grid;
-  gap: 0.75rem;
-}
-
-.module-row {
+.home-launcher {
+  padding: 2rem clamp(1rem, 4vw, 3rem);
   display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.home-header h1 {
+  margin: 0 0 0.5rem;
+}
+
+.home-header p {
+  margin: 0;
+}
+
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1.5rem;
+}
+
+.module-card {
+  cursor: pointer;
+}
+
+.module-card :is(.p-card-body, .p-card-content) {
+  padding: 0;
+}
+
+.module-card .card-body {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
   align-items: center;
-  justify-content: space-between;
-  padding: 0.5rem 0.75rem;
-  border: 1px solid var(--surface-border);
-  border-radius: 0.5rem;
-  background: var(--surface-0);
+  gap: 1rem;
+  padding: 1.25rem;
 }
 
-.module-name {
-  font-weight: 600;
+.module-card .card-icon {
+  width: 3rem;
+  height: 3rem;
+  display: grid;
+  place-items: center;
 }
 
-.state {
-  color: var(--text-color-secondary);
-  padding: 0.5rem 0;
+.module-card h3 {
+  margin: 0 0 0.35rem;
+}
+
+.module-card p {
+  margin: 0;
+}
+
+.module-card.disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.skeleton-card .card-body {
+  grid-template-columns: auto 1fr auto;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 2rem;
+}
+
+.empty-state h2 {
+  margin-top: 0;
+}
+
+@media (max-width: 1200px) {
+  .card-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .card-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .module-card .card-body {
+    grid-template-columns: 1fr;
+    justify-items: start;
+  }
+
+  .module-card .card-body p-button {
+    justify-self: start;
+  }
 }
