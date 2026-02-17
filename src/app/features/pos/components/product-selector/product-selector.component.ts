@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup } from '@angular/forms';
 import { PosProduct } from '../../models/pos-product.model';
 
 @Component({
+  standalone: false,
   selector: 'bc-pos-product-selector',
   templateUrl: './product-selector.component.html',
   styleUrl: './product-selector.component.scss',

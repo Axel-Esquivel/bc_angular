@@ -3,14 +3,14 @@
     <h2>Productos</h2>
     <p>Gestiona el catálogo de productos.</p>
   </div>
-  <p-button label="Nuevo" icon="pi pi-plus" [routerLink]="['/products/new']"></p-button>
+  <p-button label="Nuevo" icon="pi pi-plus" (onClick)="openCreate()"></p-button>
 </div>
 
 <p-card>
   <form class="filters" [formGroup]="filtersForm" (ngSubmit)="loadProducts()">
     <div class="filter-item">
       <label for="search">Búsqueda</label>
-      <input pInputText id="search" type="text" formControlName="search" placeholder="Nombre o SKU" />
+      <input pInputText id="search" type="text" formControlName="search" placeholder="Nombre, SKU o código" />
     </div>
     <div class="filter-item">
       <label for="category">Categoría</label>
@@ -21,7 +21,8 @@
         optionValue="value"
         formControlName="category"
         placeholder="Todas"
-       appendTo="body"></p-select>
+        appendTo="body"
+      ></p-select>
     </div>
     <div class="actions">
       <p-button type="submit" label="Aplicar" icon="pi pi-search"></p-button>
@@ -36,7 +37,7 @@
       <tr>
         <th>Nombre</th>
         <th>SKU</th>
-        <th>Categoría</th>
+        <th>Código</th>
         <th>Precio</th>
         <th>Estado</th>
         <th></th>
@@ -46,7 +47,7 @@
       <tr>
         <td>{{ product.name }}</td>
         <td>{{ product.sku || '-' }}</td>
-        <td>{{ product.category || '-' }}</td>
+        <td>{{ product.barcode || '-' }}</td>
         <td>{{ product.price | currency: 'USD' : 'symbol' : '1.0-0' }}</td>
         <td>
           <span class="status" [class.inactive]="!product.isActive">{{ product.isActive ? 'Activo' : 'Inactivo' }}</span>
@@ -56,11 +57,55 @@
             label="Editar"
             icon="pi pi-pencil"
             size="small"
-            [routerLink]="['/products', product.id]"
             severity="secondary"
+            (onClick)="openEdit(product)"
           ></p-button>
         </td>
       </tr>
     </ng-template>
   </p-table>
 </p-card>
+
+<p-dialog
+  [(visible)]="dialogVisible"
+  [modal]="true"
+  [closable]="true"
+  [dismissableMask]="true"
+  [style]="{ width: '32rem' }"
+  [header]="editingProduct ? 'Editar producto' : 'Nuevo producto'"
+>
+  <form class="product-dialog" [formGroup]="productForm">
+    <div class="field">
+      <label for="name">Nombre</label>
+      <input pInputText id="name" type="text" formControlName="name" />
+    </div>
+    <div class="field">
+      <label for="sku">SKU</label>
+      <input pInputText id="sku" type="text" formControlName="sku" />
+    </div>
+    <div class="field">
+      <label for="barcode">Código</label>
+      <input pInputText id="barcode" type="text" formControlName="barcode" />
+    </div>
+    <div class="field">
+      <label for="price">Precio</label>
+      <p-inputNumber
+        inputId="price"
+        formControlName="price"
+        mode="currency"
+        currency="USD"
+        [minFractionDigits]="0"
+        [maxFractionDigits]="2"
+      ></p-inputNumber>
+    </div>
+    <div class="field toggle">
+      <label for="isActive">Activo</label>
+      <p-toggleSwitch inputId="isActive" formControlName="isActive"></p-toggleSwitch>
+    </div>
+  </form>
+
+  <ng-template pTemplate="footer">
+    <p-button label="Cancelar" severity="secondary" (onClick)="dialogVisible = false"></p-button>
+    <p-button label="Guardar" icon="pi pi-check" (onClick)="saveProduct()" [loading]="saving"></p-button>
+  </ng-template>
+</p-dialog>

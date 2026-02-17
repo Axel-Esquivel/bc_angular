@@ -2,6 +2,7 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { PosCartLine } from '../../../../shared/models/pos.model';
 
 @Component({
+  standalone: false,
   selector: 'bc-pos-cart-lines',
   templateUrl: './cart-lines-panel.component.html',
   styleUrl: './cart-lines-panel.component.scss',

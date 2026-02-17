@@ -1,30 +1,10 @@
-import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Button } from 'primeng/button';
-import { Card } from 'primeng/card';
-import { InputNumber } from 'primeng/inputnumber';
-import { ToggleSwitchModule } from 'primeng/toggleswitch';
-import { InputText } from 'primeng/inputtext';
-import { Textarea } from 'primeng/textarea';
-import { Select } from 'primeng/select';
-
+import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { Product } from '../../../../shared/models/product.model';
 
 @Component({
   selector: 'bc-product-form',
-  standalone: true,
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    Card,
-    InputText,
-    Textarea,
-    InputNumber,
-    ToggleSwitchModule,
-    Select,
-    Button,
-  ],
+  standalone: false,
   templateUrl: './product-form.component.html',
   styleUrl: './product-form.component.scss',
 })

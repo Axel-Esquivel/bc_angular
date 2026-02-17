@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { PosPayment } from '../../../../shared/models/pos.model';
 
 @Component({
+  standalone: false,
   selector: 'bc-pos-totals',
   templateUrl: './totals-panel.component.html',
   styleUrl: './totals-panel.component.scss',

@@ -18,8 +18,15 @@ export class ProductsApiService {
     return this.http.post<ApiResponse<Product>>(this.baseUrl, dto);
   }
 
-  getProducts(params?: { search?: string; category?: string; page?: number; limit?: number }): Observable<ApiResponse<PaginatedResponse<Product>>> {
+  getProducts(params?: {
+    enterpriseId?: string;
+    search?: string;
+    category?: string;
+    page?: number;
+    limit?: number;
+  }): Observable<ApiResponse<PaginatedResponse<Product>>> {
     let httpParams = new HttpParams();
+    if (params?.enterpriseId) httpParams = httpParams.set('enterpriseId', params.enterpriseId);
     if (params?.search) httpParams = httpParams.set('search', params.search);
     if (params?.category) httpParams = httpParams.set('category', params.category);
     if (params?.page) httpParams = httpParams.set('page', params.page);

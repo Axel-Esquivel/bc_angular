@@ -1,17 +1,12 @@
-import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Card } from 'primeng/card';
-import { Message } from 'primeng/message';
-
 import { ProductsApiService } from '../../../../core/api/products-api.service';
 import { Product } from '../../../../shared/models/product.model';
 import { ProductFormComponent } from '../../components/product-form/product-form.component';
 
 @Component({
   selector: 'app-product-form-page',
-  standalone: true,
-  imports: [CommonModule, Card, Message, ProductFormComponent],
+  standalone: false,
   templateUrl: './product-form-page.component.html',
   styleUrl: './product-form-page.component.scss',
 })

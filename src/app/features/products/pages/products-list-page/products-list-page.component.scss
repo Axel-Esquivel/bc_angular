@@ -30,3 +30,20 @@
 .status.inactive {
   color: var(--red-500);
 }
+
+.product-dialog {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.field.toggle {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}

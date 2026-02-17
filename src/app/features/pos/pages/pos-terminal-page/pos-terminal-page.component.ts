@@ -13,6 +13,7 @@ import { PosHttpService } from '../../services/pos.service';
 import { PosProductsService } from '../../services/products.service';
 
 @Component({
+  standalone: false,
   selector: 'app-pos-terminal-page',
   templateUrl: './pos-terminal-page.component.html',
   styleUrl: './pos-terminal-page.component.scss',
