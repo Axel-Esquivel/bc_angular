@@ -54,12 +54,6 @@ const MODULE_META: Record<string, { icon: string; route: string; name?: string; 
     name: 'Productos',
     description: 'Catálogo y variantes.',
   },
-  catalogs: {
-    icon: 'pi pi-tags',
-    route: '/app/catalogs/products',
-    name: 'Catálogos',
-    description: 'Catálogo de productos.',
-  },
   customers: {
     icon: 'pi pi-users',
     route: '/app/customers',
@@ -222,3 +216,4 @@ export class AppDashboardPageComponent implements OnInit {
     return 'No se pudieron cargar los módulos.';
   }
 }
+

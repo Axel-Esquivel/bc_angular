@@ -26,10 +26,6 @@ export const appRoutes: Routes = [
       { path: 'home', component: AppDashboardPageComponent },
       { path: 'pos', loadChildren: () => import('../pos/pos.module').then((m) => m.PosModule) },
       { path: 'products', loadChildren: () => import('../products/products.module').then((m) => m.ProductsModule) },
-      {
-        path: 'catalogs/products',
-        loadChildren: () => import('../products/products.module').then((m) => m.ProductsModule),
-      },
       { path: 'inventory', component: StockListPageComponent },
       { matcher: moduleMatcher, component: ModulePlaceholderPageComponent },
     ],
