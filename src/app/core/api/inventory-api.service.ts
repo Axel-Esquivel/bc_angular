@@ -15,6 +15,7 @@ export class InventoryApiService {
   }
 
   getStockByWarehouse(params?: {
+    enterpriseId?: string;
     warehouseId?: string;
     productId?: string;
     category?: string;
@@ -23,6 +24,7 @@ export class InventoryApiService {
     limit?: number;
   }): Observable<ApiResponse<PaginatedResponse<VariantStock>>> {
     let httpParams = new HttpParams();
+    if (params?.enterpriseId) httpParams = httpParams.set('enterpriseId', params.enterpriseId);
     if (params?.warehouseId) httpParams = httpParams.set('warehouseId', params.warehouseId);
     if (params?.productId) httpParams = httpParams.set('productId', params.productId);
     if (params?.category) httpParams = httpParams.set('category', params.category);

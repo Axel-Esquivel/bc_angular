@@ -1,16 +1,9 @@
-import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Button } from 'primeng/button';
-import { InputNumber } from 'primeng/inputnumber';
-import { Select } from 'primeng/select';
-
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { PosPayment } from '../../../../shared/models/pos.model';
 
 @Component({
   selector: 'bc-pos-totals',
-  standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, Button, InputNumber, Select],
   templateUrl: './totals-panel.component.html',
   styleUrl: './totals-panel.component.scss',
 })
@@ -20,17 +13,13 @@ export class TotalsPanelComponent {
 
   @Output() checkout = new EventEmitter<PosPayment>();
 
-  readonly paymentMethods = [
-    { label: 'Efectivo', value: 'cash' },
-    { label: 'Tarjeta', value: 'card' },
-    { label: 'Transferencia', value: 'transfer' },
-  ];
+  readonly paymentMethods = [{ label: 'Efectivo', value: 'CASH' as const }];
 
   readonly paymentForm: FormGroup;
 
   constructor(private readonly fb: FormBuilder) {
     this.paymentForm = this.fb.nonNullable.group({
-      method: ['cash', Validators.required],
+      method: ['CASH', Validators.required],
       amount: [0, [Validators.required, Validators.min(0)]],
     });
   }
@@ -55,6 +44,8 @@ export class TotalsPanelComponent {
       return;
     }
 
-    this.checkout.emit({ method, amount });
+    const received = amount;
+    const change = this.changeDue;
+    this.checkout.emit({ method, amount: this.total, received, change });
   }
 }

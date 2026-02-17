@@ -1,24 +1,57 @@
-<section class="pos-layout">
-  <div class="pos-column">
-    <bc-pos-product-selector
-      [products]="products"
-      [loading]="productsLoading"
-      (search)="onSearchProducts($event)"
-      (addProduct)="onAddProduct($event)"
-    ></bc-pos-product-selector>
-  </div>
+<section class="pos-page">
+  <header class="pos-header">
+    <div>
+      <p class="eyebrow">Punto de venta</p>
+      <h1>POS</h1>
+      <p class="muted">
+        Estado: {{ sessionId ? 'Sesi\u00f3n abierta' : 'Sesi\u00f3n no iniciada' }}
+      </p>
+    </div>
+    <div class="pos-controls">
+      <p-select
+        [options]="warehouseOptions"
+        optionLabel="name"
+        optionValue="id"
+        placeholder="Selecciona almac\u00e9n"
+        [(ngModel)]="selectedWarehouseId"
+        [disabled]="warehouseOptions.length === 0"
+      ></p-select>
+      <p-button
+        label="Abrir sesi\u00f3n"
+        icon="pi pi-play"
+        severity="success"
+        [disabled]="!!sessionId || !selectedWarehouseId"
+        (onClick)="openSession()"
+      ></p-button>
+    </div>
+  </header>
 
-  <div class="pos-column">
-    <bc-pos-cart-lines
-      [lines]="cartLines"
-      (quantityChange)="onQuantityChange($event.lineId, $event.quantity)"
-      (remove)="onRemoveLine($event)"
-    ></bc-pos-cart-lines>
+  <section class="pos-layout">
+    <p-card>
+      <bc-pos-product-selector
+        [products]="products"
+        [loading]="productsLoading"
+        (search)="onSearchProducts($event)"
+        (addProduct)="onAddProduct($event)"
+      ></bc-pos-product-selector>
+    </p-card>
 
-    <bc-pos-totals
-      [total]="total"
-      [itemsCount]="cartLines.length"
-      (checkout)="onCheckout($event)"
-    ></bc-pos-totals>
-  </div>
+    <div class="pos-column">
+      <p-card>
+        <bc-pos-cart-lines
+          [lines]="cartLines"
+          (quantityChange)="onQuantityChange($event.lineId, $event.quantity)"
+          (remove)="onRemoveLine($event)"
+        ></bc-pos-cart-lines>
+      </p-card>
+
+      <p-card>
+        <bc-pos-totals
+          [total]="total"
+          [itemsCount]="cartLines.length"
+          (checkout)="onCheckout($event)"
+        ></bc-pos-totals>
+      </p-card>
+    </div>
+  </section>
 </section>

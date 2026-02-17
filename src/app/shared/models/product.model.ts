@@ -11,7 +11,11 @@ export interface Product {
 export interface VariantStock {
   variantId: string;
   variantName: string;
+  sku?: string;
   warehouseId: string;
   warehouseName: string;
   quantity: number;
+  available?: number;
+  onHand?: number;
+  reserved?: number;
 }

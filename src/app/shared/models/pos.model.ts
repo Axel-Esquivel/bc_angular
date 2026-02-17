@@ -13,7 +13,11 @@ export interface PosCartLine {
   subtotal: number;
 }
 
+export type PosPaymentMethod = 'CASH';
+
 export interface PosPayment {
-  method: string;
+  method: PosPaymentMethod;
   amount: number;
+  received?: number;
+  change?: number;
 }

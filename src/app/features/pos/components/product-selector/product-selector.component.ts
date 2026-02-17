@@ -1,25 +1,18 @@
-import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { Button } from 'primeng/button';
-import { InputText } from 'primeng/inputtext';
-import { TableModule } from 'primeng/table';
-
-import { Product } from '../../../../shared/models/product.model';
+import { FormBuilder, FormGroup } from '@angular/forms';
+import { PosProduct } from '../../models/pos-product.model';
 
 @Component({
   selector: 'bc-pos-product-selector',
-  standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, Button, InputText, TableModule],
   templateUrl: './product-selector.component.html',
   styleUrl: './product-selector.component.scss',
 })
 export class ProductSelectorComponent {
-  @Input() products: Product[] = [];
+  @Input() products: PosProduct[] = [];
   @Input() loading = false;
 
   @Output() search = new EventEmitter<string>();
-  @Output() addProduct = new EventEmitter<Product>();
+  @Output() addProduct = new EventEmitter<PosProduct>();
 
   readonly searchForm: FormGroup;
 
@@ -34,7 +27,7 @@ export class ProductSelectorComponent {
     this.search.emit(term.trim());
   }
 
-  onAdd(product: Product): void {
+  onAdd(product: PosProduct): void {
     this.addProduct.emit(product);
   }
 }

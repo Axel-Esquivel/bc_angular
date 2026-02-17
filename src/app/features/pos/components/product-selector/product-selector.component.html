@@ -25,6 +25,7 @@
         <td>
           <div class="product-name">{{ product.name }}</div>
           <small class="muted">SKU: {{ product.sku || 'N/D' }}</small>
+          <small class="muted" *ngIf="product.barcode">CÃ³digo: {{ product.barcode }}</small>
         </td>
         <td>{{ product.price | currency: 'USD' }}</td>
         <td>

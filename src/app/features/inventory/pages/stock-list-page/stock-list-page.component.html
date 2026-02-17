@@ -16,15 +16,15 @@
     <p-table [value]="stock" [loading]="loading" dataKey="variantId">
       <ng-template pTemplate="header">
         <tr>
-          <th>Variante</th>
-          <th>Bodega</th>
+          <th>Producto</th>
+          <th>SKU</th>
           <th>Cantidad</th>
         </tr>
       </ng-template>
       <ng-template pTemplate="body" let-item>
         <tr>
-          <td>{{ item.variantName }}</td>
-          <td>{{ item.warehouseName }}</td>
+          <td>{{ item.productName }}</td>
+          <td>{{ item.sku }}</td>
           <td>{{ item.quantity }}</td>
         </tr>
       </ng-template>
