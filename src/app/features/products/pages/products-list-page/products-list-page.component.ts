@@ -23,6 +23,7 @@ export class ProductsListPageComponent implements OnInit {
   dialogVisible = false;
   saving = false;
   editingProduct: Product | null = null;
+  contextMissing = false;
 
   readonly categoryOptions = [
     { label: 'Todas', value: '' },
@@ -55,8 +56,10 @@ export class ProductsListPageComponent implements OnInit {
     if (!enterpriseId) {
       this.products = [];
       this.loading = false;
+      this.contextMissing = true;
       return;
     }
+    this.contextMissing = false;
     const { search, category } = this.filtersForm.getRawValue();
     this.productsApi
       .getProducts({

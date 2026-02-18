@@ -6,12 +6,14 @@ import {
   HttpRequest,
 } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
+import { Router } from '@angular/router';
 import { Observable, catchError, switchMap, throwError } from 'rxjs';
 import { MessageService } from 'primeng/api';
 
 import { APP_CONFIG_TOKEN, AppConfig } from '../config/app-config';
 import { AuthService } from './auth.service';
 import { AuthStateService } from './auth-state.service';
+import { ActiveContextStateService } from '../context/active-context-state.service';
 
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
@@ -19,7 +21,9 @@ export class AuthInterceptor implements HttpInterceptor {
     @Inject(APP_CONFIG_TOKEN) private readonly config: AppConfig,
     private readonly authService: AuthService,
     private readonly authState: AuthStateService,
-    private readonly messageService: MessageService
+    private readonly messageService: MessageService,
+    private readonly activeContextState: ActiveContextStateService,
+    private readonly router: Router
   ) {}
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
@@ -60,6 +64,7 @@ export class AuthInterceptor implements HttpInterceptor {
         summary: 'Acceso',
         detail: 'Sin permisos.',
       });
+      this.logoutAndRedirect();
       return throwError(() => error);
     }
 
@@ -72,7 +77,18 @@ export class AuthInterceptor implements HttpInterceptor {
       return throwError(() => error);
     }
 
+    if (this.isContextMissing(error)) {
+      this.activeContextState.clearActiveContext();
+      void this.router.navigateByUrl('/context/select');
+      return throwError(() => error);
+    }
+
     if (error.status !== 401 && error.status !== 419) {
+      return throwError(() => error);
+    }
+
+    if (error.status === 401) {
+      this.logoutAndRedirect();
       return throwError(() => error);
     }
 
@@ -83,7 +99,7 @@ export class AuthInterceptor implements HttpInterceptor {
     return this.authService.refreshToken().pipe(
       switchMap((tokens) => {
         if (!tokens?.accessToken) {
-          this.authService.logoutLocal();
+          this.logoutAndRedirect();
           return throwError(() => error);
         }
 
@@ -93,7 +109,7 @@ export class AuthInterceptor implements HttpInterceptor {
       catchError((refreshError) => {
         const status = refreshError instanceof HttpErrorResponse ? refreshError.status : null;
         if (status === 401 || status === 419) {
-          this.authService.logoutLocal();
+          this.logoutAndRedirect();
         }
         return throwError(() => refreshError);
       })
@@ -108,5 +124,31 @@ export class AuthInterceptor implements HttpInterceptor {
 
   private isAuthEndpoint(url: string): boolean {
     return url.includes('/auth/logout') || url.includes('/auth/me') || url.includes('/auth/refresh');
+  }
+
+  private logoutAndRedirect(): void {
+    this.authService.logoutLocal();
+    this.activeContextState.clearActiveContext();
+    void this.router.navigateByUrl('/auth/login');
+  }
+
+  private isContextMissing(error: HttpErrorResponse): boolean {
+    const payload = error.error;
+    if (!payload || typeof payload !== 'object') {
+      return false;
+    }
+    const code =
+      'code' in payload && typeof payload.code === 'string' ? payload.code.toLowerCase() : '';
+    if (code.includes('context')) {
+      return true;
+    }
+    const message =
+      'message' in payload && typeof payload.message === 'string'
+        ? payload.message.toLowerCase()
+        : '';
+    return (
+      (message.includes('context') && message.includes('missing')) ||
+      message.includes('enterpriseid is required')
+    );
   }
 }

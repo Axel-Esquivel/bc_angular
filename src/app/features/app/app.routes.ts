@@ -4,6 +4,7 @@ import { AppShellComponent } from './shell/app-shell.component';
 import { AppDashboardPageComponent } from './pages/dashboard-page/dashboard-page.component';
 import { StockListPageComponent } from '../inventory/pages/stock-list-page/stock-list-page.component';
 import { ModulePlaceholderPageComponent } from './modules/module-placeholder-page/module-placeholder-page.component';
+import { ActiveContextGuard } from '../../core/guards/active-context.guard';
 
 const moduleMatcher: UrlMatcher = (segments) => {
   if (segments.length === 0) {
@@ -21,6 +22,7 @@ export const appRoutes: Routes = [
   {
     path: '',
     component: AppShellComponent,
+    canActivate: [ActiveContextGuard],
     children: [
       { path: '', pathMatch: 'full', redirectTo: 'home' },
       { path: 'home', component: AppDashboardPageComponent },

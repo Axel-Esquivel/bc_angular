@@ -1,12 +1,17 @@
+
+<p-card *ngIf="contextMissing" class="empty-state">
+  <h3>Selecciona un contexto</h3>
+  <p>Elige una empresa para cargar el catálogo.</p>
+</p-card>
 <div class="page-header">
   <div>
     <h2>Productos</h2>
     <p>Gestiona el catálogo de productos.</p>
   </div>
-  <p-button label="Nuevo" icon="pi pi-plus" (onClick)="openCreate()"></p-button>
+  <p-button label="Nuevo" icon="pi pi-plus" (onClick)="openCreate()" [disabled]="contextMissing"></p-button>
 </div>
 
-<p-card>
+<p-card *ngIf="!contextMissing">
   <form class="filters" [formGroup]="filtersForm" (ngSubmit)="loadProducts()">
     <div class="filter-item">
       <label for="search">Búsqueda</label>
@@ -31,7 +36,7 @@
   </form>
 </p-card>
 
-<p-card>
+<p-card *ngIf="!contextMissing">
   <p-table [value]="products" [loading]="loading" dataKey="id">
     <ng-template pTemplate="header">
       <tr>
@@ -109,3 +114,5 @@
     <p-button label="Guardar" icon="pi pi-check" (onClick)="saveProduct()" [loading]="saving"></p-button>
   </ng-template>
 </p-dialog>
+
+

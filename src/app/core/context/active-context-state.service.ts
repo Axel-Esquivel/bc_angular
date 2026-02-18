@@ -1,7 +1,11 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 
-import { ActiveContext, createEmptyActiveContext } from '../../shared/models/active-context.model';
+import {
+  ActiveContext,
+  ActiveContextState,
+  createEmptyActiveContext,
+} from '../../shared/models/active-context.model';
 
 @Injectable({ providedIn: 'root' })
 export class ActiveContextStateService {
@@ -25,7 +29,27 @@ export class ActiveContextStateService {
     localStorage.removeItem(this.storageKey);
   }
 
+  clearActiveContext(): void {
+    this.clear();
+  }
+
+  loadFromStorage(): ActiveContext {
+    const restored = this.restore();
+    this.contextSubject.next(restored);
+    return restored;
+  }
+
   isComplete(context: ActiveContext): boolean {
+    return Boolean(
+      context.organizationId &&
+        context.companyId &&
+        context.countryId &&
+        context.enterpriseId &&
+        context.currencyId,
+    );
+  }
+
+  hasMinimumContext(context: ActiveContext): context is ActiveContextState {
     return Boolean(
       context.organizationId &&
         context.companyId &&

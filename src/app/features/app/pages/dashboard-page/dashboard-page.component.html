@@ -18,7 +18,7 @@
     </p-card>
   </div>
 
-  <div class="card-grid" *ngIf="!loading && cards.length > 0">
+  <div class="card-grid" *ngIf="!loading && !contextMissing && cards.length > 0">
     <p-card
       class="module-card"
       *ngFor="let card of cards; trackBy: trackByKey"
@@ -43,8 +43,13 @@
       </div>
     </p-card>
   </div>
+  <div class="empty-state" *ngIf="!loading && contextMissing">
+    <h2>Selecciona un contexto</h2>
+    <p>Elige una empresa para ver los módulos disponibles.</p>
+    <p-button label="Ir al selector" icon="pi pi-briefcase" (onClick)="goToContext()"></p-button>
+  </div>
 
-  <div class="empty-state" *ngIf="!loading && cards.length === 0">
+  <div class="empty-state" *ngIf="!loading && !contextMissing && cards.length === 0">
     <h2>No hay módulos activos</h2>
     <p>Instala módulos para continuar con tu operación.</p>
     <p-button
@@ -54,3 +59,5 @@
     ></p-button>
   </div>
 </section>
+
+

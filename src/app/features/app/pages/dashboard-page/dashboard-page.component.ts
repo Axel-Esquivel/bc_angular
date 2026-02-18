@@ -109,21 +109,23 @@ export class AppDashboardPageComponent implements OnInit {
   modules: OrganizationModuleOverviewItem[] = [];
   loading = false;
   cards: HomeModuleCard[] = [];
+  contextMissing = false;
   readonly skeletonCards = Array.from({ length: 8 }, (_, index) => index);
 
   ngOnInit(): void {
     const user = this.authService.getCurrentUser();
+    const context = this.activeContextState.getActiveContext();
     const organizationId =
-      this.activeContextState.getActiveContext().organizationId ??
-      user?.defaults?.organizationId ??
-      user?.defaultOrganizationId ??
-      null;
-    if (!organizationId) {
+      context.organizationId ?? user?.defaults?.organizationId ?? user?.defaultOrganizationId ?? null;
+    const enterpriseId = context.enterpriseId ?? null;
+    if (!organizationId || !enterpriseId) {
       this.modules = [];
       this.cards = [];
+      this.contextMissing = true;
       return;
     }
 
+    this.contextMissing = false;
     this.loading = true;
     this.organizationsApi
       .getModulesOverview(organizationId)
@@ -168,6 +170,10 @@ export class AppDashboardPageComponent implements OnInit {
 
   goToStore(): void {
     void this.router.navigateByUrl('/setup/modules/store');
+  }
+
+  goToContext(): void {
+    void this.router.navigateByUrl('/context/select');
   }
 
   trackByKey(_index: number, card: HomeModuleCard): string {

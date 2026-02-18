@@ -7,6 +7,11 @@ export interface ActiveContext {
   currencyId: string | null;
 }
 
+export type ActiveContextState = Pick<
+  ActiveContext,
+  'organizationId' | 'enterpriseId' | 'companyId' | 'countryId' | 'currencyId'
+>;
+
 export const createEmptyActiveContext = (): ActiveContext => ({
   organizationId: null,
   companyId: null,
