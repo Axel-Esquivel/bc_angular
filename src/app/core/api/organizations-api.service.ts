@@ -168,6 +168,13 @@ export class OrganizationsService {
     return this.http.patch<ApiResponse<OrganizationModulesOverviewResponse>>(`${this.baseUrl}/${id}/modules`, payload);
   }
 
+  updateModuleSettings(
+    id: string,
+    payload: { moduleKey: string; settings?: Record<string, unknown> },
+  ): Observable<ApiResponse<Record<string, unknown>>> {
+    return this.http.patch<ApiResponse<Record<string, unknown>>>(`${this.baseUrl}/${id}/modules/settings`, payload);
+  }
+
   installModule(id: string, moduleKey: string): Observable<ApiResponse<OrganizationModuleInstallResponse>> {
     return this.http.post<ApiResponse<OrganizationModuleInstallResponse>>(
       `${this.baseUrl}/${id}/modules/install`,

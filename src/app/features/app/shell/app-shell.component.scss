@@ -1,0 +1,10 @@
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: var(--surface-ground);
+}
+
+.shell-content {
+  padding: 1.5rem;
+}

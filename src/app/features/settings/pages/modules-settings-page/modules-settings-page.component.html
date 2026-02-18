@@ -1,0 +1,58 @@
+<p-toast></p-toast>
+<section class="modules-settings">
+  <header class="page-header">
+    <div>
+      <h2>ConfiguraciÃ³n de MÃ³dulos</h2>
+      <p>Administra ajustes por mÃ³dulo.</p>
+    </div>
+  </header>
+
+  <p-card *ngIf="contextMissing" class="empty-state">
+    <h3>Selecciona un contexto</h3>
+    <p>Debes elegir una organizaciÃ³n antes de configurar mÃ³dulos.</p>
+  </p-card>
+
+  <div class="layout" *ngIf="!contextMissing">
+    <p-card class="modules-list">
+      <h3>MÃ³dulos instalados</h3>
+      <p *ngIf="loading">Cargando...</p>
+      <div class="module-buttons" *ngIf="!loading">
+        <p-button
+          *ngFor="let module of modules"
+          [label]="module.name || module.key"
+          [outlined]="selectedKey !== module.key"
+          (onClick)="selectModule(module.key)"
+        ></p-button>
+      </div>
+    </p-card>
+
+    <p-card class="module-settings" *ngIf="selectedKey === 'products'" [formGroup]="productsForm">
+      <h3>Products</h3>
+      <p>Ajustes del mÃ³dulo de productos.</p>
+      <div class="field-row">
+        <p-checkbox formControlName="enableVariants" [binary]="true"></p-checkbox>
+        <label>Habilitar variantes mÃºltiples</label>
+      </div>
+      <div class="field-row">
+        <p-checkbox formControlName="autoGenerateSku" [binary]="true"></p-checkbox>
+        <label>Auto generar SKU</label>
+      </div>
+      <div class="field-row">
+        <p-checkbox formControlName="allowMultipleBarcodes" [binary]="true"></p-checkbox>
+        <label>Permitir mÃºltiples cÃ³digos de barra</label>
+      </div>
+      <p-divider></p-divider>
+      <p-button
+        label="Guardar"
+        icon="pi pi-save"
+        [loading]="saving"
+        (onClick)="saveProductsSettings()"
+      ></p-button>
+    </p-card>
+
+    <p-card class="module-settings" *ngIf="selectedKey && selectedKey !== 'products'">
+      <h3>Sin ajustes</h3>
+      <p>Este mÃ³dulo no tiene configuraciÃ³n disponible.</p>
+    </p-card>
+  </div>
+</section>

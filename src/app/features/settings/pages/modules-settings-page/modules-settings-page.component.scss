@@ -1,0 +1,50 @@
+.modules-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.page-header {
+  h2 {
+    margin: 0 0 0.25rem;
+  }
+  p {
+    margin: 0;
+    color: var(--text-color-secondary);
+  }
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) minmax(320px, 2fr);
+  gap: 1.5rem;
+}
+
+.modules-list h3,
+.module-settings h3 {
+  margin-top: 0;
+}
+
+.module-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.field-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0.75rem 0;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 2rem;
+}
+
+@media (max-width: 960px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}
