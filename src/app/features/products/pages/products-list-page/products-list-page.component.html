@@ -85,12 +85,16 @@
       <input pInputText id="name" type="text" formControlName="name" />
     </div>
     <div class="field">
-      <label for="sku">SKU</label>
+      <label for="sku">SKU (variante)</label>
       <input pInputText id="sku" type="text" formControlName="sku" />
     </div>
     <div class="field">
-      <label for="barcode">Código</label>
-      <input pInputText id="barcode" type="text" formControlName="barcode" />
+      <label for="barcodes">Códigos (separados por coma)</label>
+      <input pInputText id="barcodes" type="text" formControlName="barcodes" />
+    </div>
+    <div class="field">
+      <label for="baseUomId">Unidad base</label>
+      <input pInputText id="baseUomId" type="text" formControlName="baseUomId" />
     </div>
     <div class="field">
       <label for="price">Precio</label>
@@ -109,10 +113,78 @@
     </div>
   </form>
 
+  <section class="variants-panel" *ngIf="enableVariants">
+    <div class="variants-header">
+      <h4>Variantes</h4>
+      <p-button
+        label="Agregar variante"
+        icon="pi pi-plus"
+        size="small"
+        (onClick)="openVariantCreate()"
+      ></p-button>
+    </div>
+    <p-table [value]="variants" [loading]="variantsLoading" dataKey="id">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Nombre</th>
+          <th>SKU</th>
+          <th>CÃ³digos</th>
+          <th>UoM</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-variant>
+        <tr>
+          <td>{{ variant.name }}</td>
+          <td>{{ variant.sku }}</td>
+          <td>{{ variant.barcodes?.join(', ') || '-' }}</td>
+          <td>{{ variant.baseUomId }}</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </section>
+
   <ng-template pTemplate="footer">
     <p-button label="Cancelar" severity="secondary" (onClick)="dialogVisible = false"></p-button>
     <p-button label="Guardar" icon="pi pi-check" (onClick)="saveProduct()" [loading]="saving"></p-button>
   </ng-template>
 </p-dialog>
+
+<p-dialog
+  [(visible)]="variantDialogVisible"
+  [modal]="true"
+  [closable]="true"
+  [dismissableMask]="true"
+  [style]="{ width: '28rem' }"
+  header="Nueva variante"
+>
+  <form class="product-dialog" [formGroup]="variantForm">
+    <div class="field">
+      <label for="variantName">Nombre</label>
+      <input pInputText id="variantName" type="text" formControlName="name" />
+    </div>
+    <div class="field">
+      <label for="variantSku">SKU</label>
+      <input pInputText id="variantSku" type="text" formControlName="sku" />
+    </div>
+    <div class="field">
+      <label for="variantBarcodes">CÃ³digos (separados por coma)</label>
+      <input pInputText id="variantBarcodes" type="text" formControlName="barcodes" />
+    </div>
+    <div class="field">
+      <label for="variantUom">Unidad base</label>
+      <input pInputText id="variantUom" type="text" formControlName="baseUomId" />
+    </div>
+    <div class="field toggle">
+      <label for="variantSellable">Vendible</label>
+      <p-toggleSwitch inputId="variantSellable" formControlName="sellable"></p-toggleSwitch>
+    </div>
+  </form>
+
+  <ng-template pTemplate="footer">
+    <p-button label="Cancelar" severity="secondary" (onClick)="variantDialogVisible = false"></p-button>
+    <p-button label="Guardar" icon="pi pi-check" (onClick)="saveVariant()" [loading]="variantSaving"></p-button>
+  </ng-template>
+</p-dialog>
+
 
 

@@ -3,8 +3,12 @@ import { FormBuilder, Validators } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 
 import { ProductsApiService } from '../../../../core/api/products-api.service';
+import { VariantsApiService } from '../../../../core/api/variants-api.service';
 import { ActiveContextStateService } from '../../../../core/context/active-context-state.service';
+import { OrganizationsService } from '../../../../core/api/organizations-api.service';
 import { Product } from '../../../../shared/models/product.model';
+import { ProductVariant } from '../../../../shared/models/product-variant.model';
+import { take } from 'rxjs';
 
 @Component({
   standalone: false,
@@ -14,9 +18,11 @@ import { Product } from '../../../../shared/models/product.model';
 })
 export class ProductsListPageComponent implements OnInit {
   private readonly productsApi = inject(ProductsApiService);
+  private readonly variantsApi = inject(VariantsApiService);
   private readonly fb = inject(FormBuilder);
   private readonly messageService = inject(MessageService);
   private readonly activeContextState = inject(ActiveContextStateService);
+  private readonly organizationsApi = inject(OrganizationsService);
 
   products: Product[] = [];
   loading = false;
@@ -24,6 +30,12 @@ export class ProductsListPageComponent implements OnInit {
   saving = false;
   editingProduct: Product | null = null;
   contextMissing = false;
+  enableVariants = false;
+  variants: ProductVariant[] = [];
+  variantsLoading = false;
+  variantDialogVisible = false;
+  variantSaving = false;
+  defaultVariantId: string | null = null;
 
   readonly categoryOptions = [
     { label: 'Todas', value: '' },
@@ -40,13 +52,23 @@ export class ProductsListPageComponent implements OnInit {
   readonly productForm = this.fb.nonNullable.group({
     name: ['', [Validators.required]],
     sku: [''],
-    barcode: [''],
+    barcodes: [''],
+    baseUomId: ['unit', [Validators.required]],
     price: [0, [Validators.required, Validators.min(0)]],
     isActive: [true],
   });
 
+  readonly variantForm = this.fb.nonNullable.group({
+    name: ['', [Validators.required]],
+    sku: [''],
+    barcodes: [''],
+    baseUomId: ['unit', [Validators.required]],
+    sellable: [true],
+  });
+
   ngOnInit(): void {
     this.loadProducts();
+    this.loadVariantsConfig();
   }
 
   loadProducts(): void {
@@ -91,10 +113,13 @@ export class ProductsListPageComponent implements OnInit {
     this.productForm.reset({
       name: '',
       sku: '',
-      barcode: '',
+      barcodes: '',
+      baseUomId: 'unit',
       price: 0,
       isActive: true,
     });
+    this.variants = [];
+    this.defaultVariantId = null;
     this.dialogVisible = true;
   }
 
@@ -103,10 +128,12 @@ export class ProductsListPageComponent implements OnInit {
     this.productForm.reset({
       name: product.name ?? '',
       sku: product.sku ?? '',
-      barcode: product.barcode ?? '',
+      barcodes: product.barcode ?? '',
+      baseUomId: 'unit',
       price: product.price ?? 0,
       isActive: product.isActive ?? true,
     });
+    this.loadVariants(product.id);
     this.dialogVisible = true;
   }
 
@@ -124,8 +151,11 @@ export class ProductsListPageComponent implements OnInit {
     }
 
     this.saving = true;
+    const barcodes = this.parseBarcodes(this.productForm.controls.barcodes.value);
+    const primaryBarcode = barcodes[0];
     const payload = {
       ...this.productForm.getRawValue(),
+      barcode: primaryBarcode,
       OrganizationId: context.organizationId ?? undefined,
       companyId: context.companyId ?? undefined,
       enterpriseId,
@@ -136,7 +166,17 @@ export class ProductsListPageComponent implements OnInit {
       : this.productsApi.createProduct(payload);
 
     request$.subscribe({
-      next: () => {
+      next: (response) => {
+        const product = response.result;
+        if (product) {
+          this.updateDefaultVariant(product.id, {
+            name: payload.name,
+            sku: payload.sku,
+            barcodes,
+            baseUomId: payload.baseUomId,
+            sellable: true,
+          });
+        }
         this.saving = false;
         this.dialogVisible = false;
         this.loadProducts();
@@ -146,6 +186,161 @@ export class ProductsListPageComponent implements OnInit {
         this.showError(error, 'No se pudo guardar el producto');
       },
     });
+  }
+
+  openVariantCreate(): void {
+    if (!this.editingProduct) {
+      this.showError(null, 'Selecciona un producto para agregar variantes.');
+      return;
+    }
+    if (!this.enableVariants) {
+      this.showError(null, 'Las variantes adicionales estÃ¡n deshabilitadas.');
+      return;
+    }
+    this.variantForm.reset({
+      name: this.editingProduct.name ?? '',
+      sku: '',
+      barcodes: '',
+      baseUomId: 'unit',
+      sellable: true,
+    });
+    this.variantDialogVisible = true;
+  }
+
+  saveVariant(): void {
+    if (!this.editingProduct) {
+      return;
+    }
+    if (this.variantForm.invalid) {
+      this.variantForm.markAllAsTouched();
+      return;
+    }
+    this.variantSaving = true;
+    const payload = this.variantForm.getRawValue();
+    const barcodes = this.parseBarcodes(payload.barcodes);
+    this.variantsApi
+      .createForProduct(this.editingProduct.id, {
+        name: payload.name,
+        sku: payload.sku?.trim() || undefined,
+        barcodes,
+        baseUomId: payload.baseUomId,
+        sellable: payload.sellable,
+      })
+      .subscribe({
+        next: () => {
+          this.variantSaving = false;
+          this.variantDialogVisible = false;
+          this.loadVariants(this.editingProduct?.id ?? '');
+        },
+        error: (error) => {
+          this.variantSaving = false;
+          this.showError(error, 'No se pudo crear la variante');
+        },
+      });
+  }
+
+  private loadVariantsConfig(): void {
+    const context = this.activeContextState.getActiveContext();
+    const organizationId = context.organizationId ?? undefined;
+    const enterpriseId = context.enterpriseId ?? undefined;
+    if (!organizationId || !enterpriseId) {
+      this.enableVariants = false;
+      return;
+    }
+    this.organizationsApi
+      .getById(organizationId)
+      .pipe(take(1))
+      .subscribe({
+        next: (response) => {
+          const settings = response.result?.moduleSettings?.['products'] ?? null;
+          this.enableVariants = this.isProductsSettings(settings) && settings.enableVariants === true;
+        },
+        error: () => {
+          this.enableVariants = false;
+        },
+      });
+  }
+
+  private loadVariants(productId: string): void {
+    if (!productId) {
+      return;
+    }
+    this.variantsLoading = true;
+    this.variantsApi
+      .getByProduct(productId)
+      .pipe(take(1))
+      .subscribe({
+        next: (response) => {
+          this.variants = response.result ?? [];
+          const defaultVariant = this.variants[0] ?? null;
+          this.defaultVariantId = defaultVariant?.id ?? null;
+          if (defaultVariant) {
+            this.productForm.patchValue({
+              sku: defaultVariant.sku ?? '',
+              barcodes: defaultVariant.barcodes?.join(', ') ?? '',
+              baseUomId: defaultVariant.baseUomId ?? 'unit',
+            });
+          }
+          this.variantsLoading = false;
+        },
+        error: (error) => {
+          this.variants = [];
+          this.defaultVariantId = null;
+          this.variantsLoading = false;
+          this.showError(error, 'No se pudieron cargar las variantes');
+        },
+      });
+  }
+
+  private updateDefaultVariant(
+    productId: string,
+    payload: { name: string; sku?: string; barcodes: string[]; baseUomId: string; sellable: boolean },
+  ): void {
+    if (this.defaultVariantId) {
+      this.variantsApi.updateVariant(this.defaultVariantId, payload).pipe(take(1)).subscribe({
+        next: () => {
+          this.loadVariants(productId);
+        },
+        error: () => {
+          this.showError(null, 'No se pudo actualizar la variante por defecto');
+        },
+      });
+      return;
+    }
+    this.variantsApi
+      .getByProduct(productId)
+      .pipe(take(1))
+      .subscribe({
+        next: (response) => {
+          const defaultVariant = response.result?.[0];
+          if (!defaultVariant) {
+            return;
+          }
+          this.defaultVariantId = defaultVariant.id;
+          this.variantsApi.updateVariant(defaultVariant.id, payload).pipe(take(1)).subscribe({
+            next: () => {
+              this.loadVariants(productId);
+            },
+            error: () => {
+              this.showError(null, 'No se pudo actualizar la variante por defecto');
+            },
+          });
+        },
+        error: () => {
+          this.showError(null, 'No se pudo cargar la variante por defecto');
+        },
+      });
+  }
+
+  private parseBarcodes(value: string): string[] {
+    return value
+      .split(',')
+      .map((entry) => entry.trim())
+      .filter((entry) => entry.length > 0);
+  }
+
+  private isProductsSettings(value: unknown): value is { enableVariants?: boolean } {
+    return typeof value === 'object' && value !== null && 'enableVariants' in value;
   }
 
   private showError(error: unknown, fallback: string): void {

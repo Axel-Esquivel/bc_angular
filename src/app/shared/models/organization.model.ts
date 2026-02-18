@@ -44,6 +44,7 @@ export interface IOrganization {
   members?: IOrganizationMember[];
   roles?: IOrganizationRole[];
   installedModules?: IOrganizationInstalledModule[];
+  moduleSettings?: Record<string, unknown>;
   createdAt?: string;
 }
 
