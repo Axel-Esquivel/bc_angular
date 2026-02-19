@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+﻿import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 
@@ -8,8 +8,8 @@ import { ActiveContextStateService } from '../../../../core/context/active-conte
 import { OrganizationsService } from '../../../../core/api/organizations-api.service';
 import { Product } from '../../../../shared/models/product.model';
 import { ProductVariant } from '../../../../shared/models/product-variant.model';
-import { Observable, forkJoin, of, switchMap } from 'rxjs';
-import { map, take } from 'rxjs/operators';
+import { Observable, Subject, forkJoin, of, switchMap } from 'rxjs';
+import { map, take, takeUntil } from 'rxjs/operators';
 
 type VariantFormGroup = FormGroup<{
   name: FormControl<string>;
@@ -17,6 +17,7 @@ type VariantFormGroup = FormGroup<{
   barcodes: FormControl<string>;
   uomId: FormControl<string>;
   price: FormControl<number>;
+  minStock: FormControl<number>;
   sellable: FormControl<boolean>;
 }>;
 
@@ -26,13 +27,16 @@ type VariantFormGroup = FormGroup<{
   templateUrl: './products-list-page.component.html',
   styleUrl: './products-list-page.component.scss',
 })
-export class ProductsListPageComponent implements OnInit {
+export class ProductsListPageComponent implements OnInit, OnDestroy {
   private readonly productsApi = inject(ProductsApiService);
   private readonly variantsApi = inject(VariantsApiService);
   private readonly fb = inject(FormBuilder);
   private readonly messageService = inject(MessageService);
   private readonly activeContextState = inject(ActiveContextStateService);
   private readonly organizationsApi = inject(OrganizationsService);
+  private readonly destroy$ = new Subject<void>();
+  private defaultVariantNameEdited = false;
+  private suppressDefaultNameSync = false;
 
   products: Product[] = [];
   loading = false;
@@ -64,10 +68,12 @@ export class ProductsListPageComponent implements OnInit {
   });
 
   readonly defaultVariantForm = this.fb.nonNullable.group({
+    name: [''],
     sku: [''],
     barcodes: [''],
     uomId: ['unit', [Validators.required]],
     price: [0, [Validators.required, Validators.min(0)]],
+    minStock: [0, [Validators.min(0)]],
   });
 
   readonly variantsFormArray = new FormArray<VariantFormGroup>([]);
@@ -75,6 +81,32 @@ export class ProductsListPageComponent implements OnInit {
   ngOnInit(): void {
     this.loadProducts();
     this.loadVariantsConfig();
+    this.productForm.controls.name.valueChanges.pipe(takeUntil(this.destroy$)).subscribe((value) => {
+      if (this.defaultVariantNameEdited) {
+        return;
+      }
+      const next = value?.trim();
+      if (!next) {
+        return;
+      }
+      this.suppressDefaultNameSync = true;
+      this.defaultVariantForm.controls.name.setValue(next, { emitEvent: false });
+      this.defaultVariantForm.controls.name.markAsPristine();
+      this.suppressDefaultNameSync = false;
+    });
+    this.defaultVariantForm.controls.name.valueChanges.pipe(takeUntil(this.destroy$)).subscribe((value) => {
+      if (this.suppressDefaultNameSync) {
+        return;
+      }
+      if (value && value.trim().length > 0) {
+        this.defaultVariantNameEdited = true;
+      }
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   loadProducts(): void {
@@ -116,16 +148,19 @@ export class ProductsListPageComponent implements OnInit {
 
   openCreate(): void {
     this.editingProduct = null;
+    this.defaultVariantNameEdited = false;
     this.productForm.reset({
       name: '',
       category: '',
       isActive: true,
     });
     this.defaultVariantForm.reset({
+      name: '',
       sku: '',
       barcodes: '',
       uomId: 'unit',
       price: 0,
+      minStock: 0,
     });
     this.variants = [];
     this.variantsFormArray.clear();
@@ -135,16 +170,19 @@ export class ProductsListPageComponent implements OnInit {
 
   openEdit(product: Product): void {
     this.editingProduct = product;
+    this.defaultVariantNameEdited = false;
     this.productForm.reset({
       name: product.name ?? '',
       category: product.category ?? '',
       isActive: product.isActive ?? true,
     });
     this.defaultVariantForm.reset({
+      name: '',
       sku: '',
       barcodes: '',
       uomId: 'unit',
       price: 0,
+      minStock: 0,
     });
     this.variantsFormArray.clear();
     this.loadVariants(product.id);
@@ -166,7 +204,7 @@ export class ProductsListPageComponent implements OnInit {
     }
 
     this.saving = true;
-    const barcodes = this.parseBarcodes(this.defaultVariantForm.controls.barcodes.value);
+    const barcodes = this.ensureBarcodes(this.parseBarcodes(this.defaultVariantForm.controls.barcodes.value));
     const payload = {
       ...this.productForm.getRawValue(),
       OrganizationId: context.organizationId ?? undefined,
@@ -185,14 +223,15 @@ export class ProductsListPageComponent implements OnInit {
           this.saving = false;
           return;
         }
-    const defaultPayload = {
-      name: payload.name,
-      sku: this.defaultVariantForm.controls.sku.value || undefined,
-      barcodes,
-      uomId: this.defaultVariantForm.controls.uomId.value,
-      price: this.defaultVariantForm.controls.price.value,
-      sellable: true,
-    };
+        const defaultPayload = {
+          name: this.defaultVariantForm.controls.name.value || payload.name,
+          sku: this.defaultVariantForm.controls.sku.value || undefined,
+          barcodes,
+          uomId: this.defaultVariantForm.controls.uomId.value,
+          price: this.defaultVariantForm.controls.price.value,
+          minStock: this.defaultVariantForm.controls.minStock.value,
+          sellable: true,
+        };
         this.persistVariants(product.id, defaultPayload);
       },
       error: (error) => {
@@ -204,7 +243,7 @@ export class ProductsListPageComponent implements OnInit {
 
   openVariantCreate(): void {
     if (!this.enableVariants) {
-      this.showError(null, 'Las variantes adicionales est?n deshabilitadas.');
+      this.showError(null, 'Las variantes adicionales están deshabilitadas.');
       return;
     }
     this.variantsFormArray.push(this.createVariantGroup());
@@ -251,11 +290,16 @@ export class ProductsListPageComponent implements OnInit {
           this.defaultVariantId = defaultVariant?.id ?? null;
           if (defaultVariant) {
             this.defaultVariantForm.patchValue({
+              name: defaultVariant.name ?? '',
               sku: defaultVariant.sku ?? '',
               barcodes: defaultVariant.barcodes?.join(', ') ?? '',
               uomId: defaultVariant.uomId ?? 'unit',
               price: defaultVariant.price ?? 0,
+              minStock: defaultVariant.minStock ?? 0,
             });
+            if (defaultVariant.name) {
+              this.defaultVariantNameEdited = true;
+            }
           }
           this.variantsLoading = false;
         },
@@ -276,6 +320,7 @@ export class ProductsListPageComponent implements OnInit {
       barcodes: string[];
       uomId: string;
       price: number;
+      minStock: number;
       sellable: boolean;
     },
   ): void {
@@ -308,7 +353,15 @@ export class ProductsListPageComponent implements OnInit {
 
   private updateDefaultVariant(
     productId: string,
-    payload: { name: string; sku?: string; barcodes: string[]; uomId: string; price: number; sellable: boolean },
+    payload: {
+      name: string;
+      sku?: string;
+      barcodes: string[];
+      uomId: string;
+      price: number;
+      minStock: number;
+      sellable: boolean;
+    },
   ) {
     if (this.defaultVariantId) {
       return this.variantsApi.updateVariant(this.defaultVariantId, payload);
@@ -335,9 +388,10 @@ export class ProductsListPageComponent implements OnInit {
       return this.variantsApi.createForProduct(productId, {
         name: value.name,
         sku: value.sku?.trim() || undefined,
-        barcodes: this.parseBarcodes(value.barcodes),
+        barcodes: this.ensureBarcodes(this.parseBarcodes(value.barcodes)),
         uomId: value.uomId,
         price: value.price,
+        minStock: value.minStock,
         sellable: value.sellable,
       });
     });
@@ -351,6 +405,7 @@ export class ProductsListPageComponent implements OnInit {
       barcodes: [''],
       uomId: ['unit', [Validators.required]],
       price: [0, [Validators.required, Validators.min(0)]],
+      minStock: [0, [Validators.min(0)]],
       sellable: [true],
     });
   }
@@ -360,6 +415,18 @@ export class ProductsListPageComponent implements OnInit {
       .split(',')
       .map((entry) => entry.trim())
       .filter((entry) => entry.length > 0);
+  }
+
+  private ensureBarcodes(values: string[]): string[] {
+    if (values.length > 0) {
+      return values;
+    }
+    return [this.generateInternalBarcode()];
+  }
+
+  private generateInternalBarcode(): string {
+    const suffix = Math.floor(Date.now() / 1000).toString(36).toUpperCase();
+    return `INT-${suffix}`;
   }
 
   private isProductsSettings(value: unknown): value is { enableVariants?: boolean } {

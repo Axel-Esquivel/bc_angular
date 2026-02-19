@@ -5,6 +5,7 @@ export interface ProductVariant {
   sku: string;
   barcodes: string[];
   price: number;
+  minStock?: number;
   uomId: string;
   sellable?: boolean;
   OrganizationId?: string;

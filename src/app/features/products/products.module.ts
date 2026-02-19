@@ -6,6 +6,7 @@ import { AccordionModule } from 'primeng/accordion';
 import { Button } from 'primeng/button';
 import { Card } from 'primeng/card';
 import { Dialog } from 'primeng/dialog';
+import { FloatLabel } from 'primeng/floatlabel';
 import { InputNumber } from 'primeng/inputnumber';
 import { InputText } from 'primeng/inputtext';
 import { Select } from 'primeng/select';
@@ -30,6 +31,7 @@ import { productsRoutes } from './products.routes';
     Button,
     Card,
     Dialog,
+    FloatLabel,
     InputNumber,
     InputText,
     Select,

@@ -1,4 +1,4 @@
-<p-card header="Producto">
+﻿<p-card header="Producto">
   <form [formGroup]="form" (ngSubmit)="onSubmit()" class="product-form">
     <div class="form-row">
       <label for="name">Nombre *</label>
@@ -20,12 +20,19 @@
         optionValue="value"
         formControlName="category"
         placeholder="Selecciona una categoría"
-       appendTo="body"></p-select>
+        appendTo="body"
+      ></p-select>
     </div>
 
     <div class="form-row">
       <label for="price">Precio</label>
-      <p-inputNumber inputId="price" formControlName="price" mode="currency" currency="USD" locale="es-CO"></p-inputNumber>
+      <p-inputNumber
+        inputId="price"
+        formControlName="price"
+        [min]="0"
+        [minFractionDigits]="2"
+        [maxFractionDigits]="2"
+      ></p-inputNumber>
       <small class="error" *ngIf="form.controls.price.touched && form.controls.price.invalid">El precio debe ser válido</small>
     </div>
 
