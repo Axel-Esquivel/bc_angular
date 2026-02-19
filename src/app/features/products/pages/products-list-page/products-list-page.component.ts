@@ -8,8 +8,8 @@ import { ActiveContextStateService } from '../../../../core/context/active-conte
 import { OrganizationsService } from '../../../../core/api/organizations-api.service';
 import { Product } from '../../../../shared/models/product.model';
 import { ProductVariant } from '../../../../shared/models/product-variant.model';
-import { forkJoin, of, switchMap } from 'rxjs';
-import { take } from 'rxjs/operators';
+import { Observable, forkJoin, of, switchMap } from 'rxjs';
+import { map, take } from 'rxjs/operators';
 
 type VariantFormGroup = FormGroup<{
   name: FormControl<string>;
@@ -273,23 +273,21 @@ export class ProductsListPageComponent implements OnInit {
       .pipe(take(1))
       .subscribe({
         next: () => {
-          this.createAdditionalVariants(productId)
-            .pipe(take(1))
-            .subscribe(
-              () => {
-                this.saving = false;
-                this.dialogVisible = false;
-                this.variantsFormArray.clear();
-                this.loadProducts();
-                if (this.editingProduct) {
-                  this.loadVariants(productId);
-                }
-              },
-              (error: unknown) => {
-                this.saving = false;
-                this.showError(error, 'No se pudieron crear las variantes adicionales');
+          this.createAdditionalVariants(productId).subscribe(
+            () => {
+              this.saving = false;
+              this.dialogVisible = false;
+              this.variantsFormArray.clear();
+              this.loadProducts();
+              if (this.editingProduct) {
+                this.loadVariants(productId);
               }
-            );
+            },
+            (error: unknown) => {
+              this.saving = false;
+              this.showError(error, 'No se pudieron crear las variantes adicionales');
+            }
+          );
         },
         error: (error) => {
           this.saving = false;
@@ -317,7 +315,7 @@ export class ProductsListPageComponent implements OnInit {
     );
   }
 
-  private createAdditionalVariants(productId: string) {
+  private createAdditionalVariants(productId: string): Observable<null> {
     const groups = this.variantsFormArray.controls;
     if (groups.length === 0) {
       return of(null);
@@ -332,7 +330,7 @@ export class ProductsListPageComponent implements OnInit {
         sellable: value.sellable,
       });
     });
-    return forkJoin(requests);
+    return forkJoin(requests).pipe(map(() => null));
   }
 
   private createVariantGroup(): VariantFormGroup {
