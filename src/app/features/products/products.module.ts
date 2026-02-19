@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
+import { AccordionModule } from 'primeng/accordion';
 import { Button } from 'primeng/button';
 import { Card } from 'primeng/card';
 import { Dialog } from 'primeng/dialog';
@@ -25,6 +26,7 @@ import { productsRoutes } from './products.routes';
     FormsModule,
     ReactiveFormsModule,
     RouterModule.forChild(productsRoutes),
+    AccordionModule,
     Button,
     Card,
     Dialog,

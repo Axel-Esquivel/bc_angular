@@ -16,6 +16,7 @@ type VariantFormGroup = FormGroup<{
   sku: FormControl<string>;
   barcodes: FormControl<string>;
   uomId: FormControl<string>;
+  price: FormControl<number>;
   sellable: FormControl<boolean>;
 }>;
 
@@ -59,7 +60,6 @@ export class ProductsListPageComponent implements OnInit {
   readonly productForm = this.fb.nonNullable.group({
     name: ['', [Validators.required]],
     category: [''],
-    price: [0, [Validators.required, Validators.min(0)]],
     isActive: [true],
   });
 
@@ -67,6 +67,7 @@ export class ProductsListPageComponent implements OnInit {
     sku: [''],
     barcodes: [''],
     uomId: ['unit', [Validators.required]],
+    price: [0, [Validators.required, Validators.min(0)]],
   });
 
   readonly variantsFormArray = new FormArray<VariantFormGroup>([]);
@@ -118,13 +119,13 @@ export class ProductsListPageComponent implements OnInit {
     this.productForm.reset({
       name: '',
       category: '',
-      price: 0,
       isActive: true,
     });
     this.defaultVariantForm.reset({
       sku: '',
       barcodes: '',
       uomId: 'unit',
+      price: 0,
     });
     this.variants = [];
     this.variantsFormArray.clear();
@@ -137,13 +138,13 @@ export class ProductsListPageComponent implements OnInit {
     this.productForm.reset({
       name: product.name ?? '',
       category: product.category ?? '',
-      price: product.price ?? 0,
       isActive: product.isActive ?? true,
     });
     this.defaultVariantForm.reset({
       sku: '',
       barcodes: '',
       uomId: 'unit',
+      price: 0,
     });
     this.variantsFormArray.clear();
     this.loadVariants(product.id);
@@ -184,13 +185,14 @@ export class ProductsListPageComponent implements OnInit {
           this.saving = false;
           return;
         }
-        const defaultPayload = {
-          name: payload.name,
-          sku: this.defaultVariantForm.controls.sku.value || undefined,
-          barcodes,
-          uomId: this.defaultVariantForm.controls.uomId.value,
-          sellable: true,
-        };
+    const defaultPayload = {
+      name: payload.name,
+      sku: this.defaultVariantForm.controls.sku.value || undefined,
+      barcodes,
+      uomId: this.defaultVariantForm.controls.uomId.value,
+      price: this.defaultVariantForm.controls.price.value,
+      sellable: true,
+    };
         this.persistVariants(product.id, defaultPayload);
       },
       error: (error) => {
@@ -252,6 +254,7 @@ export class ProductsListPageComponent implements OnInit {
               sku: defaultVariant.sku ?? '',
               barcodes: defaultVariant.barcodes?.join(', ') ?? '',
               uomId: defaultVariant.uomId ?? 'unit',
+              price: defaultVariant.price ?? 0,
             });
           }
           this.variantsLoading = false;
@@ -267,7 +270,14 @@ export class ProductsListPageComponent implements OnInit {
 
   private persistVariants(
     productId: string,
-    defaultPayload: { name: string; sku?: string; barcodes: string[]; uomId: string; sellable: boolean },
+    defaultPayload: {
+      name: string;
+      sku?: string;
+      barcodes: string[];
+      uomId: string;
+      price: number;
+      sellable: boolean;
+    },
   ): void {
     this.updateDefaultVariant(productId, defaultPayload)
       .pipe(take(1))
@@ -298,7 +308,7 @@ export class ProductsListPageComponent implements OnInit {
 
   private updateDefaultVariant(
     productId: string,
-    payload: { name: string; sku?: string; barcodes: string[]; uomId: string; sellable: boolean },
+    payload: { name: string; sku?: string; barcodes: string[]; uomId: string; price: number; sellable: boolean },
   ) {
     if (this.defaultVariantId) {
       return this.variantsApi.updateVariant(this.defaultVariantId, payload);
@@ -327,6 +337,7 @@ export class ProductsListPageComponent implements OnInit {
         sku: value.sku?.trim() || undefined,
         barcodes: this.parseBarcodes(value.barcodes),
         uomId: value.uomId,
+        price: value.price,
         sellable: value.sellable,
       });
     });
@@ -339,6 +350,7 @@ export class ProductsListPageComponent implements OnInit {
       sku: [''],
       barcodes: [''],
       uomId: ['unit', [Validators.required]],
+      price: [0, [Validators.required, Validators.min(0)]],
       sellable: [true],
     });
   }
