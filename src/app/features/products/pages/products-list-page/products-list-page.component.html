@@ -52,7 +52,7 @@
         <td>{{ product.name }}</td>
         <td>{{ product.sku || '-' }}</td>
         <td>{{ product.barcode || '-' }}</td>
-        <td>{{ product.price | number: '1.2-2' }}</td>
+        <td>{{ product.price | number: '1.2-2':'en-US' }}</td>
         <td>
           <span class="status" [class.inactive]="!product.isActive">{{ product.isActive ? 'Activo' : 'Inactivo' }}</span>
         </td>

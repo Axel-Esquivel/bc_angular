@@ -1,9 +1,12 @@
 ﻿import { Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges, inject } from '@angular/core';
 import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { TreeNode } from 'primeng/api';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
+import { ProductCategoriesApiService, ProductCategoryTreeNode } from '../../../../core/api/product-categories-api.service';
 import { VariantsApiService } from '../../../../core/api/variants-api.service';
+import { ActiveContextStateService } from '../../../../core/context/active-context-state.service';
 import { Product } from '../../../../shared/models/product.model';
 import { ProductVariant } from '../../../../shared/models/product-variant.model';
 
@@ -53,22 +56,20 @@ export class ProductFormComponent implements OnInit, OnChanges, OnDestroy {
 
   private readonly fb = inject(FormBuilder);
   private readonly variantsApi = inject(VariantsApiService);
+  private readonly categoriesApi = inject(ProductCategoriesApiService);
+  private readonly activeContextState = inject(ActiveContextStateService);
   private readonly destroy$ = new Subject<void>();
   private defaultVariantNameEdited = false;
   private suppressDefaultNameSync = false;
 
   variants: ProductVariant[] = [];
   variantsLoading = false;
-
-  readonly categoryOptions = [
-    { label: 'General', value: 'general' },
-    { label: 'Servicios', value: 'services' },
-    { label: 'Electrónica', value: 'electronics' },
-  ];
+  categoryTree: TreeNode[] = [];
+  readonly quickVariantNames = ['Unidad', 'Paquete x12', 'Caja x24'];
 
   readonly productForm = this.fb.nonNullable.group({
     name: ['', [Validators.required]],
-    category: [''],
+    categoryId: [''],
     isActive: [true],
   });
 
@@ -106,6 +107,8 @@ export class ProductFormComponent implements OnInit, OnChanges, OnDestroy {
         this.defaultVariantNameEdited = true;
       }
     });
+
+    this.loadCategories();
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -127,7 +130,12 @@ export class ProductFormComponent implements OnInit, OnChanges, OnDestroy {
       return;
     }
 
-    const product = this.productForm.getRawValue();
+    const rawProduct = this.productForm.getRawValue();
+    const product = {
+      name: rawProduct.name,
+      category: rawProduct.categoryId || undefined,
+      isActive: rawProduct.isActive,
+    };
     const defaultName = this.defaultVariantForm.controls.name.value || product.name;
     const defaultVariant: ProductFormVariantPayload = {
       name: defaultName,
@@ -170,11 +178,28 @@ export class ProductFormComponent implements OnInit, OnChanges, OnDestroy {
     this.variantsFormArray.removeAt(index);
   }
 
+  applyDefaultNameSuggestion(name: string): void {
+    if (!name) {
+      return;
+    }
+    this.defaultVariantForm.controls.name.setValue(name);
+    this.defaultVariantNameEdited = true;
+  }
+
+  addVariantWithName(name: string): void {
+    if (!this.enableVariants) {
+      return;
+    }
+    const group = this.createVariantGroup();
+    group.controls.name.setValue(name);
+    this.variantsFormArray.push(group);
+  }
+
   private initializeForProduct(product: Product | null): void {
     this.defaultVariantNameEdited = false;
     this.productForm.reset({
       name: product?.name ?? '',
-      category: product?.category ?? '',
+      categoryId: product?.category ?? '',
       isActive: product?.isActive ?? true,
     });
     this.defaultVariantForm.reset({
@@ -191,6 +216,24 @@ export class ProductFormComponent implements OnInit, OnChanges, OnDestroy {
     if (product?.id) {
       this.loadVariants(product.id);
     }
+  }
+
+  private loadCategories(): void {
+    const context = this.activeContextState.getActiveContext();
+    const organizationId = context.organizationId ?? undefined;
+    if (!organizationId) {
+      this.categoryTree = [];
+      return;
+    }
+    this.categoriesApi.getTree(organizationId).subscribe({
+      next: (response) => {
+        const raw = response.result ?? [];
+        this.categoryTree = this.mapTreeNodes(raw);
+      },
+      error: () => {
+        this.categoryTree = [];
+      },
+    });
   }
 
   private loadVariants(productId: string): void {
@@ -250,5 +293,14 @@ export class ProductFormComponent implements OnInit, OnChanges, OnDestroy {
   private generateInternalBarcode(): string {
     const suffix = Math.floor(Date.now() / 1000).toString(36).toUpperCase();
     return `INT-${suffix}`;
+  }
+
+  private mapTreeNodes(nodes: ProductCategoryTreeNode[]): TreeNode[] {
+    return nodes.map((node) => ({
+      key: node.id,
+      label: node.name,
+      data: node,
+      children: this.mapTreeNodes(node.children ?? []),
+    }));
   }
 }

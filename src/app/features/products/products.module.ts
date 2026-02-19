@@ -11,6 +11,7 @@ import { InputNumber } from 'primeng/inputnumber';
 import { InputText } from 'primeng/inputtext';
 import { Select } from 'primeng/select';
 import { TableModule } from 'primeng/table';
+import { TreeSelect } from 'primeng/treeselect';
 import { ToggleSwitchModule } from 'primeng/toggleswitch';
 import { Message } from 'primeng/message';
 import { Textarea } from 'primeng/textarea';
@@ -35,6 +36,7 @@ import { productsRoutes } from './products.routes';
     InputText,
     Select,
     TableModule,
+    TreeSelect,
     ToggleSwitchModule,
     Message,
     Textarea,

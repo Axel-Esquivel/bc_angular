@@ -1,27 +1,30 @@
-import { HttpClient } from '@angular/common/http';
+﻿import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
-import { map, Observable } from 'rxjs';
+import { Observable } from 'rxjs';
 
 import { APP_CONFIG_TOKEN, AppConfig } from '../config/app-config';
 import { ApiResponse } from '../../shared/models/api-response.model';
-import { Product } from '../../shared/models/product.model';
+
+export interface ProductCategoryTreeNode {
+  id: string;
+  name: string;
+  parentId?: string;
+  isActive: boolean;
+  children: ProductCategoryTreeNode[];
+}
 
 @Injectable({ providedIn: 'root' })
 export class ProductCategoriesApiService {
   private readonly baseUrl: string;
 
   constructor(@Inject(APP_CONFIG_TOKEN) private readonly config: AppConfig, private readonly http: HttpClient) {
-    this.baseUrl = `${this.config.apiBaseUrl}/products`;
+    this.baseUrl = `${this.config.apiBaseUrl}/product-categories`;
   }
 
-  listCategories(): Observable<string[]> {
-    return this.http.get<ApiResponse<Product[]>>(this.baseUrl).pipe(
-      map((response) => {
-        const categories = (response.result ?? [])
-          .map((product) => product.category?.trim())
-          .filter((value): value is string => Boolean(value));
-        return Array.from(new Set(categories)).sort();
-      })
+  getTree(organizationId: string): Observable<ApiResponse<ProductCategoryTreeNode[]>> {
+    return this.http.get<ApiResponse<ProductCategoryTreeNode[]>>(
+      `${this.baseUrl}/tree`,
+      { params: { organizationId } },
     );
   }
 }

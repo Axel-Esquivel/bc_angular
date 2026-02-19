@@ -7,8 +7,14 @@
         <label for="name">Nombre</label>
       </p-floatLabel>
       <p-floatLabel class="field">
-        <input pInputText id="category" type="text" formControlName="category" />
-        <label for="category">Categoría</label>
+        <p-treeSelect
+          inputId="categoryId"
+          [options]="categoryTree"
+          formControlName="categoryId"
+          placeholder="Selecciona una categoría"
+          appendTo="body"
+        ></p-treeSelect>
+        <label for="categoryId">Categoría</label>
       </p-floatLabel>
       <div class="field toggle">
         <label for="isActive">Activo</label>
@@ -17,33 +23,46 @@
     </div>
   </p-card>
 
-  <p-card>
-    <ng-template pTemplate="title">
-      <div class="variants-card-header">
-        <span>Variantes</span>
-        <p-button
-          *ngIf="enableVariants"
-          icon="pi pi-plus"
-          label="Agregar"
-          size="small"
-          (onClick)="openVariantCreate()"
-        ></p-button>
-      </div>
-    </ng-template>
-
-    <p-accordion expandIcon="pi pi-chevron-down" collapseIcon="pi pi-chevron-up">
-      <p-accordion-panel [value]="0">
-        <p-accordion-header>
-          <div class="variant-header">
-            <span class="variant-title">
-              {{ defaultVariantForm.controls.name.value || 'Variante default' }}
-            </span>
-            <div class="variant-meta">
-              <span>UoM: {{ defaultVariantForm.controls.uomId.value || '-' }}</span>
-              <span>Precio: {{ defaultVariantForm.controls.price.value | number: '1.2-2' }}</span>
+    <p-card>
+      <ng-template pTemplate="title">
+        <div class="variants-card-header">
+          <span>Variantes</span>
+          <div class="variant-actions">
+            <div class="quick-names">
+              <span class="quick-label">Sugerencias:</span>
+              <p-button
+                *ngFor="let quickName of quickVariantNames"
+                [label]="quickName"
+                size="small"
+                severity="secondary"
+                (onClick)="applyDefaultNameSuggestion(quickName)"
+              ></p-button>
             </div>
+            <p-button
+              *ngIf="enableVariants"
+              icon="pi pi-plus"
+              label="Agregar"
+              size="small"
+              (onClick)="openVariantCreate()"
+            ></p-button>
           </div>
-        </p-accordion-header>
+        </div>
+      </ng-template>
+
+      <p-accordion expandIcon="pi pi-chevron-down" collapseIcon="pi pi-chevron-up">
+        <p-accordion-panel [value]="0">
+          <p-accordion-header>
+            <div class="variant-header">
+              <span class="variant-title">
+                {{ defaultVariantForm.controls.name.value || 'Variante default' }}
+              </span>
+              <div class="variant-meta">
+                <span>UoM: {{ defaultVariantForm.controls.uomId.value || '-' }}</span>
+                <span>Precio: {{ defaultVariantForm.controls.price.value | number: '1.2-2':'en-US' }}</span>
+                <span>Min: {{ defaultVariantForm.controls.minStock.value | number: '1.0-0':'en-US' }}</span>
+              </div>
+            </div>
+          </p-accordion-header>
         <p-accordion-content>
           <div class="product-dialog" [formGroup]="defaultVariantForm">
             <p-floatLabel class="field">
@@ -69,6 +88,7 @@
                 [min]="0"
                 [minFractionDigits]="2"
                 [maxFractionDigits]="2"
+                locale="en-US"
               ></p-inputNumber>
               <label for="price">Precio</label>
             </p-floatLabel>
@@ -94,7 +114,8 @@
             </span>
             <div class="variant-meta">
               <span>UoM: {{ group.controls.uomId.value || '-' }}</span>
-              <span>Precio: {{ group.controls.price.value | number: '1.2-2' }}</span>
+              <span>Precio: {{ group.controls.price.value | number: '1.2-2':'en-US' }}</span>
+              <span>Min: {{ group.controls.minStock.value | number: '1.0-0':'en-US' }}</span>
             </div>
             <span class="variant-header-actions" (click)="$event.stopPropagation()">
               <p-button
@@ -113,6 +134,15 @@
               <input pInputText type="text" formControlName="name" />
               <label>Nombre de variante</label>
             </p-floatLabel>
+            <div class="quick-row">
+              <p-button
+                *ngFor="let quickName of quickVariantNames"
+                [label]="quickName"
+                size="small"
+                severity="secondary"
+                (onClick)="group.controls.name.setValue(quickName)"
+              ></p-button>
+            </div>
             <p-floatLabel class="field">
               <input pInputText type="text" formControlName="sku" />
               <label>SKU</label>
@@ -131,6 +161,7 @@
                 [min]="0"
                 [minFractionDigits]="2"
                 [maxFractionDigits]="2"
+                locale="en-US"
               ></p-inputNumber>
               <label>Precio</label>
             </p-floatLabel>

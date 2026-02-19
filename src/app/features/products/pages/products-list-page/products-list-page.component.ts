@@ -4,12 +4,18 @@ import { MessageService } from 'primeng/api';
 import { Observable, forkJoin, of, switchMap } from 'rxjs';
 import { map, take } from 'rxjs/operators';
 
+import { ProductCategoriesApiService, ProductCategoryTreeNode } from '../../../../core/api/product-categories-api.service';
 import { ProductsApiService } from '../../../../core/api/products-api.service';
 import { VariantsApiService } from '../../../../core/api/variants-api.service';
 import { ActiveContextStateService } from '../../../../core/context/active-context-state.service';
 import { OrganizationsService } from '../../../../core/api/organizations-api.service';
 import { Product } from '../../../../shared/models/product.model';
 import { ProductFormSubmit } from '../../components/product-form/product-form.component';
+
+interface CategoryOption {
+  label: string;
+  value: string;
+}
 
 @Component({
   standalone: false,
@@ -20,6 +26,7 @@ import { ProductFormSubmit } from '../../components/product-form/product-form.co
 export class ProductsListPageComponent implements OnInit {
   private readonly productsApi = inject(ProductsApiService);
   private readonly variantsApi = inject(VariantsApiService);
+  private readonly categoriesApi = inject(ProductCategoriesApiService);
   private readonly fb = inject(FormBuilder);
   private readonly messageService = inject(MessageService);
   private readonly activeContextState = inject(ActiveContextStateService);
@@ -33,12 +40,7 @@ export class ProductsListPageComponent implements OnInit {
   contextMissing = false;
   enableVariants = false;
 
-  readonly categoryOptions = [
-    { label: 'Todas', value: '' },
-    { label: 'General', value: 'general' },
-    { label: 'Servicios', value: 'services' },
-    { label: 'Electrónica', value: 'electronics' },
-  ];
+  categoryOptions: CategoryOption[] = [{ label: 'Todas', value: '' }];
 
   readonly filtersForm = this.fb.nonNullable.group({
     search: [''],
@@ -48,6 +50,7 @@ export class ProductsListPageComponent implements OnInit {
   ngOnInit(): void {
     this.loadProducts();
     this.loadVariantsConfig();
+    this.loadCategories();
   }
 
   loadProducts(): void {
@@ -153,6 +156,37 @@ export class ProductsListPageComponent implements OnInit {
           this.enableVariants = false;
         },
       });
+  }
+
+  private loadCategories(): void {
+    const context = this.activeContextState.getActiveContext();
+    const organizationId = context.organizationId ?? undefined;
+    if (!organizationId) {
+      this.categoryOptions = [{ label: 'Todas', value: '' }];
+      return;
+    }
+    this.categoriesApi.getTree(organizationId).subscribe({
+      next: (response) => {
+        const tree = response.result ?? [];
+        const flat = this.flattenCategoryTree(tree);
+        this.categoryOptions = [{ label: 'Todas', value: '' }, ...flat];
+      },
+      error: () => {
+        this.categoryOptions = [{ label: 'Todas', value: '' }];
+      },
+    });
+  }
+
+  private flattenCategoryTree(nodes: ProductCategoryTreeNode[], prefix = ''): CategoryOption[] {
+    const result: CategoryOption[] = [];
+    nodes.forEach((node) => {
+      const label = prefix ? `${prefix} / ${node.name}` : node.name;
+      result.push({ label, value: node.id });
+      if (node.children && node.children.length > 0) {
+        result.push(...this.flattenCategoryTree(node.children, label));
+      }
+    });
+    return result;
   }
 
   private persistVariants(productId: string, payload: ProductFormSubmit): void {
