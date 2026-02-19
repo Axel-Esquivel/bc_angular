@@ -52,7 +52,7 @@
         <td>{{ product.name }}</td>
         <td>{{ product.sku || '-' }}</td>
         <td>{{ product.barcode || '-' }}</td>
-        <td>{{ product.price | number: '1.2-2':'en-US' }}</td>
+        <td>{{ packagingPriceByProduct.get(product.id) ?? 0 | number: '1.2-2':'en-US' }}</td>
         <td>
           <span class="status" [class.inactive]="!product.isActive">{{ product.isActive ? 'Activo' : 'Inactivo' }}</span>
         </td>
@@ -75,7 +75,9 @@
   [modal]="true"
   [closable]="true"
   [dismissableMask]="true"
-  [style]="{ width: '38rem' }"
+  [style]="{ width: '64rem' }"
+  [breakpoints]="{ '1200px': '60rem', '992px': '50rem', '768px': '95vw', '576px': '98vw' }"
+  styleClass="bc-dialog bc-products-dialog"
   [header]="editingProduct ? 'Editar producto' : 'Nuevo producto'"
 >
   <bc-product-form

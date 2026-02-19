@@ -3,10 +3,18 @@
   gap: 1rem;
 }
 
+.product-section :host ::ng-deep .p-card-title,
+.variants-section :host ::ng-deep .p-card-title {
+  margin-bottom: 0.5rem;
+}
+
 .product-dialog {
   display: grid;
-  gap: 2rem;
-  padding-top: 1em;
+  gap: 0.75rem;
+}
+
+.product-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .field {
@@ -21,35 +29,25 @@
   justify-content: space-between;
 }
 
+.uom-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.75rem;
+}
+
 .variants-card-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
+  flex-wrap: wrap;
 }
 
 .variant-actions {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-}
-
-.quick-names {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
   flex-wrap: wrap;
-}
-
-.quick-label {
-  font-size: 0.85rem;
-  color: var(--text-color-secondary);
-}
-
-.quick-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
 }
 
 .variant-header {
@@ -68,7 +66,7 @@
   display: grid;
   grid-auto-flow: column;
   align-items: center;
-  gap: 1.5rem;
+  gap: 1.2rem;
   color: var(--text-color-secondary);
   font-size: 0.9rem;
   justify-content: end;
@@ -79,9 +77,51 @@
   align-items: center;
 }
 
+.packaging-section {
+  margin-top: 1.5rem;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.packaging-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.packaging-table {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.packaging-row {
+  display: grid;
+  grid-template-columns: minmax(160px, 1.2fr) minmax(100px, 0.6fr) minmax(140px, 0.8fr) minmax(140px, 1fr) minmax(110px, 0.6fr) auto;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.packaging-row.header {
+  font-weight: 600;
+  color: var(--text-color-secondary);
+  font-size: 0.85rem;
+}
+
 .form-actions {
   display: flex;
   justify-content: flex-end;
   gap: 0.75rem;
   margin-top: 1rem;
+}
+
+@media (max-width: 768px) {
+  .product-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .packaging-row {
+    grid-template-columns: 1fr;
+  }
 }

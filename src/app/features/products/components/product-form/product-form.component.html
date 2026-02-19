@@ -1,19 +1,34 @@
 ﻿<div class="dialog-cards">
-  <p-card>
+  <p-card class="product-section">
     <ng-template pTemplate="title">Producto</ng-template>
-    <div class="product-dialog" [formGroup]="productForm">
+    <div class="product-dialog product-grid" [formGroup]="productForm">
       <p-floatLabel class="field">
         <input pInputText id="name" type="text" formControlName="name" />
         <label for="name">Nombre</label>
       </p-floatLabel>
       <p-floatLabel class="field">
         <p-treeSelect
+          #categorySelect
           inputId="categoryId"
           [options]="categoryTree"
           formControlName="categoryId"
           placeholder="Selecciona una categoría"
           appendTo="body"
-        ></p-treeSelect>
+        >
+          <ng-template #footer>
+            <div class="p-3">
+              <p-button
+                label="Agregar categoría"
+                icon="pi pi-plus"
+                severity="secondary"
+                text
+                size="small"
+                [fluid]="true"
+                (onClick)="onAddCategoryClick($event)"
+              ></p-button>
+            </div>
+          </ng-template>
+        </p-treeSelect>
         <label for="categoryId">Categoría</label>
       </p-floatLabel>
       <div class="field toggle">
@@ -23,46 +38,41 @@
     </div>
   </p-card>
 
-    <p-card>
-      <ng-template pTemplate="title">
-        <div class="variants-card-header">
-          <span>Variantes</span>
-          <div class="variant-actions">
-            <div class="quick-names">
-              <span class="quick-label">Sugerencias:</span>
-              <p-button
-                *ngFor="let quickName of quickVariantNames"
-                [label]="quickName"
-                size="small"
-                severity="secondary"
-                (onClick)="applyDefaultNameSuggestion(quickName)"
-              ></p-button>
-            </div>
-            <p-button
-              *ngIf="enableVariants"
-              icon="pi pi-plus"
-              label="Agregar"
-              size="small"
-              (onClick)="openVariantCreate()"
-            ></p-button>
-          </div>
-        </div>
-      </ng-template>
+  <p-card class="variants-section">
+    <ng-template pTemplate="title">
+      <div class="variants-card-header">
+        <span>Variantes</span>
+        <p-button
+          *ngIf="enableVariants"
+          icon="pi pi-plus"
+          label="Agregar variante"
+          size="small"
+          (onClick)="openVariantCreate()"
+        ></p-button>
+      </div>
+    </ng-template>
 
-      <p-accordion expandIcon="pi pi-chevron-down" collapseIcon="pi pi-chevron-up">
-        <p-accordion-panel [value]="0">
-          <p-accordion-header>
-            <div class="variant-header">
-              <span class="variant-title">
-                {{ defaultVariantForm.controls.name.value || 'Variante default' }}
+    <p-accordion expandIcon="pi pi-chevron-down" collapseIcon="pi pi-chevron-up">
+      <p-accordion-panel [value]="0">
+        <p-accordion-header>
+          <div class="variant-header">
+            <span class="variant-title">
+              {{ defaultVariantForm.controls.name.value || 'Variante default' }}
+            </span>
+            <div class="variant-meta">
+              <span>
+                Medida:
+                {{
+                  getMeasurementPreview(
+                    defaultVariantForm.controls.quantity.value,
+                    defaultVariantForm.controls.uomId.value
+                  ) || '—'
+                }}
               </span>
-              <div class="variant-meta">
-                <span>UoM: {{ defaultVariantForm.controls.uomId.value || '-' }}</span>
-                <span>Precio: {{ defaultVariantForm.controls.price.value | number: '1.2-2':'en-US' }}</span>
-                <span>Min: {{ defaultVariantForm.controls.minStock.value | number: '1.0-0':'en-US' }}</span>
-              </div>
+              <span>Min: {{ defaultVariantForm.controls.minStock.value | number: '1.0-0':'en-US' }}</span>
             </div>
-          </p-accordion-header>
+          </div>
+        </p-accordion-header>
         <p-accordion-content>
           <div class="product-dialog" [formGroup]="defaultVariantForm">
             <p-floatLabel class="field">
@@ -77,21 +87,71 @@
               <input pInputText id="barcodes" type="text" formControlName="barcodes" />
               <label for="barcodes">Códigos de barras (separados por coma)</label>
             </p-floatLabel>
-            <p-floatLabel class="field">
-              <input pInputText id="uomId" type="text" formControlName="uomId" />
-              <label for="uomId">Unidad de medida</label>
-            </p-floatLabel>
-            <p-floatLabel class="field">
-              <p-inputNumber
-                inputId="price"
-                formControlName="price"
-                [min]="0"
-                [minFractionDigits]="2"
-                [maxFractionDigits]="2"
-                locale="en-US"
-              ></p-inputNumber>
-              <label for="price">Precio</label>
-            </p-floatLabel>
+            <div class="uom-grid">
+              <p-floatLabel class="field">
+                <p-select
+                  #uomCategorySelect
+                  inputId="uomCategoryId"
+                  [options]="uomCategoryOptions"
+                  optionLabel="label"
+                  optionValue="value"
+                  formControlName="uomCategoryId"
+                  appendTo="body"
+                >
+                  <ng-template #footer>
+                    <div class="p-3">
+                      <p-button
+                        label="Agregar categoría UoM"
+                        icon="pi pi-plus"
+                        severity="secondary"
+                        text
+                        size="small"
+                        [fluid]="true"
+                        (onClick)="onAddUomCategoryClick($event)"
+                      ></p-button>
+                    </div>
+                  </ng-template>
+                </p-select>
+                <label for="uomCategoryId">Categoría UoM</label>
+              </p-floatLabel>
+              <p-floatLabel class="field">
+                <p-select
+                  #uomUnitSelect
+                  inputId="uomId"
+                  [options]="getUomOptions(defaultVariantForm.controls.uomCategoryId.value)"
+                  optionLabel="label"
+                  optionValue="value"
+                  formControlName="uomId"
+                  appendTo="body"
+                >
+                  <ng-template #footer>
+                    <div class="p-3">
+                      <p-button
+                        label="Agregar unidad"
+                        icon="pi pi-plus"
+                        severity="secondary"
+                        text
+                        size="small"
+                        [fluid]="true"
+                        (onClick)="onAddUomUnitClick($event)"
+                      ></p-button>
+                    </div>
+                  </ng-template>
+                </p-select>
+                <label for="uomId">UoM</label>
+              </p-floatLabel>
+              <p-floatLabel class="field">
+                <p-inputNumber
+                  inputId="quantity"
+                  formControlName="quantity"
+                  [min]="0"
+                  [minFractionDigits]="2"
+                  [maxFractionDigits]="2"
+                  locale="en-US"
+                ></p-inputNumber>
+                <label for="quantity">Valor</label>
+              </p-floatLabel>
+            </div>
             <p-floatLabel class="field">
               <p-inputNumber
                 inputId="minStock"
@@ -103,6 +163,73 @@
               <label for="minStock">Stock mínimo</label>
             </p-floatLabel>
           </div>
+
+          <div class="packaging-section">
+            <div class="packaging-header">
+              <h4>Empaques</h4>
+              <p-button
+                icon="pi pi-plus"
+                label="Agregar empaque"
+                size="small"
+                (onClick)="addPackagingRow()"
+              ></p-button>
+            </div>
+            <div class="packaging-table" *ngIf="packagingFormArray.controls.length > 0">
+              <div class="packaging-row header">
+                <span>Nombre</span>
+                <span>Unidades</span>
+                <span>Precio</span>
+                <span>Barcode</span>
+                <span>Activo</span>
+                <span></span>
+              </div>
+              <div
+                class="packaging-row"
+                *ngFor="let pack of packagingFormArray.controls; let pIndex = index"
+                [formGroup]="pack"
+              >
+                <p-floatLabel class="field">
+                  <input pInputText type="text" formControlName="name" />
+                  <label>Nombre</label>
+                </p-floatLabel>
+                <p-floatLabel class="field">
+                  <p-inputNumber
+                    formControlName="unitsPerPack"
+                    [min]="1"
+                    [minFractionDigits]="0"
+                    [maxFractionDigits]="0"
+                    locale="en-US"
+                  ></p-inputNumber>
+                  <label>Unidades</label>
+                </p-floatLabel>
+                <p-floatLabel class="field">
+                  <p-inputNumber
+                    formControlName="price"
+                    [min]="0"
+                    [minFractionDigits]="2"
+                    [maxFractionDigits]="2"
+                    locale="en-US"
+                  ></p-inputNumber>
+                  <label>Precio</label>
+                </p-floatLabel>
+                <p-floatLabel class="field">
+                  <input pInputText type="text" formControlName="barcode" />
+                  <label>Barcode</label>
+                </p-floatLabel>
+                <div class="field toggle">
+                  <label>Activo</label>
+                  <p-toggleSwitch formControlName="isActive"></p-toggleSwitch>
+                </div>
+                <p-button
+                  icon="pi pi-trash"
+                  severity="danger"
+                  size="small"
+                  text="true"
+                  (onClick)="removePackagingRow(pIndex)"
+                ></p-button>
+              </div>
+            </div>
+          </div>
         </p-accordion-content>
       </p-accordion-panel>
 
@@ -113,8 +240,10 @@
               {{ group.controls.name.value || ('Variante adicional ' + (i + 1)) }}
             </span>
             <div class="variant-meta">
-              <span>UoM: {{ group.controls.uomId.value || '-' }}</span>
-              <span>Precio: {{ group.controls.price.value | number: '1.2-2':'en-US' }}</span>
+              <span>
+                Medida:
+                {{ getMeasurementPreview(group.controls.quantity.value, group.controls.uomId.value) || '—' }}
+              </span>
               <span>Min: {{ group.controls.minStock.value | number: '1.0-0':'en-US' }}</span>
             </div>
             <span class="variant-header-actions" (click)="$event.stopPropagation()">
@@ -134,15 +263,6 @@
               <input pInputText type="text" formControlName="name" />
               <label>Nombre de variante</label>
             </p-floatLabel>
-            <div class="quick-row">
-              <p-button
-                *ngFor="let quickName of quickVariantNames"
-                [label]="quickName"
-                size="small"
-                severity="secondary"
-                (onClick)="group.controls.name.setValue(quickName)"
-              ></p-button>
-            </div>
             <p-floatLabel class="field">
               <input pInputText type="text" formControlName="sku" />
               <label>SKU</label>
@@ -151,20 +271,69 @@
               <input pInputText type="text" formControlName="barcodes" />
               <label>Códigos de barras (separados por coma)</label>
             </p-floatLabel>
-            <p-floatLabel class="field">
-              <input pInputText type="text" formControlName="uomId" />
-              <label>Unidad de medida</label>
-            </p-floatLabel>
-            <p-floatLabel class="field">
-              <p-inputNumber
-                formControlName="price"
-                [min]="0"
-                [minFractionDigits]="2"
-                [maxFractionDigits]="2"
-                locale="en-US"
-              ></p-inputNumber>
-              <label>Precio</label>
-            </p-floatLabel>
+            <div class="uom-grid">
+              <p-floatLabel class="field">
+                <p-select
+                  #uomCategorySelectItem
+                  [options]="uomCategoryOptions"
+                  optionLabel="label"
+                  optionValue="value"
+                  formControlName="uomCategoryId"
+                  appendTo="body"
+                  (onChange)="onVariantCategoryChange(group)"
+                >
+                  <ng-template #footer>
+                    <div class="p-3">
+                      <p-button
+                        label="Agregar categoría UoM"
+                        icon="pi pi-plus"
+                        severity="secondary"
+                        text
+                        size="small"
+                        [fluid]="true"
+                        (onClick)="onAddUomCategoryClick($event, i, uomCategorySelectItem)"
+                      ></p-button>
+                    </div>
+                  </ng-template>
+                </p-select>
+                <label>Categoría UoM</label>
+              </p-floatLabel>
+              <p-floatLabel class="field">
+                <p-select
+                  #uomUnitSelectItem
+                  [options]="getUomOptions(group.controls.uomCategoryId.value)"
+                  optionLabel="label"
+                  optionValue="value"
+                  formControlName="uomId"
+                  appendTo="body"
+                >
+                  <ng-template #footer>
+                    <div class="p-3">
+                      <p-button
+                        label="Agregar unidad"
+                        icon="pi pi-plus"
+                        severity="secondary"
+                        text
+                        size="small"
+                        [fluid]="true"
+                        (onClick)="onAddUomUnitClick($event, i, uomUnitSelectItem)"
+                      ></p-button>
+                    </div>
+                  </ng-template>
+                </p-select>
+                <label>UoM</label>
+              </p-floatLabel>
+              <p-floatLabel class="field">
+                <p-inputNumber
+                  formControlName="quantity"
+                  [min]="0"
+                  [minFractionDigits]="2"
+                  [maxFractionDigits]="2"
+                  locale="en-US"
+                ></p-inputNumber>
+                <label>Valor</label>
+              </p-floatLabel>
+            </div>
             <p-floatLabel class="field">
               <p-inputNumber
                 formControlName="minStock"
@@ -189,3 +358,139 @@
   <p-button label="Cancelar" severity="secondary" (onClick)="onCancel()" [disabled]="saving"></p-button>
   <p-button label="Guardar" icon="pi pi-check" (onClick)="onSubmit()" [loading]="saving"></p-button>
 </div>
+
+<p-dialog
+  header="Nueva categoría"
+  [(visible)]="categoryCreateVisible"
+  [modal]="true"
+  [closable]="true"
+  [draggable]="false"
+  [style]="{ width: '420px' }"
+>
+  <form [formGroup]="categoryCreateForm" class="dialog-form p-fluid flex flex-column gap-3">
+    <p-floatLabel>
+      <input id="categoryName" type="text" pInputText formControlName="name" class="w-full" />
+      <label for="categoryName">Nombre</label>
+    </p-floatLabel>
+    <p-floatLabel>
+      <p-treeSelect
+        inputId="categoryParent"
+        [options]="categoryTree"
+        formControlName="parentNode"
+        placeholder="Sin categoria padre"
+        appendTo="body"
+        selectionMode="single"
+      ></p-treeSelect>
+      <label for="categoryParent">Categoría padre</label>
+    </p-floatLabel>
+  </form>
+  <ng-template #footer>
+    <div class="bc-actions bc-actions--end">
+      <p-button
+        label="Cancelar"
+        severity="secondary"
+        [disabled]="savingCategory"
+        (onClick)="categoryCreateVisible = false"
+      ></p-button>
+      <p-button
+        label="Guardar"
+        icon="pi pi-check"
+        [loading]="savingCategory"
+        [disabled]="savingCategory || categoryCreateForm.invalid"
+        (onClick)="saveCategory()"
+      ></p-button>
+    </div>
+  </ng-template>
+</p-dialog>
+
+<p-dialog
+  header="Nueva categoría UoM"
+  [(visible)]="uomCategoryCreateVisible"
+  [modal]="true"
+  [closable]="true"
+  [draggable]="false"
+  [style]="{ width: '420px' }"
+>
+  <form [formGroup]="uomCategoryCreateForm" class="dialog-form p-fluid flex flex-column gap-3">
+    <p-floatLabel>
+      <input id="uomCategoryName" type="text" pInputText formControlName="name" class="w-full" />
+      <label for="uomCategoryName">Nombre</label>
+    </p-floatLabel>
+  </form>
+  <ng-template #footer>
+    <div class="bc-actions bc-actions--end">
+      <p-button
+        label="Cancelar"
+        severity="secondary"
+        [disabled]="savingUomCategory"
+        (onClick)="uomCategoryCreateVisible = false"
+      ></p-button>
+      <p-button
+        label="Guardar"
+        icon="pi pi-check"
+        [loading]="savingUomCategory"
+        [disabled]="savingUomCategory || uomCategoryCreateForm.invalid"
+        (onClick)="saveUomCategory()"
+      ></p-button>
+    </div>
+  </ng-template>
+</p-dialog>
+
+<p-dialog
+  header="Nueva unidad"
+  [(visible)]="uomUnitCreateVisible"
+  [modal]="true"
+  [closable]="true"
+  [draggable]="false"
+  [style]="{ width: '420px' }"
+>
+  <form [formGroup]="uomUnitCreateForm" class="dialog-form p-fluid flex flex-column gap-3">
+    <p-floatLabel>
+      <input id="uomUnitName" type="text" pInputText formControlName="name" class="w-full" />
+      <label for="uomUnitName">Nombre</label>
+    </p-floatLabel>
+    <p-floatLabel>
+      <input id="uomUnitSymbol" type="text" pInputText formControlName="symbol" class="w-full" />
+      <label for="uomUnitSymbol">Símbolo</label>
+    </p-floatLabel>
+    <p-floatLabel>
+      <p-inputNumber
+        inputId="uomUnitFactor"
+        formControlName="factor"
+        [min]="0.000001"
+        [minFractionDigits]="2"
+        [maxFractionDigits]="6"
+        locale="en-US"
+      ></p-inputNumber>
+      <label for="uomUnitFactor">Factor</label>
+    </p-floatLabel>
+    <p-floatLabel>
+      <p-select
+        inputId="uomUnitCategory"
+        [options]="uomCategoryOptions"
+        optionLabel="label"
+        optionValue="value"
+        formControlName="categoryId"
+        appendTo="body"
+      ></p-select>
+      <label for="uomUnitCategory">Categoría UoM</label>
+    </p-floatLabel>
+  </form>
+  <ng-template #footer>
+    <div class="bc-actions bc-actions--end">
+      <p-button
+        label="Cancelar"
+        severity="secondary"
+        [disabled]="savingUomUnit"
+        (onClick)="uomUnitCreateVisible = false"
+      ></p-button>
+      <p-button
+        label="Guardar"
+        icon="pi pi-check"
+        [loading]="savingUomUnit"
+        [disabled]="savingUomUnit || uomUnitCreateForm.invalid"
+        (onClick)="saveUomUnit()"
+      ></p-button>
+    </div>
+  </ng-template>
+</p-dialog>

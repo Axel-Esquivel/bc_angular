@@ -5,12 +5,13 @@ import { Observable, forkJoin, of, switchMap } from 'rxjs';
 import { map, take } from 'rxjs/operators';
 
 import { ProductCategoriesApiService, ProductCategoryTreeNode } from '../../../../core/api/product-categories-api.service';
+import { ProductPackagingApiService } from '../../../../core/api/product-packaging-api.service';
 import { ProductsApiService } from '../../../../core/api/products-api.service';
 import { VariantsApiService } from '../../../../core/api/variants-api.service';
 import { ActiveContextStateService } from '../../../../core/context/active-context-state.service';
 import { OrganizationsService } from '../../../../core/api/organizations-api.service';
 import { Product } from '../../../../shared/models/product.model';
-import { ProductFormSubmit } from '../../components/product-form/product-form.component';
+import { PackagingPayload, ProductFormSubmit } from '../../components/product-form/product-form.component';
 
 interface CategoryOption {
   label: string;
@@ -26,6 +27,7 @@ interface CategoryOption {
 export class ProductsListPageComponent implements OnInit {
   private readonly productsApi = inject(ProductsApiService);
   private readonly variantsApi = inject(VariantsApiService);
+  private readonly packagingApi = inject(ProductPackagingApiService);
   private readonly categoriesApi = inject(ProductCategoriesApiService);
   private readonly fb = inject(FormBuilder);
   private readonly messageService = inject(MessageService);
@@ -41,6 +43,7 @@ export class ProductsListPageComponent implements OnInit {
   enableVariants = false;
 
   categoryOptions: CategoryOption[] = [{ label: 'Todas', value: '' }];
+  packagingPriceByProduct = new Map<string, number>();
 
   readonly filtersForm = this.fb.nonNullable.group({
     search: [''],
@@ -76,6 +79,7 @@ export class ProductsListPageComponent implements OnInit {
           const result = response.result;
           this.products = Array.isArray(result) ? result : result.items ?? [];
           this.loading = false;
+          this.loadPackagingPrices(this.products);
         },
         error: (error) => {
           this.products = [];
@@ -194,15 +198,23 @@ export class ProductsListPageComponent implements OnInit {
       .pipe(take(1))
       .subscribe({
         next: () => {
-          this.createAdditionalVariants(productId, payload.variants).subscribe(
+          this.createPackagingForDefaultVariant(productId, payload.packaging).subscribe(
             () => {
-              this.saving = false;
-              this.dialogVisible = false;
-              this.loadProducts();
+              this.createAdditionalVariants(productId, payload.variants).subscribe(
+                () => {
+                  this.saving = false;
+                  this.dialogVisible = false;
+                  this.loadProducts();
+                },
+                (error: unknown) => {
+                  this.saving = false;
+                  this.showError(error, 'No se pudieron crear las variantes adicionales');
+                },
+              );
             },
             (error: unknown) => {
               this.saving = false;
-              this.showError(error, 'No se pudieron crear las variantes adicionales');
+              this.showError(error, 'No se pudieron crear los empaques');
             },
           );
         },
@@ -225,6 +237,23 @@ export class ProductsListPageComponent implements OnInit {
     );
   }
 
+  private createPackagingForDefaultVariant(
+    productId: string,
+    packaging: PackagingPayload[],
+  ): Observable<null> {
+    return this.variantsApi.getByProduct(productId).pipe(
+      switchMap((response) => {
+        const defaultVariant = response.result?.[0];
+        if (!defaultVariant) {
+          return of(null);
+        }
+        const rows = packaging.length > 0 ? packaging : [{ name: 'Unidad', unitsPerPack: 1, price: 0 }];
+        const requests = rows.map((row) => this.packagingApi.create(defaultVariant.id, row));
+        return forkJoin(requests).pipe(map(() => null));
+      }),
+    );
+  }
+
   private createAdditionalVariants(
     productId: string,
     variants: ProductFormSubmit['variants'],
@@ -234,6 +263,42 @@ export class ProductsListPageComponent implements OnInit {
     }
     const requests = variants.map((variant) => this.variantsApi.createForProduct(productId, variant));
     return forkJoin(requests).pipe(map(() => null));
+  }
+
+  private loadPackagingPrices(products: Product[]): void {
+    if (products.length === 0) {
+      this.packagingPriceByProduct.clear();
+      return;
+    }
+    const requests = products.map((product) =>
+      this.variantsApi.getByProduct(product.id).pipe(
+        switchMap((response) => {
+          const defaultVariant = response.result?.[0];
+          if (!defaultVariant) {
+            return of({ productId: product.id, price: 0 });
+          }
+          return this.packagingApi.listByVariant(defaultVariant.id).pipe(
+            map((packResponse) => {
+              const list = packResponse.result ?? [];
+              const unit = list.find((item) => item.unitsPerPack === 1 && item.isActive) ?? list[0];
+              return { productId: product.id, price: unit?.price ?? 0 };
+            }),
+          );
+        }),
+      ),
+    );
+
+    forkJoin(requests).subscribe({
+      next: (rows) => {
+        this.packagingPriceByProduct.clear();
+        rows.forEach((row) => {
+          this.packagingPriceByProduct.set(row.productId, row.price);
+        });
+      },
+      error: () => {
+        this.packagingPriceByProduct.clear();
+      },
+    });
   }
 
   private isProductsSettings(value: unknown): value is { enableVariants?: boolean } {

@@ -10,9 +10,10 @@ export interface CreateProductVariantPayload {
   name: string;
   sku?: string;
   barcodes?: string[];
-  price: number;
   minStock?: number;
   uomId: string;
+  uomCategoryId?: string;
+  quantity?: number;
   sellable?: boolean;
 }
 
@@ -20,9 +21,10 @@ export interface UpdateVariantPayload {
   name?: string;
   sku?: string;
   barcodes?: string[];
-  price?: number;
   minStock?: number;
   uomId?: string;
+  uomCategoryId?: string;
+  quantity?: number;
   sellable?: boolean;
 }
 

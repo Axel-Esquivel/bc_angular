@@ -13,6 +13,12 @@ export interface ProductCategoryTreeNode {
   children: ProductCategoryTreeNode[];
 }
 
+export interface CreateProductCategoryPayload {
+  name: string;
+  parentId?: string | null;
+  organizationId: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class ProductCategoriesApiService {
   private readonly baseUrl: string;
@@ -26,5 +32,9 @@ export class ProductCategoriesApiService {
       `${this.baseUrl}/tree`,
       { params: { organizationId } },
     );
+  }
+
+  create(payload: CreateProductCategoryPayload): Observable<ApiResponse<ProductCategoryTreeNode>> {
+    return this.http.post<ApiResponse<ProductCategoryTreeNode>>(this.baseUrl, payload);
   }
 }
