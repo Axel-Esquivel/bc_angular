@@ -1,54 +1,160 @@
-﻿<p-card header="Producto">
-  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="product-form">
-    <div class="form-row">
-      <label for="name">Nombre *</label>
-      <input pInputText id="name" type="text" formControlName="name" placeholder="Ej. Camisa polo" />
-      <small class="error" *ngIf="form.controls.name.touched && form.controls.name.invalid">El nombre es obligatorio</small>
+﻿<div class="dialog-cards">
+  <p-card>
+    <ng-template pTemplate="title">Producto</ng-template>
+    <div class="product-dialog" [formGroup]="productForm">
+      <p-floatLabel class="field">
+        <input pInputText id="name" type="text" formControlName="name" />
+        <label for="name">Nombre</label>
+      </p-floatLabel>
+      <p-floatLabel class="field">
+        <input pInputText id="category" type="text" formControlName="category" />
+        <label for="category">Categoría</label>
+      </p-floatLabel>
+      <div class="field toggle">
+        <label for="isActive">Activo</label>
+        <p-toggleSwitch inputId="isActive" formControlName="isActive"></p-toggleSwitch>
+      </div>
     </div>
+  </p-card>
 
-    <div class="form-row">
-      <label for="sku">SKU</label>
-      <input pInputText id="sku" type="text" formControlName="sku" placeholder="Código interno" />
-    </div>
+  <p-card>
+    <ng-template pTemplate="title">
+      <div class="variants-card-header">
+        <span>Variantes</span>
+        <p-button
+          *ngIf="enableVariants"
+          icon="pi pi-plus"
+          label="Agregar"
+          size="small"
+          (onClick)="openVariantCreate()"
+        ></p-button>
+      </div>
+    </ng-template>
 
-    <div class="form-row">
-      <label for="category">Categoría</label>
-      <p-select
-        inputId="category"
-        [options]="categoryOptions"
-        optionLabel="label"
-        optionValue="value"
-        formControlName="category"
-        placeholder="Selecciona una categoría"
-        appendTo="body"
-      ></p-select>
-    </div>
+    <p-accordion expandIcon="pi pi-chevron-down" collapseIcon="pi pi-chevron-up">
+      <p-accordion-panel [value]="0">
+        <p-accordion-header>
+          <div class="variant-header">
+            <span class="variant-title">
+              {{ defaultVariantForm.controls.name.value || 'Variante default' }}
+            </span>
+            <div class="variant-meta">
+              <span>UoM: {{ defaultVariantForm.controls.uomId.value || '-' }}</span>
+              <span>Precio: {{ defaultVariantForm.controls.price.value | number: '1.2-2' }}</span>
+            </div>
+          </div>
+        </p-accordion-header>
+        <p-accordion-content>
+          <div class="product-dialog" [formGroup]="defaultVariantForm">
+            <p-floatLabel class="field">
+              <input pInputText id="variantName" type="text" formControlName="name" />
+              <label for="variantName">Nombre de variante</label>
+            </p-floatLabel>
+            <p-floatLabel class="field">
+              <input pInputText id="sku" type="text" formControlName="sku" />
+              <label for="sku">SKU</label>
+            </p-floatLabel>
+            <p-floatLabel class="field">
+              <input pInputText id="barcodes" type="text" formControlName="barcodes" />
+              <label for="barcodes">Códigos de barras (separados por coma)</label>
+            </p-floatLabel>
+            <p-floatLabel class="field">
+              <input pInputText id="uomId" type="text" formControlName="uomId" />
+              <label for="uomId">Unidad de medida</label>
+            </p-floatLabel>
+            <p-floatLabel class="field">
+              <p-inputNumber
+                inputId="price"
+                formControlName="price"
+                [min]="0"
+                [minFractionDigits]="2"
+                [maxFractionDigits]="2"
+              ></p-inputNumber>
+              <label for="price">Precio</label>
+            </p-floatLabel>
+            <p-floatLabel class="field">
+              <p-inputNumber
+                inputId="minStock"
+                formControlName="minStock"
+                [min]="0"
+                [minFractionDigits]="0"
+                [maxFractionDigits]="0"
+              ></p-inputNumber>
+              <label for="minStock">Stock mínimo</label>
+            </p-floatLabel>
+          </div>
+        </p-accordion-content>
+      </p-accordion-panel>
 
-    <div class="form-row">
-      <label for="price">Precio</label>
-      <p-inputNumber
-        inputId="price"
-        formControlName="price"
-        [min]="0"
-        [minFractionDigits]="2"
-        [maxFractionDigits]="2"
-      ></p-inputNumber>
-      <small class="error" *ngIf="form.controls.price.touched && form.controls.price.invalid">El precio debe ser válido</small>
-    </div>
+      <p-accordion-panel *ngFor="let group of variantsFormArray.controls; let i = index" [value]="i + 1">
+        <p-accordion-header>
+          <div class="variant-header">
+            <span class="variant-title">
+              {{ group.controls.name.value || ('Variante adicional ' + (i + 1)) }}
+            </span>
+            <div class="variant-meta">
+              <span>UoM: {{ group.controls.uomId.value || '-' }}</span>
+              <span>Precio: {{ group.controls.price.value | number: '1.2-2' }}</span>
+            </div>
+            <span class="variant-header-actions" (click)="$event.stopPropagation()">
+              <p-button
+                icon="pi pi-trash"
+                severity="danger"
+                text="true"
+                size="small"
+                (onClick)="removeVariant(i)"
+              ></p-button>
+            </span>
+          </div>
+        </p-accordion-header>
+        <p-accordion-content>
+          <div class="product-dialog" [formGroup]="group">
+            <p-floatLabel class="field">
+              <input pInputText type="text" formControlName="name" />
+              <label>Nombre de variante</label>
+            </p-floatLabel>
+            <p-floatLabel class="field">
+              <input pInputText type="text" formControlName="sku" />
+              <label>SKU</label>
+            </p-floatLabel>
+            <p-floatLabel class="field">
+              <input pInputText type="text" formControlName="barcodes" />
+              <label>Códigos de barras (separados por coma)</label>
+            </p-floatLabel>
+            <p-floatLabel class="field">
+              <input pInputText type="text" formControlName="uomId" />
+              <label>Unidad de medida</label>
+            </p-floatLabel>
+            <p-floatLabel class="field">
+              <p-inputNumber
+                formControlName="price"
+                [min]="0"
+                [minFractionDigits]="2"
+                [maxFractionDigits]="2"
+              ></p-inputNumber>
+              <label>Precio</label>
+            </p-floatLabel>
+            <p-floatLabel class="field">
+              <p-inputNumber
+                formControlName="minStock"
+                [min]="0"
+                [minFractionDigits]="0"
+                [maxFractionDigits]="0"
+              ></p-inputNumber>
+              <label>Stock mínimo</label>
+            </p-floatLabel>
+            <div class="field toggle">
+              <label>Vendible</label>
+              <p-toggleSwitch formControlName="sellable"></p-toggleSwitch>
+            </div>
+          </div>
+        </p-accordion-content>
+      </p-accordion-panel>
+    </p-accordion>
+  </p-card>
+</div>
 
-    <div class="form-row">
-      <label for="description">Descripción</label>
-      <textarea pInputTextarea id="description" rows="3" formControlName="description"></textarea>
-    </div>
-
-    <div class="form-row switch-row">
-      <label for="isActive">Activo</label>
-      <p-toggleswitch inputId="isActive" formControlName="isActive"></p-toggleswitch>
-    </div>
-
-    <div class="actions">
-      <p-button type="submit" label="Guardar" [loading]="saving" icon="pi pi-save"></p-button>
-      <p-button label="Cancelar" severity="secondary" (onClick)="onCancel()" [disabled]="saving"></p-button>
-    </div>
-  </form>
-</p-card>
+<div class="form-actions">
+  <p-button label="Cancelar" severity="secondary" (onClick)="onCancel()" [disabled]="saving"></p-button>
+  <p-button label="Guardar" icon="pi pi-check" (onClick)="onSubmit()" [loading]="saving"></p-button>
+</div>

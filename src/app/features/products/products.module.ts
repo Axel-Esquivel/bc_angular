@@ -16,12 +16,11 @@ import { Message } from 'primeng/message';
 import { Textarea } from 'primeng/textarea';
 
 import { ProductFormComponent } from './components/product-form/product-form.component';
-import { ProductFormPageComponent } from './pages/product-form-page/product-form-page.component';
 import { ProductsListPageComponent } from './pages/products-list-page/products-list-page.component';
 import { productsRoutes } from './products.routes';
 
 @NgModule({
-  declarations: [ProductsListPageComponent, ProductFormPageComponent, ProductFormComponent],
+  declarations: [ProductsListPageComponent, ProductFormComponent],
   imports: [
     CommonModule,
     FormsModule,
