@@ -2,19 +2,19 @@
 <section class="modules-settings">
   <header class="page-header">
     <div>
-      <h2>ConfiguraciÃ³n de MÃ³dulos</h2>
-      <p>Administra ajustes por mÃ³dulo.</p>
+      <h2>Configuraci�n de M�dulos</h2>
+      <p>Administra ajustes por m�dulo.</p>
     </div>
   </header>
 
   <p-card *ngIf="contextMissing" class="empty-state">
     <h3>Selecciona un contexto</h3>
-    <p>Debes elegir una organizaciÃ³n antes de configurar mÃ³dulos.</p>
+    <p>Debes elegir una organizaci�n antes de configurar m�dulos.</p>
   </p-card>
 
   <div class="layout" *ngIf="!contextMissing">
     <p-card class="modules-list">
-      <h3>MÃ³dulos instalados</h3>
+      <h3>M�dulos instalados</h3>
       <p *ngIf="loading">Cargando...</p>
       <div class="module-buttons" *ngIf="!loading">
         <p-button
@@ -28,10 +28,10 @@
 
     <p-card class="module-settings" *ngIf="selectedKey === 'products'" [formGroup]="productsForm">
       <h3>Products</h3>
-      <p>Ajustes del mÃ³dulo de productos.</p>
+      <p>Ajustes del m�dulo de productos.</p>
       <div class="field-row">
         <p-checkbox formControlName="enableVariants" [binary]="true"></p-checkbox>
-        <label>Habilitar variantes mÃºltiples</label>
+        <label>Habilitar variantes m�ltiples</label>
       </div>
       <div class="field-row">
         <p-checkbox formControlName="autoGenerateSku" [binary]="true"></p-checkbox>
@@ -39,7 +39,7 @@
       </div>
       <div class="field-row">
         <p-checkbox formControlName="allowMultipleBarcodes" [binary]="true"></p-checkbox>
-        <label>Permitir mÃºltiples cÃ³digos de barra</label>
+        <label>Permitir m�ltiples c�digos de barra</label>
       </div>
       <p-divider></p-divider>
       <p-button
@@ -52,7 +52,7 @@
 
     <p-card class="module-settings" *ngIf="selectedKey && selectedKey !== 'products'">
       <h3>Sin ajustes</h3>
-      <p>Este mÃ³dulo no tiene configuraciÃ³n disponible.</p>
+      <p>Este m�dulo no tiene configuraci�n disponible.</p>
     </p-card>
   </div>
 </section>

@@ -4,7 +4,7 @@ export interface ProductVariant {
   name: string;
   sku: string;
   barcodes: string[];
-  baseUomId: string;
+  uomId: string;
   sellable?: boolean;
   OrganizationId?: string;
   companyId?: string;

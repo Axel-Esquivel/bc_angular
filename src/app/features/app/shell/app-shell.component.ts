@@ -14,7 +14,7 @@ import { MegaMenuItem } from 'primeng/api';
 export class AppShellComponent {
   readonly menuItems: MegaMenuItem[] = [
     {
-      label: 'OperaciÃ³n',
+      label: 'Operaci�n',
       items: [
         [
           {
@@ -32,18 +32,18 @@ export class AppShellComponent {
             items: [{ label: 'Stock', icon: 'pi pi-box', routerLink: '/app/inventory' }],
           },
           {
-            label: 'CatÃ¡logo',
+            label: 'Cat�logo',
             items: [{ label: 'Productos', icon: 'pi pi-tags', routerLink: '/app/products' }],
           },
         ],
       ],
     },
     {
-      label: 'ConfiguraciÃ³n',
+      label: 'Configuraci�n',
       items: [
         [
           {
-            label: 'MÃ³dulos',
+            label: 'M�dulos',
             items: [
               {
                 label: 'Ajustes',

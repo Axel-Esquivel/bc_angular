@@ -10,7 +10,7 @@ export interface CreateProductVariantPayload {
   name: string;
   sku?: string;
   barcodes?: string[];
-  baseUomId: string;
+  uomId: string;
   sellable?: boolean;
 }
 
@@ -18,7 +18,7 @@ export interface UpdateVariantPayload {
   name?: string;
   sku?: string;
   barcodes?: string[];
-  baseUomId?: string;
+  uomId?: string;
   sellable?: boolean;
 }
 

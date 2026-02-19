@@ -14,9 +14,10 @@ interface ProductsSettingsForm {
 }
 
 @Component({
+  standalone: false,
   selector: 'app-modules-settings-page',
   templateUrl: './modules-settings-page.component.html',
-  styleUrl: './modules-settings-page.component.scss',
+  styleUrls: ['./modules-settings-page.component.scss'],
   providers: [MessageService],
 })
 export class ModulesSettingsPageComponent implements OnInit {
@@ -72,7 +73,7 @@ export class ModulesSettingsPageComponent implements OnInit {
           this.saving = false;
           this.messageService.add({
             severity: 'success',
-            summary: 'ConfiguraciÃ³n',
+            summary: 'Configuraci?n',
             detail: 'Ajustes guardados.',
           });
         },
@@ -80,7 +81,7 @@ export class ModulesSettingsPageComponent implements OnInit {
           this.saving = false;
           this.messageService.add({
             severity: 'error',
-            summary: 'ConfiguraciÃ³n',
+            summary: 'Configuraci?n',
             detail: 'No se pudieron guardar los ajustes.',
           });
         },

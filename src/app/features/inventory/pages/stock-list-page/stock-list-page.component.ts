@@ -44,7 +44,7 @@ export class StockListPageComponent implements OnInit {
       this.messageService.add({
         severity: 'warn',
         summary: 'Contexto incompleto',
-        detail: 'Selecciona organizaciÃ³n, empresa y sucursal antes de ver inventario.',
+        detail: 'Selecciona organizaci?n, empresa y sucursal antes de ver inventario.',
       });
       return;
     }
