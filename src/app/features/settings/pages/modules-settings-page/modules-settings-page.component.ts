@@ -38,6 +38,10 @@ export class ModulesSettingsPageComponent implements OnInit {
     allowMultipleBarcodes: [false],
   });
 
+  readonly eanPrefixForm = this.fb.nonNullable.group({
+    eanPrefix: [''],
+  });
+
   ngOnInit(): void {
     this.loadModules();
   }
@@ -46,6 +50,7 @@ export class ModulesSettingsPageComponent implements OnInit {
     this.selectedKey = moduleKey;
     if (moduleKey === 'products') {
       this.loadProductsSettings();
+      this.loadEanPrefix();
     }
   }
 
@@ -83,6 +88,48 @@ export class ModulesSettingsPageComponent implements OnInit {
             severity: 'error',
             summary: 'Configuraci?n',
             detail: 'No se pudieron guardar los ajustes.',
+          });
+        },
+      });
+  }
+
+  saveEanPrefix(): void {
+    const organizationId = this.getOrganizationId();
+    if (!organizationId) {
+      this.contextMissing = true;
+      return;
+    }
+    const raw = this.eanPrefixForm.getRawValue();
+    const eanPrefix = raw.eanPrefix.trim();
+    if (!/^\d{3,7}$/.test(eanPrefix)) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Configuración',
+        detail: 'El prefijo EAN debe tener 3 a 7 dígitos numéricos.',
+      });
+      return;
+    }
+    this.saving = true;
+    this.organizationsApi
+      .updateEanPrefix(organizationId, eanPrefix)
+      .pipe(take(1))
+      .subscribe({
+        next: (response) => {
+          const updated = response.result?.eanPrefix ?? eanPrefix;
+          this.eanPrefixForm.patchValue({ eanPrefix: updated });
+          this.saving = false;
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Configuración',
+            detail: 'Prefijo EAN actualizado.',
+          });
+        },
+        error: () => {
+          this.saving = false;
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Configuración',
+            detail: 'No se pudo actualizar el prefijo EAN.',
           });
         },
       });
@@ -131,6 +178,23 @@ export class ModulesSettingsPageComponent implements OnInit {
               allowMultipleBarcodes: settings.allowMultipleBarcodes ?? false,
             });
           }
+        },
+        error: () => undefined,
+      });
+  }
+
+  private loadEanPrefix(): void {
+    const organizationId = this.getOrganizationId();
+    if (!organizationId) {
+      return;
+    }
+    this.organizationsApi
+      .getEanPrefix(organizationId)
+      .pipe(take(1))
+      .subscribe({
+        next: (response) => {
+          const prefix = response.result?.eanPrefix ?? '';
+          this.eanPrefixForm.patchValue({ eanPrefix: prefix });
         },
         error: () => undefined,
       });

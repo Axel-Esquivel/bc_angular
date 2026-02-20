@@ -35,6 +35,7 @@ export interface IOrganization {
   id?: string;
   name: string;
   code?: string;
+  eanPrefix?: string;
   ownerUserId?: string;
   createdBy?: string;
   setupStatus?: 'pending' | 'completed';

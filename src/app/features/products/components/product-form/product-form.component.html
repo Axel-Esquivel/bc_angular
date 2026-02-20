@@ -11,9 +11,11 @@
           #categorySelect
           inputId="categoryId"
           [options]="categoryTree"
-          formControlName="categoryId"
+          formControlName="categoryNode"
           placeholder="Selecciona una categoría"
           appendTo="body"
+          [filter]="true"
+          selectionMode="single"
         >
           <ng-template #footer>
             <div class="p-3">
@@ -180,6 +182,7 @@
                 <span>Unidades</span>
                 <span>Precio</span>
                 <span>Barcode</span>
+                <span>Cod. interno</span>
                 <span>Activo</span>
                 <span></span>
               </div>
@@ -189,7 +192,28 @@
                 [formGroup]="pack"
               >
                 <p-floatLabel class="field">
-                  <input pInputText type="text" formControlName="name" />
+                  <p-select
+                    #packagingNameSelect
+                    [options]="packagingNameOptions"
+                    optionLabel="label"
+                    optionValue="value"
+                    formControlName="name"
+                    appendTo="body"
+                  >
+                    <ng-template #footer>
+                      <div class="p-3">
+                        <p-button
+                          label="Agregar nombre"
+                          icon="pi pi-plus"
+                          severity="secondary"
+                          text
+                          size="small"
+                          [fluid]="true"
+                          (onClick)="onAddPackagingNameClick($event, pIndex, packagingNameSelect)"
+                        ></p-button>
+                      </div>
+                    </ng-template>
+                  </p-select>
                   <label>Nombre</label>
                 </p-floatLabel>
                 <p-floatLabel class="field">
@@ -216,6 +240,19 @@
                   <input pInputText type="text" formControlName="barcode" />
                   <label>Barcode</label>
                 </p-floatLabel>
+                <div class="field barcode-field">
+                  <p-floatLabel>
+                    <input pInputText type="text" formControlName="internalBarcode" readonly />
+                    <label>Código interno</label>
+                  </p-floatLabel>
+                  <p-button
+                    icon="pi pi-refresh"
+                    severity="secondary"
+                    size="small"
+                    text="true"
+                    (onClick)="generatePackagingInternalBarcode(pIndex)"
+                  ></p-button>
+                </div>
                 <div class="field toggle">
                   <label>Activo</label>
                   <p-toggleSwitch formControlName="isActive"></p-toggleSwitch>
@@ -490,6 +527,39 @@
         [loading]="savingUomUnit"
         [disabled]="savingUomUnit || uomUnitCreateForm.invalid"
         (onClick)="saveUomUnit()"
+      ></p-button>
+    </div>
+  </ng-template>
+</p-dialog>
+
+<p-dialog
+  header="Nuevo nombre de empaque"
+  [(visible)]="packagingNameCreateVisible"
+  [modal]="true"
+  [closable]="true"
+  [draggable]="false"
+  [style]="{ width: '420px' }"
+>
+  <form [formGroup]="packagingNameCreateForm" class="dialog-form p-fluid flex flex-column gap-3">
+    <p-floatLabel>
+      <input id="packagingName" type="text" pInputText formControlName="name" class="w-full" />
+      <label for="packagingName">Nombre</label>
+    </p-floatLabel>
+  </form>
+  <ng-template #footer>
+    <div class="bc-actions bc-actions--end">
+      <p-button
+        label="Cancelar"
+        severity="secondary"
+        [disabled]="savingPackagingName"
+        (onClick)="packagingNameCreateVisible = false"
+      ></p-button>
+      <p-button
+        label="Guardar"
+        icon="pi pi-check"
+        [loading]="savingPackagingName"
+        [disabled]="savingPackagingName || packagingNameCreateForm.invalid"
+        (onClick)="savePackagingName()"
       ></p-button>
     </div>
   </ng-template>

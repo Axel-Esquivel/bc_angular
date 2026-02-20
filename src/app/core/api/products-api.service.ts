@@ -24,6 +24,7 @@ export class ProductsApiService {
     category?: string;
     page?: number;
     limit?: number;
+    includeInactive?: boolean;
   }): Observable<ApiResponse<PaginatedResponse<Product>>> {
     let httpParams = new HttpParams();
     if (params?.enterpriseId) httpParams = httpParams.set('enterpriseId', params.enterpriseId);
@@ -31,6 +32,9 @@ export class ProductsApiService {
     if (params?.category) httpParams = httpParams.set('category', params.category);
     if (params?.page) httpParams = httpParams.set('page', params.page);
     if (params?.limit) httpParams = httpParams.set('limit', params.limit);
+    if (params?.includeInactive !== undefined) {
+      httpParams = httpParams.set('includeInactive', params.includeInactive ? 'true' : 'false');
+    }
 
     return this.http.get<ApiResponse<PaginatedResponse<Product>>>(this.baseUrl, { params: httpParams });
   }
@@ -41,6 +45,17 @@ export class ProductsApiService {
 
   updateProduct(id: string, dto: Partial<Product>): Observable<ApiResponse<Product>> {
     return this.http.patch<ApiResponse<Product>>(`${this.baseUrl}/${id}`, dto);
+  }
+
+  setProductStatus(
+    organizationId: string,
+    productId: string,
+    isActive: boolean,
+  ): Observable<ApiResponse<Product>> {
+    return this.http.patch<ApiResponse<Product>>(
+      `${this.config.apiBaseUrl}/organizations/${organizationId}/products/${productId}/status`,
+      { isActive },
+    );
   }
 
   deleteProduct(id: string): Observable<ApiResponse<void>> {

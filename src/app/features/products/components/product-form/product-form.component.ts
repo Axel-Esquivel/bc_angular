@@ -22,6 +22,7 @@ import {
   ProductCategoriesApiService,
   ProductCategoryTreeNode,
 } from '../../../../core/api/product-categories-api.service';
+import { PackagingNamesApiService } from '../../../../core/api/packaging-names-api.service';
 import { ProductPackagingApiService } from '../../../../core/api/product-packaging-api.service';
 import {
   CreateUomCategoryPayload,
@@ -51,6 +52,7 @@ export interface PackagingPayload {
   unitsPerPack: number;
   price: number;
   barcode?: string;
+  internalBarcode?: string;
   isActive?: boolean;
 }
 
@@ -81,6 +83,7 @@ type PackagingFormGroup = FormGroup<{
   unitsPerPack: FormControl<number>;
   price: FormControl<number>;
   barcode: FormControl<string>;
+  internalBarcode: FormControl<string>;
   isActive: FormControl<boolean>;
 }>;
 
@@ -88,6 +91,12 @@ interface OptionItem {
   label: string;
   value: string;
 }
+
+type ProductFormGroup = FormGroup<{
+  name: FormControl<string>;
+  categoryNode: FormControl<TreeNode | null>;
+  isActive: FormControl<boolean>;
+}>;
 
 type CategoryCreateFormGroup = FormGroup<{
   name: FormControl<string>;
@@ -128,6 +137,7 @@ export class ProductFormComponent implements OnInit, OnChanges, OnDestroy {
   private readonly variantsApi = inject(VariantsApiService);
   private readonly categoriesApi = inject(ProductCategoriesApiService);
   private readonly packagingApi = inject(ProductPackagingApiService);
+  private readonly packagingNamesApi = inject(PackagingNamesApiService);
   private readonly uomApi = inject(UomApiService);
   private readonly activeContextState = inject(ActiveContextStateService);
   private readonly messageService = inject(MessageService);
@@ -135,6 +145,8 @@ export class ProductFormComponent implements OnInit, OnChanges, OnDestroy {
   private defaultVariantNameEdited = false;
   private suppressDefaultNameSync = false;
   private selectedVariantIndex: number | null = null;
+  private selectedPackagingIndex: number | null = null;
+  private pendingCategoryId: string | null = null;
 
   variants: ProductVariant[] = [];
   variantsLoading = false;
@@ -143,11 +155,12 @@ export class ProductFormComponent implements OnInit, OnChanges, OnDestroy {
   uomOptionsByCategory = new Map<string, OptionItem[]>();
   uomUnitById = new Map<string, UomUnit>();
   uomUnits: UomUnit[] = [];
+  packagingNameOptions: OptionItem[] = [];
 
-  readonly productForm = this.fb.nonNullable.group({
-    name: ['', [Validators.required]],
-    categoryId: [''],
-    isActive: [true],
+  readonly productForm: ProductFormGroup = this.fb.group({
+    name: this.fb.nonNullable.control('', [Validators.required]),
+    categoryNode: new FormControl<TreeNode | null>(null),
+    isActive: this.fb.nonNullable.control(true),
   });
 
   readonly defaultVariantForm = this.fb.nonNullable.group({
@@ -166,9 +179,11 @@ export class ProductFormComponent implements OnInit, OnChanges, OnDestroy {
   categoryCreateVisible = false;
   uomCategoryCreateVisible = false;
   uomUnitCreateVisible = false;
+  packagingNameCreateVisible = false;
   savingCategory = false;
   savingUomCategory = false;
   savingUomUnit = false;
+  savingPackagingName = false;
 
   readonly categoryCreateForm: CategoryCreateFormGroup = this.fb.group({
     name: this.fb.nonNullable.control('', [Validators.required]),
@@ -184,6 +199,10 @@ export class ProductFormComponent implements OnInit, OnChanges, OnDestroy {
     symbol: ['', [Validators.required]],
     factor: [1, [Validators.required, Validators.min(0.000001)]],
     categoryId: ['', [Validators.required]],
+  });
+
+  readonly packagingNameCreateForm = this.fb.nonNullable.group({
+    name: ['', [Validators.required]],
   });
 
   ngOnInit(): void {
@@ -219,6 +238,7 @@ export class ProductFormComponent implements OnInit, OnChanges, OnDestroy {
 
     this.loadCategories();
     this.loadUomCategories();
+    this.loadPackagingNames();
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -243,9 +263,10 @@ export class ProductFormComponent implements OnInit, OnChanges, OnDestroy {
     }
 
     const rawProduct = this.productForm.getRawValue();
+    const categoryId = this.resolveTreeNodeId(rawProduct.categoryNode);
     const product = {
       name: rawProduct.name,
-      category: rawProduct.categoryId || undefined,
+      category: categoryId || undefined,
       isActive: rawProduct.isActive,
     };
     const defaultName = this.defaultVariantForm.controls.name.value || product.name;
@@ -281,6 +302,7 @@ export class ProductFormComponent implements OnInit, OnChanges, OnDestroy {
         unitsPerPack: value.unitsPerPack,
         price: value.price,
         barcode: value.barcode?.trim() || undefined,
+        internalBarcode: value.internalBarcode?.trim() || undefined,
         isActive: value.isActive,
       };
     });
@@ -364,7 +386,8 @@ export class ProductFormComponent implements OnInit, OnChanges, OnDestroy {
         const created = response.result;
         this.loadCategories();
         if (created?.id) {
-          this.productForm.controls.categoryId.setValue(created.id);
+          const node = this.findCategoryNode(created.id);
+          this.productForm.controls.categoryNode.setValue(node);
         }
         this.categoryCreateVisible = false;
         this.messageService.add({
@@ -545,8 +568,103 @@ export class ProductFormComponent implements OnInit, OnChanges, OnDestroy {
     this.packagingFormArray.push(group);
   }
 
+  openCreatePackagingName(index?: number, event?: Event): void {
+    event?.stopPropagation();
+    this.selectedPackagingIndex = index ?? null;
+    this.packagingNameCreateForm.reset({ name: '' });
+    this.packagingNameCreateVisible = true;
+  }
+
+  savePackagingName(): void {
+    if (this.savingPackagingName || this.packagingNameCreateForm.invalid) {
+      this.packagingNameCreateForm.markAllAsTouched();
+      return;
+    }
+    const organizationId = this.getOrganizationId();
+    if (!organizationId) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Contexto',
+        detail: 'Selecciona una organizacion antes de crear nombres de empaque.',
+      });
+      return;
+    }
+    const raw = this.packagingNameCreateForm.getRawValue();
+    const payload = { organizationId, name: raw.name.trim() };
+    this.savingPackagingName = true;
+    this.packagingNameCreateForm.disable({ emitEvent: false });
+    this.packagingNamesApi
+      .create(payload)
+      .pipe(
+        finalize(() => {
+          this.savingPackagingName = false;
+          this.packagingNameCreateForm.enable({ emitEvent: false });
+        }),
+      )
+      .subscribe({
+        next: (response) => {
+          const created = response.result;
+          this.loadPackagingNames();
+          if (created?.id) {
+            this.setPackagingName(created.name);
+          }
+          this.packagingNameCreateVisible = false;
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Empaques',
+            detail: 'Nombre de empaque creado correctamente.',
+          });
+        },
+        error: () => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Empaques',
+            detail: 'No se pudo crear el nombre de empaque.',
+          });
+        },
+      });
+  }
+
   removePackagingRow(index: number): void {
     this.packagingFormArray.removeAt(index);
+  }
+
+  onAddPackagingNameClick(event: Event, index: number, select: Select): void {
+    event.preventDefault();
+    event.stopPropagation();
+    select.hide();
+    queueMicrotask(() => this.openCreatePackagingName(index));
+  }
+
+  generatePackagingInternalBarcode(index: number): void {
+    const organizationId = this.getOrganizationId();
+    if (!organizationId) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Contexto',
+        detail: 'Selecciona una organizacion para generar el codigo interno.',
+      });
+      return;
+    }
+    const group = this.packagingFormArray.at(index);
+    if (!group) {
+      return;
+    }
+    this.packagingApi.generateInternalBarcode(organizationId).subscribe({
+      next: (response) => {
+        const code = response.result?.internalBarcode;
+        if (code) {
+          group.controls.internalBarcode.setValue(code);
+        }
+      },
+      error: () => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Empaques',
+          detail: 'No se pudo generar el codigo interno.',
+        });
+      },
+    });
   }
 
   getUomOptions(categoryId: string): OptionItem[] {
@@ -592,9 +710,10 @@ export class ProductFormComponent implements OnInit, OnChanges, OnDestroy {
 
   private initializeForProduct(product: Product | null): void {
     this.defaultVariantNameEdited = false;
+    this.pendingCategoryId = product?.category ?? null;
     this.productForm.reset({
       name: product?.name ?? '',
-      categoryId: product?.category ?? '',
+      categoryNode: null,
       isActive: product?.isActive ?? true,
     });
     this.defaultVariantForm.reset({
@@ -626,6 +745,10 @@ export class ProductFormComponent implements OnInit, OnChanges, OnDestroy {
       next: (response) => {
         const raw = response.result ?? [];
         this.categoryTree = this.mapTreeNodes(raw);
+        if (this.pendingCategoryId) {
+          const node = this.findCategoryNode(this.pendingCategoryId);
+          this.productForm.controls.categoryNode.setValue(node);
+        }
       },
       error: () => {
         this.categoryTree = [];
@@ -727,6 +850,7 @@ export class ProductFormComponent implements OnInit, OnChanges, OnDestroy {
             unitsPerPack: item.unitsPerPack,
             price: item.price,
             barcode: item.barcode ?? '',
+            internalBarcode: item.internalBarcode ?? '',
             isActive: item.isActive,
           });
           this.packagingFormArray.push(group);
@@ -758,6 +882,7 @@ export class ProductFormComponent implements OnInit, OnChanges, OnDestroy {
       unitsPerPack: [1, [Validators.required, Validators.min(1)]],
       price: [0, [Validators.required, Validators.min(0)]],
       barcode: [''],
+      internalBarcode: [''],
       isActive: [true],
     });
   }
@@ -794,6 +919,23 @@ export class ProductFormComponent implements OnInit, OnChanges, OnDestroy {
     }));
   }
 
+  private findCategoryNode(id: string): TreeNode | null {
+    const stack = [...this.categoryTree];
+    while (stack.length > 0) {
+      const current = stack.shift();
+      if (!current) {
+        continue;
+      }
+      if (current.key === id) {
+        return current;
+      }
+      if (current.children && current.children.length > 0) {
+        stack.push(...current.children);
+      }
+    }
+    return null;
+  }
+
   private showValidationMessage(): void {
     const needsMeasure =
       this.defaultVariantForm.controls.uomCategoryId.invalid ||
@@ -807,6 +949,38 @@ export class ProductFormComponent implements OnInit, OnChanges, OnDestroy {
       summary: 'Validación',
       detail: 'Completa la medida (categoría, unidad y cantidad).',
     });
+  }
+
+  private loadPackagingNames(): void {
+    const organizationId = this.getOrganizationId();
+    if (!organizationId) {
+      this.packagingNameOptions = [];
+      return;
+    }
+    this.packagingNamesApi.list(organizationId).subscribe({
+      next: (response) => {
+        const names = response.result ?? [];
+        this.packagingNameOptions = names
+          .filter((item) => item.isActive)
+          .map((item) => ({ label: item.name, value: item.name }));
+      },
+      error: () => {
+        this.packagingNameOptions = [];
+      },
+    });
+  }
+
+  private setPackagingName(name: string): void {
+    if (this.selectedPackagingIndex === null || this.selectedPackagingIndex === undefined) {
+      if (this.packagingFormArray.length > 0) {
+        this.packagingFormArray.at(0).controls.name.setValue(name);
+      }
+      return;
+    }
+    const group = this.packagingFormArray.at(this.selectedPackagingIndex);
+    if (group) {
+      group.controls.name.setValue(name);
+    }
   }
 
   private resolveTreeNodeId(node: TreeNode | null): string | null {

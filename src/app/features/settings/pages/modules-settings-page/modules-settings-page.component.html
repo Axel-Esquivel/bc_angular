@@ -1,20 +1,20 @@
-<p-toast></p-toast>
+ï»¿<p-toast></p-toast>
 <section class="modules-settings">
   <header class="page-header">
     <div>
-      <h2>Configuración de Módulos</h2>
-      <p>Administra ajustes por módulo.</p>
+      <h2>ConfiguraciÃ³n de MÃ³dulos</h2>
+      <p>Administra ajustes por mÃ³dulo.</p>
     </div>
   </header>
 
   <p-card *ngIf="contextMissing" class="empty-state">
     <h3>Selecciona un contexto</h3>
-    <p>Debes elegir una organización antes de configurar módulos.</p>
+    <p>Debes elegir una organizaciÃ³n antes de configurar mÃ³dulos.</p>
   </p-card>
 
   <div class="layout" *ngIf="!contextMissing">
     <p-card class="modules-list">
-      <h3>Módulos instalados</h3>
+      <h3>MÃ³dulos instalados</h3>
       <p *ngIf="loading">Cargando...</p>
       <div class="module-buttons" *ngIf="!loading">
         <p-button
@@ -28,10 +28,10 @@
 
     <p-card class="module-settings" *ngIf="selectedKey === 'products'" [formGroup]="productsForm">
       <h3>Products</h3>
-      <p>Ajustes del módulo de productos.</p>
+      <p>Ajustes del mÃ³dulo de productos.</p>
       <div class="field-row">
         <p-checkbox formControlName="enableVariants" [binary]="true"></p-checkbox>
-        <label>Habilitar variantes múltiples</label>
+        <label>Habilitar variantes mÃºltiples</label>
       </div>
       <div class="field-row">
         <p-checkbox formControlName="autoGenerateSku" [binary]="true"></p-checkbox>
@@ -39,7 +39,24 @@
       </div>
       <div class="field-row">
         <p-checkbox formControlName="allowMultipleBarcodes" [binary]="true"></p-checkbox>
-        <label>Permitir múltiples códigos de barra</label>
+        <label>Permitir mÃºltiples cÃ³digos de barra</label>
+      </div>
+      <p-divider></p-divider>
+      <div [formGroup]="eanPrefixForm" class="ean-prefix">
+        <h4>Prefijo EAN</h4>
+        <p>Se usa para generar cÃ³digos internos EAN-13 para etiquetas.</p>
+        <div class="field-row">
+          <p-floatLabel>
+            <input pInputText type="text" formControlName="eanPrefix" maxlength="7" />
+            <label>Prefijo EAN (3-7 dÃ­gitos)</label>
+          </p-floatLabel>
+        </div>
+        <p-button
+          label="Guardar prefijo"
+          icon="pi pi-save"
+          [loading]="saving"
+          (onClick)="saveEanPrefix()"
+        ></p-button>
       </div>
       <p-divider></p-divider>
       <p-button
@@ -52,7 +69,7 @@
 
     <p-card class="module-settings" *ngIf="selectedKey && selectedKey !== 'products'">
       <h3>Sin ajustes</h3>
-      <p>Este módulo no tiene configuración disponible.</p>
+      <p>Este mÃ³dulo no tiene configuraciÃ³n disponible.</p>
     </p-card>
   </div>
 </section>

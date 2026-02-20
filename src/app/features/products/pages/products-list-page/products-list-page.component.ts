@@ -2,7 +2,7 @@
 import { FormBuilder } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { Observable, forkJoin, of, switchMap } from 'rxjs';
-import { map, take } from 'rxjs/operators';
+import { finalize, map, take } from 'rxjs/operators';
 
 import { ProductCategoriesApiService, ProductCategoryTreeNode } from '../../../../core/api/product-categories-api.service';
 import { ProductPackagingApiService } from '../../../../core/api/product-packaging-api.service';
@@ -41,6 +41,7 @@ export class ProductsListPageComponent implements OnInit {
   editingProduct: Product | null = null;
   contextMissing = false;
   enableVariants = false;
+  statusUpdating = new Set<string>();
 
   categoryOptions: CategoryOption[] = [{ label: 'Todas', value: '' }];
   packagingPriceByProduct = new Map<string, number>();
@@ -48,6 +49,7 @@ export class ProductsListPageComponent implements OnInit {
   readonly filtersForm = this.fb.nonNullable.group({
     search: [''],
     category: [''],
+    includeInactive: [false],
   });
 
   ngOnInit(): void {
@@ -67,12 +69,13 @@ export class ProductsListPageComponent implements OnInit {
       return;
     }
     this.contextMissing = false;
-    const { search, category } = this.filtersForm.getRawValue();
+    const { search, category, includeInactive } = this.filtersForm.getRawValue();
     this.productsApi
       .getProducts({
         enterpriseId,
         search: search?.trim(),
         category: category || undefined,
+        includeInactive,
       })
       .subscribe({
         next: (response) => {
@@ -90,7 +93,7 @@ export class ProductsListPageComponent implements OnInit {
   }
 
   onResetFilters(): void {
-    this.filtersForm.reset({ search: '', category: '' });
+    this.filtersForm.reset({ search: '', category: '', includeInactive: false });
     this.loadProducts();
   }
 
@@ -102,6 +105,43 @@ export class ProductsListPageComponent implements OnInit {
   openEdit(product: Product): void {
     this.editingProduct = product;
     this.dialogVisible = true;
+  }
+
+  toggleStatus(product: Product): void {
+    if (this.statusUpdating.has(product.id)) {
+      return;
+    }
+    const nextStatus = !product.isActive;
+    const message = nextStatus
+      ? '¿Activar producto?'
+      : '¿Desactivar producto? Podrás reactivarlo después.';
+    if (!window.confirm(message)) {
+      return;
+    }
+    const context = this.activeContextState.getActiveContext();
+    const organizationId = context.organizationId ?? undefined;
+    if (!organizationId) {
+      this.showError(null, 'El organizationId es requerido.');
+      return;
+    }
+    this.statusUpdating.add(product.id);
+    this.productsApi
+      .setProductStatus(organizationId, product.id, nextStatus)
+      .pipe(finalize(() => this.statusUpdating.delete(product.id)))
+      .subscribe({
+        next: (response) => {
+          const updated = response.result;
+          if (updated) {
+            product.isActive = updated.isActive;
+          } else {
+            product.isActive = nextStatus;
+          }
+          this.loadProducts();
+        },
+        error: (error) => {
+          this.showError(error, 'No se pudo actualizar el estado del producto');
+        },
+      });
   }
 
   onFormSave(payload: ProductFormSubmit): void {

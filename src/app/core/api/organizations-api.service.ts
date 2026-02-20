@@ -233,4 +233,14 @@ export class OrganizationsService {
       `${this.baseUrl}/${id}/permissions`,
     );
   }
+
+  getEanPrefix(id: string): Observable<ApiResponse<{ eanPrefix: string }>> {
+    return this.http.get<ApiResponse<{ eanPrefix: string }>>(`${this.baseUrl}/${id}/ean-prefix`);
+  }
+
+  updateEanPrefix(id: string, eanPrefix: string): Observable<ApiResponse<{ eanPrefix: string }>> {
+    return this.http.patch<ApiResponse<{ eanPrefix: string }>>(`${this.baseUrl}/${id}/ean-prefix`, {
+      eanPrefix,
+    });
+  }
 }

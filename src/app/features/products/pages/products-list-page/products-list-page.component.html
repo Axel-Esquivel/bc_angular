@@ -28,6 +28,10 @@
         appendTo="body"
       ></p-select>
     </div>
+    <div class="filter-item toggle">
+      <label for="includeInactive">Mostrar inactivos</label>
+      <p-toggleSwitch inputId="includeInactive" formControlName="includeInactive"></p-toggleSwitch>
+    </div>
     <div class="actions">
       <p-button type="submit" label="Aplicar" icon="pi pi-search"></p-button>
       <p-button label="Limpiar" severity="secondary" (onClick)="onResetFilters()"></p-button>
@@ -63,6 +67,15 @@
             size="small"
             severity="secondary"
             (onClick)="openEdit(product)"
+          ></p-button>
+          <p-button
+            [label]="product.isActive ? 'Desactivar' : 'Activar'"
+            [icon]="product.isActive ? 'pi pi-ban' : 'pi pi-check'"
+            size="small"
+            severity="secondary"
+            [disabled]="statusUpdating.has(product.id)"
+            [loading]="statusUpdating.has(product.id)"
+            (onClick)="toggleStatus(product)"
           ></p-button>
         </td>
       </tr>

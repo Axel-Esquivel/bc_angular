@@ -11,6 +11,7 @@ export interface ProductPackaging {
   name: string;
   unitsPerPack: number;
   barcode?: string;
+  internalBarcode?: string;
   price: number;
   isActive: boolean;
   OrganizationId?: string;
@@ -22,6 +23,7 @@ export interface CreatePackagingPayload {
   name: string;
   unitsPerPack: number;
   barcode?: string;
+  internalBarcode?: string;
   price: number;
   isActive?: boolean;
   OrganizationId?: string;
@@ -33,6 +35,7 @@ export interface UpdatePackagingPayload {
   name?: string;
   unitsPerPack?: number;
   barcode?: string;
+  internalBarcode?: string;
   price?: number;
   isActive?: boolean;
 }
@@ -59,5 +62,12 @@ export class ProductPackagingApiService {
 
   remove(id: string): Observable<ApiResponse<{ id: string }>> {
     return this.http.delete<ApiResponse<{ id: string }>>(`${this.baseUrl}/packaging/${id}`);
+  }
+
+  generateInternalBarcode(organizationId: string): Observable<ApiResponse<{ internalBarcode: string }>> {
+    return this.http.post<ApiResponse<{ internalBarcode: string }>>(
+      `${this.baseUrl}/packaging/internal-barcode`,
+      { organizationId },
+    );
   }
 }

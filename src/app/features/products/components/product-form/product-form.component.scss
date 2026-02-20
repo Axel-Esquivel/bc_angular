@@ -98,7 +98,7 @@
 
 .packaging-row {
   display: grid;
-  grid-template-columns: minmax(160px, 1.2fr) minmax(100px, 0.6fr) minmax(140px, 0.8fr) minmax(140px, 1fr) minmax(110px, 0.6fr) auto;
+  grid-template-columns: minmax(160px, 1.1fr) minmax(100px, 0.5fr) minmax(140px, 0.7fr) minmax(140px, 0.8fr) minmax(180px, 1fr) minmax(110px, 0.5fr) auto;
   gap: 0.75rem;
   align-items: center;
 }
@@ -107,6 +107,12 @@
   font-weight: 600;
   color: var(--text-color-secondary);
   font-size: 0.85rem;
+}
+
+.barcode-field {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
 }
 
 .form-actions {
