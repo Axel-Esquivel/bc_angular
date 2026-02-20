@@ -115,6 +115,14 @@
   gap: 0.5rem;
 }
 
+.barcode-input :host ::ng-deep .p-inputgroup {
+  width: 100%;
+}
+
+.barcode-input :host ::ng-deep .p-inputgroup .p-button {
+  align-self: stretch;
+}
+
 .form-actions {
   display: flex;
   justify-content: flex-end;

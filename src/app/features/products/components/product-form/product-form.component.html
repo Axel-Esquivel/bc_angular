@@ -241,19 +241,21 @@
                   <label>Barcode</label>
                 </p-floatLabel>
                 <div class="field barcode-field">
-                  <p-floatLabel>
-                    <input pInputText type="text" formControlName="internalBarcode" readonly />
+                  <p-floatLabel class="barcode-input">
+                    <p-inputGroup>
+                      <input pInputText type="text" formControlName="internalBarcode" readonly />
+                      <p-button
+                        icon="pi pi-refresh"
+                        severity="secondary"
+                        size="small"
+                        [text]="true"
+                        [loading]="isPackagingGenerating(pIndex)"
+                        [disabled]="isPackagingGenerating(pIndex) || !!pack.controls.internalBarcode.value"
+                        (onClick)="generatePackagingInternalBarcode(pIndex)"
+                      ></p-button>
+                    </p-inputGroup>
                     <label>Código interno</label>
                   </p-floatLabel>
-                  <p-button
-                    icon="pi pi-refresh"
-                    severity="secondary"
-                    size="small"
-                    [text]="true"
-                    [loading]="isPackagingGenerating(pIndex)"
-                    [disabled]="isPackagingGenerating(pIndex) || !!pack.controls.internalBarcode.value"
-                    (onClick)="generatePackagingInternalBarcode(pIndex)"
-                  ></p-button>
                 </div>
                 <div class="field toggle">
                   <label>Activo</label>
@@ -404,6 +406,7 @@
   [modal]="true"
   [closable]="true"
   [draggable]="false"
+  (onHide)="categorySelect?.hide()"
   [style]="{ width: '420px' }"
 >
   <form [formGroup]="categoryCreateForm" class="dialog-form p-fluid flex flex-column gap-3">
@@ -448,6 +451,7 @@
   [modal]="true"
   [closable]="true"
   [draggable]="false"
+  (onHide)="uomCategorySelect?.hide()"
   [style]="{ width: '420px' }"
 >
   <form [formGroup]="uomCategoryCreateForm" class="dialog-form p-fluid flex flex-column gap-3">
@@ -481,6 +485,7 @@
   [modal]="true"
   [closable]="true"
   [draggable]="false"
+  (onHide)="uomUnitSelect?.hide()"
   [style]="{ width: '420px' }"
 >
   <form [formGroup]="uomUnitCreateForm" class="dialog-form p-fluid flex flex-column gap-3">

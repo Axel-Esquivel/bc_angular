@@ -9,6 +9,7 @@ import { Dialog } from 'primeng/dialog';
 import { FloatLabel } from 'primeng/floatlabel';
 import { InputNumber } from 'primeng/inputnumber';
 import { InputText } from 'primeng/inputtext';
+import { InputGroup } from 'primeng/inputgroup';
 import { Select } from 'primeng/select';
 import { TableModule } from 'primeng/table';
 import { TreeSelect } from 'primeng/treeselect';
@@ -34,6 +35,7 @@ import { productsRoutes } from './products.routes';
     FloatLabel,
     InputNumber,
     InputText,
+    InputGroup,
     Select,
     TableModule,
     TreeSelect,
