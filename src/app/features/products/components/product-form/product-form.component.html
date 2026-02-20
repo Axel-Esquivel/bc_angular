@@ -249,7 +249,9 @@
                     icon="pi pi-refresh"
                     severity="secondary"
                     size="small"
-                    text="true"
+                    [text]="true"
+                    [loading]="isPackagingGenerating(pIndex)"
+                    [disabled]="isPackagingGenerating(pIndex) || !!pack.controls.internalBarcode.value"
                     (onClick)="generatePackagingInternalBarcode(pIndex)"
                   ></p-button>
                 </div>

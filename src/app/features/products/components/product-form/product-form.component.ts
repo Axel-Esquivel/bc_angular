@@ -147,6 +147,7 @@ export class ProductFormComponent implements OnInit, OnChanges, OnDestroy {
   private selectedVariantIndex: number | null = null;
   private selectedPackagingIndex: number | null = null;
   private pendingCategoryId: string | null = null;
+  private readonly packagingGenerating = new Set<number>();
 
   variants: ProductVariant[] = [];
   variantsLoading = false;
@@ -650,21 +651,40 @@ export class ProductFormComponent implements OnInit, OnChanges, OnDestroy {
     if (!group) {
       return;
     }
-    this.packagingApi.generateInternalBarcode(organizationId).subscribe({
-      next: (response) => {
-        const code = response.result?.internalBarcode;
-        if (code) {
-          group.controls.internalBarcode.setValue(code);
-        }
-      },
-      error: () => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Empaques',
-          detail: 'No se pudo generar el codigo interno.',
-        });
-      },
-    });
+    const current = group.controls.internalBarcode.value?.trim();
+    if (current) {
+      return;
+    }
+    if (this.packagingGenerating.has(index)) {
+      return;
+    }
+    this.packagingGenerating.add(index);
+    this.packagingApi
+      .generateInternalBarcode(organizationId)
+      .pipe(
+        finalize(() => {
+          this.packagingGenerating.delete(index);
+        }),
+      )
+      .subscribe({
+        next: (response) => {
+          const code = response.result?.internalBarcode;
+          if (code) {
+            group.controls.internalBarcode.setValue(code);
+          }
+        },
+        error: () => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Empaques',
+            detail: 'No se pudo generar el codigo interno.',
+          });
+        },
+      });
+  }
+
+  isPackagingGenerating(index: number): boolean {
+    return this.packagingGenerating.has(index);
   }
 
   getUomOptions(categoryId: string): OptionItem[] {
