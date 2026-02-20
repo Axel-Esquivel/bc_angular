@@ -5,6 +5,7 @@ import { RouterModule } from '@angular/router';
 import { AccordionModule } from 'primeng/accordion';
 import { Button } from 'primeng/button';
 import { Card } from 'primeng/card';
+import { ConfirmDialog } from 'primeng/confirmdialog';
 import { Dialog } from 'primeng/dialog';
 import { FloatLabel } from 'primeng/floatlabel';
 import { InputNumber } from 'primeng/inputnumber';
@@ -31,6 +32,7 @@ import { productsRoutes } from './products.routes';
     AccordionModule,
     Button,
     Card,
+    ConfirmDialog,
     Dialog,
     FloatLabel,
     InputNumber,

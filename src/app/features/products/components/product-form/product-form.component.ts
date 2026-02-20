@@ -11,7 +11,7 @@ import {
   inject,
 } from '@angular/core';
 import { AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
-import { MessageService, TreeNode } from 'primeng/api';
+import { ConfirmationService, MessageService, TreeNode } from 'primeng/api';
 import { Select } from 'primeng/select';
 import { TreeSelect } from 'primeng/treeselect';
 import { Subject } from 'rxjs';
@@ -65,9 +65,11 @@ export interface ProductFormSubmit {
   defaultVariant: ProductFormVariantPayload;
   variants: ProductFormVariantPayload[];
   packaging: PackagingPayload[];
+  deletedVariantIds?: string[];
 }
 
 type VariantFormGroup = FormGroup<{
+  id: FormControl<string>;
   name: FormControl<string>;
   sku: FormControl<string>;
   barcodes: FormControl<string>;
@@ -119,7 +121,7 @@ type UomUnitCreateFormGroup = FormGroup<{
   standalone: false,
   templateUrl: './product-form.component.html',
   styleUrls: ['./product-form.component.scss'],
-  providers: [MessageService],
+  providers: [MessageService, ConfirmationService],
 })
 export class ProductFormComponent implements OnInit, OnChanges, OnDestroy {
   @Input() product: Product | null = null;
@@ -141,6 +143,7 @@ export class ProductFormComponent implements OnInit, OnChanges, OnDestroy {
   private readonly uomApi = inject(UomApiService);
   private readonly activeContextState = inject(ActiveContextStateService);
   private readonly messageService = inject(MessageService);
+  private readonly confirmationService = inject(ConfirmationService);
   private readonly destroy$ = new Subject<void>();
   private defaultVariantNameEdited = false;
   private suppressDefaultNameSync = false;
@@ -148,6 +151,7 @@ export class ProductFormComponent implements OnInit, OnChanges, OnDestroy {
   private selectedPackagingIndex: number | null = null;
   private pendingCategoryId: string | null = null;
   private readonly packagingGenerating = new Set<number>();
+  private readonly deletedVariantIds = new Set<string>();
 
   variants: ProductVariant[] = [];
   variantsLoading = false;
@@ -310,7 +314,14 @@ export class ProductFormComponent implements OnInit, OnChanges, OnDestroy {
 
     const normalizedPackaging = packaging.length > 0 ? packaging : [this.createDefaultPackaging()];
 
-    this.save.emit({ product, defaultVariant, variants, packaging: normalizedPackaging });
+    const deletedVariantIds = Array.from(this.deletedVariantIds);
+    this.save.emit({
+      product,
+      defaultVariant,
+      variants,
+      packaging: normalizedPackaging,
+      deletedVariantIds: deletedVariantIds.length > 0 ? deletedVariantIds : undefined,
+    });
   }
 
   onCancel(): void {
@@ -547,7 +558,29 @@ export class ProductFormComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   removeVariant(index: number): void {
-    this.variantsFormArray.removeAt(index);
+    this.onRemoveVariant(index);
+  }
+
+  onRemoveVariant(index: number, ev?: Event): void {
+    ev?.stopPropagation();
+    this.confirmationService.confirm({
+      header: 'Eliminar variante',
+      message: '¿Seguro que deseas eliminar esta variante?',
+      acceptLabel: 'Eliminar',
+      rejectLabel: 'Cancelar',
+      icon: 'pi pi-exclamation-triangle',
+      accept: () => {
+        const group = this.variantsFormArray.at(index);
+        if (!group) {
+          return;
+        }
+        const id = group.controls.id.value?.trim();
+        if (id) {
+          this.deletedVariantIds.add(id);
+        }
+        this.variantsFormArray.removeAt(index);
+      },
+    });
   }
 
   onVariantCategoryChange(group: VariantFormGroup): void {
@@ -731,6 +764,7 @@ export class ProductFormComponent implements OnInit, OnChanges, OnDestroy {
   private initializeForProduct(product: Product | null): void {
     this.defaultVariantNameEdited = false;
     this.pendingCategoryId = product?.category ?? null;
+    this.deletedVariantIds.clear();
     this.productForm.reset({
       name: product?.name ?? '',
       categoryNode: null,
@@ -885,6 +919,7 @@ export class ProductFormComponent implements OnInit, OnChanges, OnDestroy {
 
   private createVariantGroup(): VariantFormGroup {
     return this.fb.nonNullable.group({
+      id: [''],
       name: ['', [Validators.required]],
       sku: [''],
       barcodes: [''],

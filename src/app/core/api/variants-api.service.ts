@@ -55,4 +55,8 @@ export class VariantsApiService {
   updateVariant(id: string, payload: UpdateVariantPayload): Observable<ApiResponse<ProductVariant>> {
     return this.http.patch<ApiResponse<ProductVariant>>(`${this.baseUrl}/${id}`, payload);
   }
+
+  deleteVariant(id: string): Observable<ApiResponse<{ id: string }>> {
+    return this.http.delete<ApiResponse<{ id: string }>>(`${this.baseUrl}/${id}`);
+  }
 }

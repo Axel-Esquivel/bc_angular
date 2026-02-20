@@ -293,7 +293,7 @@
                 severity="danger"
                 text="true"
                 size="small"
-                (onClick)="removeVariant(i)"
+                (onClick)="onRemoveVariant(i, $event)"
               ></p-button>
             </span>
           </div>
@@ -444,6 +444,8 @@
     </div>
   </ng-template>
 </p-dialog>
+
+<p-confirmDialog></p-confirmDialog>
 
 <p-dialog
   header="Nueva categoría UoM"

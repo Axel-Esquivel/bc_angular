@@ -242,9 +242,17 @@ export class ProductsListPageComponent implements OnInit {
             () => {
               this.createAdditionalVariants(productId, payload.variants).subscribe(
                 () => {
-                  this.saving = false;
-                  this.dialogVisible = false;
-                  this.loadProducts();
+                  this.deleteVariants(payload.deletedVariantIds ?? []).subscribe(
+                    () => {
+                      this.saving = false;
+                      this.dialogVisible = false;
+                      this.loadProducts();
+                    },
+                    (error: unknown) => {
+                      this.saving = false;
+                      this.showError(error, 'No se pudieron eliminar las variantes');
+                    },
+                  );
                 },
                 (error: unknown) => {
                   this.saving = false;
@@ -302,6 +310,14 @@ export class ProductsListPageComponent implements OnInit {
       return of(null);
     }
     const requests = variants.map((variant) => this.variantsApi.createForProduct(productId, variant));
+    return forkJoin(requests).pipe(map(() => null));
+  }
+
+  private deleteVariants(variantIds: string[]): Observable<null> {
+    if (!variantIds || variantIds.length === 0) {
+      return of(null);
+    }
+    const requests = variantIds.map((id) => this.variantsApi.deleteVariant(id));
     return forkJoin(requests).pipe(map(() => null));
   }
 

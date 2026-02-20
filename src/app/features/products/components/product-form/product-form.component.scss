@@ -52,9 +52,8 @@
 }
 
 .variant-header {
-  display: grid;
+  display: flex;
   align-items: center;
-  grid-template-columns: minmax(160px, 1fr) auto auto;
   gap: 1rem;
   width: 100%;
 }
@@ -74,6 +73,7 @@
 }
 
 .variant-header-actions {
+  margin-left: auto;
   display: inline-flex;
   align-items: center;
 }
