@@ -400,6 +400,8 @@
   <p-button label="Guardar" icon="pi pi-check" (onClick)="onSubmit()" [loading]="saving"></p-button>
 </div>
 
+<p-confirmDialog></p-confirmDialog>
+
 <p-dialog
   header="Nueva categoría"
   [(visible)]="categoryCreateVisible"
@@ -409,23 +411,12 @@
   (onHide)="categorySelect?.hide()"
   [style]="{ width: '420px' }"
 >
-  <form [formGroup]="categoryCreateForm" class="dialog-form p-fluid flex flex-column gap-3">
-    <p-floatLabel>
-      <input id="categoryName" type="text" pInputText formControlName="name" class="w-full" />
-      <label for="categoryName">Nombre</label>
-    </p-floatLabel>
-    <p-floatLabel>
-      <p-treeSelect
-        inputId="categoryParent"
-        [options]="categoryTree"
-        formControlName="parentNode"
-        placeholder="Sin categoria padre"
-        appendTo="body"
-        selectionMode="single"
-      ></p-treeSelect>
-      <label for="categoryParent">Categoría padre</label>
-    </p-floatLabel>
-  </form>
+  <app-category-create-form
+    [loading]="savingCategory"
+    [categoryTree]="categoryTree"
+    (save)="handleCategorySave($event)"
+    (cancel)="categoryCreateVisible = false"
+  ></app-category-create-form>
   <ng-template #footer>
     <div class="bc-actions bc-actions--end">
       <p-button
@@ -438,14 +429,12 @@
         label="Guardar"
         icon="pi pi-check"
         [loading]="savingCategory"
-        [disabled]="savingCategory || categoryCreateForm.invalid"
-        (onClick)="saveCategory()"
+        [disabled]="savingCategory"
+        (onClick)="categoryCreateForm?.onSave()"
       ></p-button>
     </div>
   </ng-template>
 </p-dialog>
-
-<p-confirmDialog></p-confirmDialog>
 
 <p-dialog
   header="Nueva categoría UoM"
@@ -456,12 +445,11 @@
   (onHide)="uomCategorySelect?.hide()"
   [style]="{ width: '420px' }"
 >
-  <form [formGroup]="uomCategoryCreateForm" class="dialog-form p-fluid flex flex-column gap-3">
-    <p-floatLabel>
-      <input id="uomCategoryName" type="text" pInputText formControlName="name" class="w-full" />
-      <label for="uomCategoryName">Nombre</label>
-    </p-floatLabel>
-  </form>
+  <app-uom-category-create-form
+    [loading]="savingUomCategory"
+    (save)="handleUomCategorySave($event)"
+    (cancel)="uomCategoryCreateVisible = false"
+  ></app-uom-category-create-form>
   <ng-template #footer>
     <div class="bc-actions bc-actions--end">
       <p-button
@@ -474,8 +462,8 @@
         label="Guardar"
         icon="pi pi-check"
         [loading]="savingUomCategory"
-        [disabled]="savingUomCategory || uomCategoryCreateForm.invalid"
-        (onClick)="saveUomCategory()"
+        [disabled]="savingUomCategory"
+        (onClick)="uomCategoryCreateForm?.onSave()"
       ></p-button>
     </div>
   </ng-template>
@@ -490,38 +478,13 @@
   (onHide)="uomUnitSelect?.hide()"
   [style]="{ width: '420px' }"
 >
-  <form [formGroup]="uomUnitCreateForm" class="dialog-form p-fluid flex flex-column gap-3">
-    <p-floatLabel>
-      <input id="uomUnitName" type="text" pInputText formControlName="name" class="w-full" />
-      <label for="uomUnitName">Nombre</label>
-    </p-floatLabel>
-    <p-floatLabel>
-      <input id="uomUnitSymbol" type="text" pInputText formControlName="symbol" class="w-full" />
-      <label for="uomUnitSymbol">Símbolo</label>
-    </p-floatLabel>
-    <p-floatLabel>
-      <p-inputNumber
-        inputId="uomUnitFactor"
-        formControlName="factor"
-        [min]="0.000001"
-        [minFractionDigits]="2"
-        [maxFractionDigits]="6"
-        locale="en-US"
-      ></p-inputNumber>
-      <label for="uomUnitFactor">Factor</label>
-    </p-floatLabel>
-    <p-floatLabel>
-      <p-select
-        inputId="uomUnitCategory"
-        [options]="uomCategoryOptions"
-        optionLabel="label"
-        optionValue="value"
-        formControlName="categoryId"
-        appendTo="body"
-      ></p-select>
-      <label for="uomUnitCategory">Categoría UoM</label>
-    </p-floatLabel>
-  </form>
+  <app-uom-unit-create-form
+    [loading]="savingUomUnit"
+    [uomCategoryOptions]="uomCategoryOptions"
+    [categoryId]="uomUnitDialogCategoryId"
+    (save)="handleUomUnitSave($event)"
+    (cancel)="uomUnitCreateVisible = false"
+  ></app-uom-unit-create-form>
   <ng-template #footer>
     <div class="bc-actions bc-actions--end">
       <p-button
@@ -534,8 +497,8 @@
         label="Guardar"
         icon="pi pi-check"
         [loading]="savingUomUnit"
-        [disabled]="savingUomUnit || uomUnitCreateForm.invalid"
-        (onClick)="saveUomUnit()"
+        [disabled]="savingUomUnit"
+        (onClick)="uomUnitCreateForm?.onSave()"
       ></p-button>
     </div>
   </ng-template>
@@ -549,12 +512,11 @@
   [draggable]="false"
   [style]="{ width: '420px' }"
 >
-  <form [formGroup]="packagingNameCreateForm" class="dialog-form p-fluid flex flex-column gap-3">
-    <p-floatLabel>
-      <input id="packagingName" type="text" pInputText formControlName="name" class="w-full" />
-      <label for="packagingName">Nombre</label>
-    </p-floatLabel>
-  </form>
+  <app-packaging-name-create-form
+    [loading]="savingPackagingName"
+    (save)="handlePackagingNameSave($event)"
+    (cancel)="packagingNameCreateVisible = false"
+  ></app-packaging-name-create-form>
   <ng-template #footer>
     <div class="bc-actions bc-actions--end">
       <p-button
@@ -567,8 +529,8 @@
         label="Guardar"
         icon="pi pi-check"
         [loading]="savingPackagingName"
-        [disabled]="savingPackagingName || packagingNameCreateForm.invalid"
-        (onClick)="savePackagingName()"
+        [disabled]="savingPackagingName"
+        (onClick)="packagingNameCreateForm?.onSave()"
       ></p-button>
     </div>
   </ng-template>

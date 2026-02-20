@@ -19,11 +19,22 @@ import { Message } from 'primeng/message';
 import { Textarea } from 'primeng/textarea';
 
 import { ProductFormComponent } from './components/product-form/product-form.component';
+import { CategoryCreateFormComponent } from './components/category-create-form/category-create-form.component';
+import { UomCategoryCreateFormComponent } from './components/uom-category-create-form/uom-category-create-form.component';
+import { UomUnitCreateFormComponent } from './components/uom-unit-create-form/uom-unit-create-form.component';
+import { PackagingNameCreateFormComponent } from './components/packaging-name-create-form/packaging-name-create-form.component';
 import { ProductsListPageComponent } from './pages/products-list-page/products-list-page.component';
 import { productsRoutes } from './products.routes';
 
 @NgModule({
-  declarations: [ProductsListPageComponent, ProductFormComponent],
+  declarations: [
+    ProductsListPageComponent,
+    ProductFormComponent,
+    CategoryCreateFormComponent,
+    UomCategoryCreateFormComponent,
+    UomUnitCreateFormComponent,
+    PackagingNameCreateFormComponent,
+  ],
   imports: [
     CommonModule,
     FormsModule,

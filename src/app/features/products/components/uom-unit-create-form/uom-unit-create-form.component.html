@@ -1,0 +1,35 @@
+<form [formGroup]="form" class="dialog-form p-fluid flex flex-column gap-3">
+  <p-floatLabel>
+    <input id="uomUnitName" type="text" pInputText formControlName="name" class="w-full" />
+    <label for="uomUnitName">Nombre</label>
+  </p-floatLabel>
+
+  <p-floatLabel>
+    <input id="uomUnitSymbol" type="text" pInputText formControlName="symbol" class="w-full" />
+    <label for="uomUnitSymbol">Símbolo</label>
+  </p-floatLabel>
+
+  <p-floatLabel>
+    <p-inputNumber
+      inputId="uomUnitFactor"
+      formControlName="factor"
+      [min]="0.000001"
+      [minFractionDigits]="2"
+      [maxFractionDigits]="6"
+      locale="en-US"
+    ></p-inputNumber>
+    <label for="uomUnitFactor">Factor</label>
+  </p-floatLabel>
+  
+  <p-floatLabel>
+    <p-select
+      inputId="uomUnitCategory"
+      [options]="uomCategoryOptions"
+      optionLabel="label"
+      optionValue="value"
+      formControlName="categoryId"
+      appendTo="body"
+    ></p-select>
+    <label for="uomUnitCategory">Categoría UoM</label>
+  </p-floatLabel>
+</form>

@@ -16,6 +16,10 @@ import { Select } from 'primeng/select';
 import { TreeSelect } from 'primeng/treeselect';
 import { Subject } from 'rxjs';
 import { finalize, takeUntil } from 'rxjs/operators';
+import { CategoryCreateFormComponent, CategoryCreateFormPayload } from '../category-create-form/category-create-form.component';
+import { UomCategoryCreateFormComponent, UomCategoryCreateFormPayload } from '../uom-category-create-form/uom-category-create-form.component';
+import { UomUnitCreateFormComponent, UomUnitCreateFormPayload } from '../uom-unit-create-form/uom-unit-create-form.component';
+import { PackagingNameCreateFormComponent, PackagingNameCreateFormPayload } from '../packaging-name-create-form/packaging-name-create-form.component';
 
 import {
   CreateProductCategoryPayload,
@@ -100,22 +104,6 @@ type ProductFormGroup = FormGroup<{
   isActive: FormControl<boolean>;
 }>;
 
-type CategoryCreateFormGroup = FormGroup<{
-  name: FormControl<string>;
-  parentNode: FormControl<TreeNode | null>;
-}>;
-
-type UomCategoryCreateFormGroup = FormGroup<{
-  name: FormControl<string>;
-}>;
-
-type UomUnitCreateFormGroup = FormGroup<{
-  name: FormControl<string>;
-  symbol: FormControl<string>;
-  factor: FormControl<number>;
-  categoryId: FormControl<string>;
-}>;
-
 @Component({
   selector: 'bc-product-form',
   standalone: false,
@@ -134,6 +122,10 @@ export class ProductFormComponent implements OnInit, OnChanges, OnDestroy {
   @ViewChild('categorySelect') private categorySelect?: TreeSelect;
   @ViewChild('uomCategorySelect') private uomCategorySelect?: Select;
   @ViewChild('uomUnitSelect') private uomUnitSelect?: Select;
+  @ViewChild(CategoryCreateFormComponent) categoryCreateForm?: CategoryCreateFormComponent;
+  @ViewChild(UomCategoryCreateFormComponent) uomCategoryCreateForm?: UomCategoryCreateFormComponent;
+  @ViewChild(UomUnitCreateFormComponent) uomUnitCreateForm?: UomUnitCreateFormComponent;
+  @ViewChild(PackagingNameCreateFormComponent) packagingNameCreateForm?: PackagingNameCreateFormComponent;
 
   private readonly fb = inject(FormBuilder);
   private readonly variantsApi = inject(VariantsApiService);
@@ -152,6 +144,7 @@ export class ProductFormComponent implements OnInit, OnChanges, OnDestroy {
   private pendingCategoryId: string | null = null;
   private readonly packagingGenerating = new Set<number>();
   private readonly deletedVariantIds = new Set<string>();
+  uomUnitDialogCategoryId: string | null = null;
 
   variants: ProductVariant[] = [];
   variantsLoading = false;
@@ -190,25 +183,6 @@ export class ProductFormComponent implements OnInit, OnChanges, OnDestroy {
   savingUomUnit = false;
   savingPackagingName = false;
 
-  readonly categoryCreateForm: CategoryCreateFormGroup = this.fb.group({
-    name: this.fb.nonNullable.control('', [Validators.required]),
-    parentNode: new FormControl<TreeNode | null>(null),
-  });
-
-  readonly uomCategoryCreateForm: UomCategoryCreateFormGroup = this.fb.nonNullable.group({
-    name: ['', [Validators.required]],
-  });
-
-  readonly uomUnitCreateForm: UomUnitCreateFormGroup = this.fb.nonNullable.group({
-    name: ['', [Validators.required]],
-    symbol: ['', [Validators.required]],
-    factor: [1, [Validators.required, Validators.min(0.000001)]],
-    categoryId: ['', [Validators.required]],
-  });
-
-  readonly packagingNameCreateForm = this.fb.nonNullable.group({
-    name: ['', [Validators.required]],
-  });
 
   ngOnInit(): void {
     this.productForm.controls.name.valueChanges.pipe(takeUntil(this.destroy$)).subscribe((value) => {
@@ -358,13 +332,12 @@ export class ProductFormComponent implements OnInit, OnChanges, OnDestroy {
 
   openCreateCategory(event?: Event): void {
     event?.stopPropagation();
-    this.categoryCreateForm.reset({ name: '', parentNode: null });
     this.categoryCreateVisible = true;
+    queueMicrotask(() => this.categoryCreateForm?.reset());
   }
 
-  saveCategory(): void {
-    if (this.savingCategory || this.categoryCreateForm.invalid) {
-      this.categoryCreateForm.markAllAsTouched();
+  handleCategorySave(payload: CategoryCreateFormPayload): void {
+    if (this.savingCategory) {
       return;
     }
     const organizationId = this.getOrganizationId();
@@ -376,21 +349,17 @@ export class ProductFormComponent implements OnInit, OnChanges, OnDestroy {
       });
       return;
     }
-    const raw = this.categoryCreateForm.getRawValue();
-    const parentId = this.resolveTreeNodeId(raw.parentNode);
-    const payload: CreateProductCategoryPayload = {
-      name: raw.name.trim(),
-      parentId,
+    const request: CreateProductCategoryPayload = {
+      name: payload.name.trim(),
+      parentId: payload.parentId ?? undefined,
       organizationId,
     };
     this.savingCategory = true;
-    this.categoryCreateForm.disable({ emitEvent: false });
     this.categoriesApi
-      .create(payload)
+      .create(request)
       .pipe(
         finalize(() => {
           this.savingCategory = false;
-          this.categoryCreateForm.enable({ emitEvent: false });
         }),
       )
       .subscribe({
@@ -421,13 +390,12 @@ export class ProductFormComponent implements OnInit, OnChanges, OnDestroy {
   openCreateUomCategory(index?: number, event?: Event): void {
     event?.stopPropagation();
     this.selectedVariantIndex = index ?? null;
-    this.uomCategoryCreateForm.reset({ name: '' });
     this.uomCategoryCreateVisible = true;
+    queueMicrotask(() => this.uomCategoryCreateForm?.reset());
   }
 
-  saveUomCategory(): void {
-    if (this.savingUomCategory || this.uomCategoryCreateForm.invalid) {
-      this.uomCategoryCreateForm.markAllAsTouched();
+  handleUomCategorySave(payload: UomCategoryCreateFormPayload): void {
+    if (this.savingUomCategory) {
       return;
     }
     const organizationId = this.getOrganizationId();
@@ -439,19 +407,16 @@ export class ProductFormComponent implements OnInit, OnChanges, OnDestroy {
       });
       return;
     }
-    const raw = this.uomCategoryCreateForm.getRawValue();
-    const payload: CreateUomCategoryPayload = {
-      name: raw.name.trim(),
+    const request: CreateUomCategoryPayload = {
+      name: payload.name.trim(),
       organizationId,
     };
     this.savingUomCategory = true;
-    this.uomCategoryCreateForm.disable({ emitEvent: false });
     this.uomApi
-      .createCategory(payload)
+      .createCategory(request)
       .pipe(
         finalize(() => {
           this.savingUomCategory = false;
-          this.uomCategoryCreateForm.enable({ emitEvent: false });
         }),
       )
       .subscribe({
@@ -482,19 +447,13 @@ export class ProductFormComponent implements OnInit, OnChanges, OnDestroy {
     event?.stopPropagation();
     this.selectedVariantIndex = index ?? null;
     const target = this.getUomTargetControls();
-    const categoryId = target.uomCategoryId.value;
-    this.uomUnitCreateForm.reset({
-      name: '',
-      symbol: '',
-      factor: 1,
-      categoryId: categoryId || '',
-    });
+    this.uomUnitDialogCategoryId = target.uomCategoryId.value || null;
     this.uomUnitCreateVisible = true;
+    queueMicrotask(() => this.uomUnitCreateForm?.reset());
   }
 
-  saveUomUnit(): void {
-    if (this.savingUomUnit || this.uomUnitCreateForm.invalid) {
-      this.uomUnitCreateForm.markAllAsTouched();
+  handleUomUnitSave(payload: UomUnitCreateFormPayload): void {
+    if (this.savingUomUnit) {
       return;
     }
     const organizationId = this.getOrganizationId();
@@ -506,8 +465,7 @@ export class ProductFormComponent implements OnInit, OnChanges, OnDestroy {
       });
       return;
     }
-    const raw = this.uomUnitCreateForm.getRawValue();
-    const categoryId = raw.categoryId?.trim();
+    const categoryId = payload.categoryId?.trim();
     if (!categoryId) {
       this.messageService.add({
         severity: 'warn',
@@ -516,21 +474,19 @@ export class ProductFormComponent implements OnInit, OnChanges, OnDestroy {
       });
       return;
     }
-    const payload: CreateUomUnitPayload = {
-      name: raw.name.trim(),
-      symbol: raw.symbol.trim(),
-      factor: raw.factor,
+    const request: CreateUomUnitPayload = {
+      name: payload.name.trim(),
+      symbol: payload.symbol.trim(),
+      factor: payload.factor,
       categoryId,
       organizationId,
     };
     this.savingUomUnit = true;
-    this.uomUnitCreateForm.disable({ emitEvent: false });
     this.uomApi
-      .createUnit(payload)
+      .createUnit(request)
       .pipe(
         finalize(() => {
           this.savingUomUnit = false;
-          this.uomUnitCreateForm.enable({ emitEvent: false });
         }),
       )
       .subscribe({
@@ -605,13 +561,12 @@ export class ProductFormComponent implements OnInit, OnChanges, OnDestroy {
   openCreatePackagingName(index?: number, event?: Event): void {
     event?.stopPropagation();
     this.selectedPackagingIndex = index ?? null;
-    this.packagingNameCreateForm.reset({ name: '' });
     this.packagingNameCreateVisible = true;
+    queueMicrotask(() => this.packagingNameCreateForm?.reset());
   }
 
-  savePackagingName(): void {
-    if (this.savingPackagingName || this.packagingNameCreateForm.invalid) {
-      this.packagingNameCreateForm.markAllAsTouched();
+  handlePackagingNameSave(payload: PackagingNameCreateFormPayload): void {
+    if (this.savingPackagingName) {
       return;
     }
     const organizationId = this.getOrganizationId();
@@ -623,16 +578,13 @@ export class ProductFormComponent implements OnInit, OnChanges, OnDestroy {
       });
       return;
     }
-    const raw = this.packagingNameCreateForm.getRawValue();
-    const payload = { organizationId, name: raw.name.trim() };
+    const request = { organizationId, name: payload.name.trim() };
     this.savingPackagingName = true;
-    this.packagingNameCreateForm.disable({ emitEvent: false });
     this.packagingNamesApi
-      .create(payload)
+      .create(request)
       .pipe(
         finalize(() => {
           this.savingPackagingName = false;
-          this.packagingNameCreateForm.enable({ emitEvent: false });
         }),
       )
       .subscribe({

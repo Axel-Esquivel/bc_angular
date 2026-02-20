@@ -1,0 +1,17 @@
+<form [formGroup]="form" class="dialog-form p-fluid flex flex-column gap-3">
+  <p-floatLabel>
+    <input id="categoryName" type="text" pInputText formControlName="name" class="w-full" />
+    <label for="categoryName">Nombre</label>
+  </p-floatLabel>
+  <p-floatLabel>
+    <p-treeSelect
+      #parentSelect
+      inputId="categoryParent"
+      [options]="categoryTree"
+      formControlName="parentNode"
+      appendTo="body"
+      selectionMode="single"
+    ></p-treeSelect>
+    <label for="categoryParent">Categoría padre</label>
+  </p-floatLabel>
+</form>

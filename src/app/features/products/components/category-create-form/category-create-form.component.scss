@@ -1,0 +1,14 @@
+.dialog-form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 2em;
+
+  input {
+    width: 100%;
+  }
+
+  p-treeSelect {
+    width: 100%;
+  }
+}
