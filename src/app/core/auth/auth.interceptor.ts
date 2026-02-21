@@ -87,19 +87,15 @@ export class AuthInterceptor implements HttpInterceptor {
       return throwError(() => error);
     }
 
-    if (error.status === 401) {
-      this.logoutAndRedirect();
-      return throwError(() => error);
-    }
-
     if (this.isAuthEndpoint(originalRequest.url)) {
+      this.handleSessionExpired();
       return throwError(() => error);
     }
 
     return this.authService.refreshToken().pipe(
       switchMap((tokens) => {
         if (!tokens?.accessToken) {
-          this.logoutAndRedirect();
+          this.handleSessionExpired();
           return throwError(() => error);
         }
 
@@ -109,7 +105,7 @@ export class AuthInterceptor implements HttpInterceptor {
       catchError((refreshError) => {
         const status = refreshError instanceof HttpErrorResponse ? refreshError.status : null;
         if (status === 401 || status === 419) {
-          this.logoutAndRedirect();
+          this.handleSessionExpired();
         }
         return throwError(() => refreshError);
       })
@@ -130,6 +126,15 @@ export class AuthInterceptor implements HttpInterceptor {
     this.authService.logoutLocal();
     this.activeContextState.clearActiveContext();
     void this.router.navigateByUrl('/auth/login');
+  }
+
+  private handleSessionExpired(): void {
+    this.messageService.add({
+      severity: 'warn',
+      summary: 'Sesión',
+      detail: 'Sesión expirada. Inicia sesión nuevamente.',
+    });
+    this.logoutAndRedirect();
   }
 
   private isContextMissing(error: HttpErrorResponse): boolean {
