@@ -1,7 +1,7 @@
 ﻿import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder } from '@angular/forms';
 import { MessageService } from 'primeng/api';
-import { Observable, forkJoin, of, switchMap } from 'rxjs';
+import { Observable, forkJoin, of, switchMap, throwError } from 'rxjs';
 import { finalize, map, take } from 'rxjs/operators';
 
 import { ProductCategoriesApiService, ProductCategoryTreeNode } from '../../../../core/api/product-categories-api.service';
@@ -295,8 +295,24 @@ export class ProductsListPageComponent implements OnInit {
         if (!defaultVariant) {
           return of(null);
         }
+        const context = this.activeContextState.getActiveContext();
+        const organizationId = context.organizationId ?? undefined;
+        const companyId = context.companyId ?? undefined;
+        const enterpriseId = context.enterpriseId ?? undefined;
+        if (!organizationId || !companyId || !enterpriseId) {
+          this.showError(null, 'El contexto de organización es requerido.');
+          return throwError(() => new Error('Missing organization context'));
+        }
         const rows = packaging.length > 0 ? packaging : [{ name: 'Unidad', unitsPerPack: 1, price: 0 }];
-        const requests = rows.map((row) => this.packagingApi.create(defaultVariant.id, row));
+        const requests = rows.map((row) =>
+          this.packagingApi.create(defaultVariant.id, {
+            ...row,
+            OrganizationId: organizationId,
+            companyId,
+            enterpriseId,
+            isActive: row.isActive ?? true,
+          }),
+        );
         return forkJoin(requests).pipe(map(() => null));
       }),
     );

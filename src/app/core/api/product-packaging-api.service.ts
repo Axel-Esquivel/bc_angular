@@ -19,16 +19,16 @@ export interface ProductPackaging {
   enterpriseId?: string;
 }
 
-export interface CreatePackagingPayload {
+export interface CreateProductPackagingRequest {
+  OrganizationId: string;
+  companyId: string;
+  enterpriseId: string;
   name: string;
   unitsPerPack: number;
+  price: number;
   barcode?: string;
   internalBarcode?: string;
-  price: number;
-  isActive?: boolean;
-  OrganizationId?: string;
-  companyId?: string;
-  enterpriseId?: string;
+  isActive: boolean;
 }
 
 export interface UpdatePackagingPayload {
@@ -52,7 +52,7 @@ export class ProductPackagingApiService {
     return this.http.get<ApiResponse<ProductPackaging[]>>(`${this.baseUrl}/${variantId}/packaging`);
   }
 
-  create(variantId: string, payload: CreatePackagingPayload): Observable<ApiResponse<ProductPackaging>> {
+  create(variantId: string, payload: CreateProductPackagingRequest): Observable<ApiResponse<ProductPackaging>> {
     return this.http.post<ApiResponse<ProductPackaging>>(`${this.baseUrl}/${variantId}/packaging`, payload);
   }
 
