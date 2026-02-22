@@ -92,6 +92,14 @@
   gap: 0.75rem;
 }
 
+.packaging-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-color-secondary);
+  font-size: 0.9rem;
+}
+
 .packaging-table {
   display: grid;
   gap: 0.75rem;
@@ -124,6 +132,12 @@
 
 .barcode-input :host ::ng-deep .p-inputgroup .p-button {
   align-self: stretch;
+}
+
+.field-error {
+  color: var(--red-500);
+  font-size: 0.75rem;
+  margin-top: -0.5rem;
 }
 
 .form-actions {

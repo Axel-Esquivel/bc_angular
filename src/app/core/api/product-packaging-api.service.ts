@@ -14,6 +14,7 @@ export interface ProductPackaging {
   internalBarcode?: string;
   price: number;
   isActive: boolean;
+  systemCreated?: boolean;
   OrganizationId?: string;
   companyId?: string;
   enterpriseId?: string;

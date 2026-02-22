@@ -244,9 +244,17 @@ export class ProductsListPageComponent implements OnInit {
                 () => {
                   this.deleteVariants(payload.deletedVariantIds ?? []).subscribe(
                     () => {
-                      this.saving = false;
-                      this.dialogVisible = false;
-                      this.loadProducts();
+                      this.deletePackagings(payload.deletedPackagingIds ?? []).subscribe(
+                        () => {
+                          this.saving = false;
+                          this.dialogVisible = false;
+                          this.loadProducts();
+                        },
+                        (error: unknown) => {
+                          this.saving = false;
+                          this.showError(error, 'No se pudieron eliminar los empaques');
+                        },
+                      );
                     },
                     (error: unknown) => {
                       this.saving = false;
@@ -306,16 +314,31 @@ export class ProductsListPageComponent implements OnInit {
         if (packaging.length === 0) {
           return of(null);
         }
-        const requests = packaging.map((row) =>
-          this.packagingApi.create(defaultVariant.id, {
-            ...row,
-            OrganizationId: organizationId,
-            companyId,
-            enterpriseId,
-            isActive: row.isActive ?? true,
-          }),
-        );
-        return forkJoin(requests).pipe(map(() => null));
+        const updates = packaging
+          .filter((row) => row.id)
+          .map((row) =>
+            this.packagingApi.update(row.id as string, {
+              name: row.name,
+              unitsPerPack: row.unitsPerPack,
+              price: row.price,
+              barcode: row.barcode,
+              internalBarcode: row.internalBarcode,
+              isActive: row.isActive ?? true,
+            }),
+          );
+        const creates = packaging
+          .filter((row) => !row.id)
+          .map((row) =>
+            this.packagingApi.create(defaultVariant.id, {
+              ...row,
+              OrganizationId: organizationId,
+              companyId,
+              enterpriseId,
+              isActive: row.isActive ?? true,
+            }),
+          );
+        const requests = [...updates, ...creates];
+        return requests.length > 0 ? forkJoin(requests).pipe(map(() => null)) : of(null);
       }),
     );
   }
@@ -336,6 +359,14 @@ export class ProductsListPageComponent implements OnInit {
       return of(null);
     }
     const requests = variantIds.map((id) => this.variantsApi.deleteVariant(id));
+    return forkJoin(requests).pipe(map(() => null));
+  }
+
+  private deletePackagings(packagingIds: string[]): Observable<null> {
+    if (!packagingIds || packagingIds.length === 0) {
+      return of(null);
+    }
+    const requests = packagingIds.map((id) => this.packagingApi.remove(id));
     return forkJoin(requests).pipe(map(() => null));
   }
 

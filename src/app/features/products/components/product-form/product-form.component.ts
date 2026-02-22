@@ -27,7 +27,7 @@ import {
   ProductCategoryTreeNode,
 } from '../../../../core/api/product-categories-api.service';
 import { PackagingNamesApiService } from '../../../../core/api/packaging-names-api.service';
-import { ProductPackagingApiService } from '../../../../core/api/product-packaging-api.service';
+import { ProductPackaging, ProductPackagingApiService } from '../../../../core/api/product-packaging-api.service';
 import {
   CreateUomCategoryPayload,
   CreateUomUnitPayload,
@@ -52,6 +52,7 @@ export interface ProductFormVariantPayload {
 }
 
 export interface PackagingPayload {
+  id?: string;
   name: string;
   unitsPerPack: number;
   price: number;
@@ -70,6 +71,7 @@ export interface ProductFormSubmit {
   variants: ProductFormVariantPayload[];
   packaging: PackagingPayload[];
   deletedVariantIds?: string[];
+  deletedPackagingIds?: string[];
 }
 
 type VariantFormGroup = FormGroup<{
@@ -85,6 +87,7 @@ type VariantFormGroup = FormGroup<{
 }>;
 
 type PackagingFormGroup = FormGroup<{
+  id: FormControl<string>;
   name: FormControl<string>;
   unitsPerPack: FormControl<number>;
   price: FormControl<number>;
@@ -92,6 +95,12 @@ type PackagingFormGroup = FormGroup<{
   internalBarcode: FormControl<string>;
   isActive: FormControl<boolean>;
 }>;
+
+type SkuControlHolder = {
+  controls: {
+    sku: FormControl<string>;
+  };
+};
 
 interface OptionItem {
   label: string;
@@ -144,7 +153,11 @@ export class ProductFormComponent implements OnInit, OnChanges, OnDestroy {
   private pendingCategoryId: string | null = null;
   private readonly packagingGenerating = new Set<number>();
   private readonly deletedVariantIds = new Set<string>();
+  private readonly deletedPackagingIds = new Set<string>();
+  private readonly variantSkuGenerating = new Set<string>();
+  private defaultVariantId: string | null = null;
   uomUnitDialogCategoryId: string | null = null;
+  private packagingSource: ProductPackaging[] = [];
 
   variants: ProductVariant[] = [];
   variantsLoading = false;
@@ -163,7 +176,7 @@ export class ProductFormComponent implements OnInit, OnChanges, OnDestroy {
 
   readonly defaultVariantForm = this.fb.nonNullable.group({
     name: [''],
-    sku: [''],
+    sku: ['', [Validators.pattern(/^\d*$/)]],
     barcodes: [''],
     uomCategoryId: ['', [Validators.required]],
     uomId: ['', [Validators.required]],
@@ -173,6 +186,7 @@ export class ProductFormComponent implements OnInit, OnChanges, OnDestroy {
 
   readonly variantsFormArray = new FormArray<VariantFormGroup>([]);
   readonly packagingFormArray = new FormArray<PackagingFormGroup>([]);
+  readonly showSystemPackagingsControl = new FormControl<boolean>(false, { nonNullable: true });
 
   categoryCreateVisible = false;
   uomCategoryCreateVisible = false;
@@ -213,6 +227,10 @@ export class ProductFormComponent implements OnInit, OnChanges, OnDestroy {
       if (categoryId) {
         this.loadUomUnits(categoryId);
       }
+    });
+
+    this.showSystemPackagingsControl.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(() => {
+      this.applyPackagingFilter();
     });
 
     this.loadCategories();
@@ -277,6 +295,7 @@ export class ProductFormComponent implements OnInit, OnChanges, OnDestroy {
     const packaging = this.packagingFormArray.controls.map((group) => {
       const value = group.getRawValue();
       return {
+        id: value.id?.trim() || undefined,
         name: value.name?.trim() ?? '',
         unitsPerPack: value.unitsPerPack,
         price: value.price,
@@ -288,12 +307,14 @@ export class ProductFormComponent implements OnInit, OnChanges, OnDestroy {
     const normalizedPackaging = packaging.filter((item) => this.isPackagingPayloadValid(item));
 
     const deletedVariantIds = Array.from(this.deletedVariantIds);
+    const deletedPackagingIds = Array.from(this.deletedPackagingIds);
     this.save.emit({
       product,
       defaultVariant,
       variants,
       packaging: normalizedPackaging,
       deletedVariantIds: deletedVariantIds.length > 0 ? deletedVariantIds : undefined,
+      deletedPackagingIds: deletedPackagingIds.length > 0 ? deletedPackagingIds : undefined,
     });
   }
 
@@ -611,6 +632,13 @@ export class ProductFormComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   removePackagingRow(index: number): void {
+    const group = this.packagingFormArray.at(index);
+    if (group) {
+      const id = group.controls.id.value?.trim();
+      if (id) {
+        this.deletedPackagingIds.add(id);
+      }
+    }
     this.packagingFormArray.removeAt(index);
   }
 
@@ -671,6 +699,27 @@ export class ProductFormComponent implements OnInit, OnChanges, OnDestroy {
     return this.packagingGenerating.has(index);
   }
 
+  isVariantSkuGenerating(index?: number): boolean {
+    return this.variantSkuGenerating.has(this.getVariantSkuKey(index));
+  }
+
+  generateDefaultVariantSku(): void {
+    this.generateVariantSkuForGroup(
+      this.defaultVariantForm,
+      this.defaultVariantId ?? undefined,
+      this.getVariantSkuKey(),
+    );
+  }
+
+  generateVariantSku(index: number): void {
+    const group = this.variantsFormArray.at(index);
+    if (!group) {
+      return;
+    }
+    const variantId = group.controls.id.value || undefined;
+    this.generateVariantSkuForGroup(group, variantId, this.getVariantSkuKey(index));
+  }
+
   getUomOptions(categoryId: string): OptionItem[] {
     return this.uomOptionsByCategory.get(categoryId) ?? [];
   }
@@ -716,6 +765,7 @@ export class ProductFormComponent implements OnInit, OnChanges, OnDestroy {
     this.defaultVariantNameEdited = false;
     this.pendingCategoryId = product?.category ?? null;
     this.deletedVariantIds.clear();
+    this.deletedPackagingIds.clear();
     this.productForm.reset({
       name: product?.name ?? '',
       categoryNode: null,
@@ -733,11 +783,17 @@ export class ProductFormComponent implements OnInit, OnChanges, OnDestroy {
     this.variants = [];
     this.variantsFormArray.clear();
     this.packagingFormArray.clear();
+    this.packagingSource = [];
+    this.showSystemPackagingsControl.setValue(false, { emitEvent: false });
+    this.defaultVariantId = null;
     if (!product?.id) {
       this.packagingFormArray.push(this.createPackagingGroup());
     }
 
+    this.applyCategorySelection();
+
     if (product?.id) {
+      this.loadCategories();
       this.loadVariants(product.id);
     }
   }
@@ -752,10 +808,7 @@ export class ProductFormComponent implements OnInit, OnChanges, OnDestroy {
       next: (response) => {
         const raw = response.result ?? [];
         this.categoryTree = this.mapTreeNodes(raw);
-        if (this.pendingCategoryId) {
-          const node = this.findCategoryNode(this.pendingCategoryId);
-          this.productForm.controls.categoryNode.setValue(node);
-        }
+        this.applyCategorySelection();
       },
       error: () => {
         this.categoryTree = [];
@@ -815,6 +868,7 @@ export class ProductFormComponent implements OnInit, OnChanges, OnDestroy {
         this.variants = response.result ?? [];
         const defaultVariant = this.variants[0] ?? null;
         if (defaultVariant) {
+          this.defaultVariantId = defaultVariant.id ?? null;
           this.defaultVariantForm.patchValue({
             name: defaultVariant.name ?? '',
             sku: defaultVariant.sku ?? '',
@@ -844,26 +898,12 @@ export class ProductFormComponent implements OnInit, OnChanges, OnDestroy {
   private loadPackaging(variantId: string): void {
     this.packagingApi.listByVariant(variantId).subscribe({
       next: (response) => {
-        const packaging = response.result ?? [];
-        this.packagingFormArray.clear();
-        if (packaging.length === 0) {
-          return;
-        }
-        packaging.forEach((item) => {
-          const group = this.createPackagingGroup();
-          group.patchValue({
-            name: item.name,
-            unitsPerPack: item.unitsPerPack,
-            price: item.price,
-            barcode: item.barcode ?? '',
-            internalBarcode: item.internalBarcode ?? '',
-            isActive: item.isActive,
-          });
-          this.packagingFormArray.push(group);
-        });
+        this.packagingSource = response.result ?? [];
+        this.applyPackagingFilter();
       },
       error: () => {
         this.packagingFormArray.clear();
+        this.packagingSource = [];
       },
     });
   }
@@ -872,7 +912,7 @@ export class ProductFormComponent implements OnInit, OnChanges, OnDestroy {
     return this.fb.nonNullable.group({
       id: [''],
       name: ['', [Validators.required]],
-      sku: [''],
+      sku: ['', [Validators.pattern(/^\d*$/)]],
       barcodes: [''],
       uomCategoryId: ['', [Validators.required]],
       uomId: ['', [Validators.required]],
@@ -884,6 +924,7 @@ export class ProductFormComponent implements OnInit, OnChanges, OnDestroy {
 
   private createPackagingGroup(): PackagingFormGroup {
     return this.fb.nonNullable.group({
+      id: [''],
       name: ['', [Validators.required]],
       unitsPerPack: [0, [Validators.required, Validators.min(1)]],
       price: [0, [Validators.required, Validators.min(0)]],
@@ -1009,6 +1050,38 @@ export class ProductFormComponent implements OnInit, OnChanges, OnDestroy {
     return null;
   }
 
+  private applyCategorySelection(): void {
+    if (!this.pendingCategoryId || this.categoryTree.length === 0) {
+      return;
+    }
+    const node = this.findCategoryNode(this.pendingCategoryId);
+    this.productForm.controls.categoryNode.setValue(node, { emitEvent: false });
+  }
+
+  private applyPackagingFilter(): void {
+    const showSystem = this.showSystemPackagingsControl.value;
+    const list = showSystem
+      ? this.packagingSource
+      : this.packagingSource.filter((item) => !item.systemCreated);
+    this.packagingFormArray.clear();
+    if (list.length === 0) {
+      return;
+    }
+    list.forEach((item) => {
+      const group = this.createPackagingGroup();
+      group.patchValue({
+        id: item.id ?? '',
+        name: item.name,
+        unitsPerPack: item.unitsPerPack,
+        price: item.price,
+        barcode: item.barcode ?? '',
+        internalBarcode: item.internalBarcode ?? '',
+        isActive: item.isActive,
+      });
+      this.packagingFormArray.push(group);
+    });
+  }
+
   private getOrganizationId(): string | null {
     const context = this.activeContextState.getActiveContext();
     return context.organizationId ?? null;
@@ -1036,5 +1109,54 @@ export class ProductFormComponent implements OnInit, OnChanges, OnDestroy {
     const target = this.getUomTargetControls();
     target.uomCategoryId.setValue(categoryId);
     target.uomId.setValue(uomId);
+  }
+
+  private getVariantSkuKey(index?: number): string {
+    return index === undefined ? 'default' : `variant-${index}`;
+  }
+
+  private generateVariantSkuForGroup(group: SkuControlHolder, variantId: string | undefined, key: string): void {
+    const skuControl = group.controls.sku;
+    const current = skuControl.value?.trim();
+    if (current) {
+      return;
+    }
+    if (this.variantSkuGenerating.has(key)) {
+      return;
+    }
+    const context = this.activeContextState.getActiveContext();
+    const organizationId = context.organizationId ?? undefined;
+    const enterpriseId = context.enterpriseId ?? undefined;
+    if (!organizationId || !enterpriseId) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Contexto',
+        detail: 'Selecciona una organizacion antes de generar el SKU.',
+      });
+      return;
+    }
+    this.variantSkuGenerating.add(key);
+    this.variantsApi
+      .generateInternalSku({ organizationId, enterpriseId, variantId })
+      .pipe(
+        finalize(() => {
+          this.variantSkuGenerating.delete(key);
+        }),
+      )
+      .subscribe({
+        next: (response) => {
+          const sku = response.result?.sku;
+          if (sku) {
+            skuControl.setValue(sku);
+          }
+        },
+        error: () => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'SKU',
+            detail: 'No se pudo generar el SKU interno.',
+          });
+        },
+      });
   }
 }

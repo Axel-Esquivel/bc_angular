@@ -80,10 +80,24 @@
               <input pInputText id="variantName" type="text" formControlName="name" />
               <label for="variantName">Nombre de variante</label>
             </p-floatLabel>
-            <p-floatLabel class="field">
-              <input pInputText id="sku" type="text" formControlName="sku" />
-              <label for="sku">SKU</label>
+            <p-floatLabel class="field sku-field">
+              <p-inputGroup>
+                <input pInputText id="sku" type="text" formControlName="sku" />
+                <p-button
+                  icon="pi pi-refresh"
+                  severity="secondary"
+                  size="small"
+                  [text]="true"
+                  [loading]="isVariantSkuGenerating()"
+                  [disabled]="isVariantSkuGenerating() || !!defaultVariantForm.controls.sku.value"
+                  (onClick)="generateDefaultVariantSku()"
+                ></p-button>
+              </p-inputGroup>
+              <label for="sku">SKU numérico</label>
             </p-floatLabel>
+            <small class="field-error" *ngIf="defaultVariantForm.controls.sku.invalid && defaultVariantForm.controls.sku.touched">
+              Solo dígitos.
+            </small>
             <p-floatLabel class="field">
               <input pInputText id="barcodes" type="text" formControlName="barcodes" />
               <label for="barcodes">Códigos de barras (separados por coma)</label>
@@ -165,14 +179,18 @@
             </p-floatLabel>
           </div>
 
-          <div class="packaging-section">
-            <div class="packaging-header">
-              <h4>Empaques</h4>
-              <p-button
-                icon="pi pi-plus"
-                label="Agregar empaque"
-                size="small"
-                (onClick)="addPackagingRow()"
+            <div class="packaging-section">
+              <div class="packaging-header">
+                <h4>Empaques</h4>
+                <div class="packaging-toggle">
+                  <span>Mostrar del sistema</span>
+                  <p-toggleSwitch [formControl]="showSystemPackagingsControl"></p-toggleSwitch>
+                </div>
+                <p-button
+                  icon="pi pi-plus"
+                  label="Agregar empaque"
+                  size="small"
+                  (onClick)="addPackagingRow()"
               ></p-button>
             </div>
             <div class="packaging-table" *ngIf="packagingFormArray.controls.length > 0">
@@ -303,10 +321,24 @@
               <input pInputText type="text" formControlName="name" />
               <label>Nombre de variante</label>
             </p-floatLabel>
-            <p-floatLabel class="field">
-              <input pInputText type="text" formControlName="sku" />
-              <label>SKU</label>
+            <p-floatLabel class="field sku-field">
+              <p-inputGroup>
+                <input pInputText type="text" formControlName="sku" />
+                <p-button
+                  icon="pi pi-refresh"
+                  severity="secondary"
+                  size="small"
+                  [text]="true"
+                  [loading]="isVariantSkuGenerating(i)"
+                  [disabled]="isVariantSkuGenerating(i) || !!group.controls.sku.value"
+                  (onClick)="generateVariantSku(i)"
+                ></p-button>
+              </p-inputGroup>
+              <label>SKU numérico</label>
             </p-floatLabel>
+            <small class="field-error" *ngIf="group.controls.sku.invalid && group.controls.sku.touched">
+              Solo dígitos.
+            </small>
             <p-floatLabel class="field">
               <input pInputText type="text" formControlName="barcodes" />
               <label>Códigos de barras (separados por coma)</label>

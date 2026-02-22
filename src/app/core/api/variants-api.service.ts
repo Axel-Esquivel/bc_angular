@@ -56,6 +56,14 @@ export class VariantsApiService {
     return this.http.patch<ApiResponse<ProductVariant>>(`${this.baseUrl}/${id}`, payload);
   }
 
+  generateInternalSku(payload: {
+    organizationId: string;
+    enterpriseId: string;
+    variantId?: string;
+  }): Observable<ApiResponse<{ sku: string }>> {
+    return this.http.post<ApiResponse<{ sku: string }>>(`${this.baseUrl}/internal-sku`, payload);
+  }
+
   deleteVariant(id: string): Observable<ApiResponse<{ id: string }>> {
     return this.http.delete<ApiResponse<{ id: string }>>(`${this.baseUrl}/${id}`);
   }
