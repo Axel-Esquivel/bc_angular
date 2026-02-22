@@ -277,7 +277,7 @@ export class ProductFormComponent implements OnInit, OnChanges, OnDestroy {
     const packaging = this.packagingFormArray.controls.map((group) => {
       const value = group.getRawValue();
       return {
-        name: value.name,
+        name: value.name?.trim() ?? '',
         unitsPerPack: value.unitsPerPack,
         price: value.price,
         barcode: value.barcode?.trim() || undefined,
@@ -285,8 +285,7 @@ export class ProductFormComponent implements OnInit, OnChanges, OnDestroy {
         isActive: value.isActive,
       };
     });
-
-    const normalizedPackaging = packaging.length > 0 ? packaging : [this.createDefaultPackaging()];
+    const normalizedPackaging = packaging.filter((item) => this.isPackagingPayloadValid(item));
 
     const deletedVariantIds = Array.from(this.deletedVariantIds);
     this.save.emit({
@@ -734,7 +733,9 @@ export class ProductFormComponent implements OnInit, OnChanges, OnDestroy {
     this.variants = [];
     this.variantsFormArray.clear();
     this.packagingFormArray.clear();
-    this.packagingFormArray.push(this.createPackagingGroup());
+    if (!product?.id) {
+      this.packagingFormArray.push(this.createPackagingGroup());
+    }
 
     if (product?.id) {
       this.loadVariants(product.id);
@@ -846,7 +847,6 @@ export class ProductFormComponent implements OnInit, OnChanges, OnDestroy {
         const packaging = response.result ?? [];
         this.packagingFormArray.clear();
         if (packaging.length === 0) {
-          this.packagingFormArray.push(this.createPackagingGroup());
           return;
         }
         packaging.forEach((item) => {
@@ -864,7 +864,6 @@ export class ProductFormComponent implements OnInit, OnChanges, OnDestroy {
       },
       error: () => {
         this.packagingFormArray.clear();
-        this.packagingFormArray.push(this.createPackagingGroup());
       },
     });
   }
@@ -885,17 +884,23 @@ export class ProductFormComponent implements OnInit, OnChanges, OnDestroy {
 
   private createPackagingGroup(): PackagingFormGroup {
     return this.fb.nonNullable.group({
-      name: ['Unidad', [Validators.required]],
-      unitsPerPack: [1, [Validators.required, Validators.min(1)]],
+      name: ['', [Validators.required]],
+      unitsPerPack: [0, [Validators.required, Validators.min(1)]],
       price: [0, [Validators.required, Validators.min(0)]],
       barcode: [''],
       internalBarcode: [''],
       isActive: [true],
     });
   }
-
-  private createDefaultPackaging(): PackagingPayload {
-    return { name: 'Unidad', unitsPerPack: 1, price: 0, isActive: true };
+  private isPackagingPayloadValid(payload: PackagingPayload): boolean {
+    const name = payload.name?.trim();
+    if (!name) {
+      return false;
+    }
+    if (!payload.unitsPerPack || payload.unitsPerPack <= 0) {
+      return false;
+    }
+    return true;
   }
 
   private parseBarcodes(value: string): string[] {

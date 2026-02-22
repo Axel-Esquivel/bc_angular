@@ -303,8 +303,10 @@ export class ProductsListPageComponent implements OnInit {
           this.showError(null, 'El contexto de organización es requerido.');
           return throwError(() => new Error('Missing organization context'));
         }
-        const rows = packaging.length > 0 ? packaging : [{ name: 'Unidad', unitsPerPack: 1, price: 0 }];
-        const requests = rows.map((row) =>
+        if (packaging.length === 0) {
+          return of(null);
+        }
+        const requests = packaging.map((row) =>
           this.packagingApi.create(defaultVariant.id, {
             ...row,
             OrganizationId: organizationId,
