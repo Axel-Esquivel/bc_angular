@@ -114,7 +114,7 @@ type ProductFormGroup = FormGroup<{
 }>;
 
 @Component({
-  selector: 'bc-product-form',
+  selector: 'app-product-form',
   standalone: false,
   templateUrl: './product-form.component.html',
   styleUrls: ['./product-form.component.scss'],

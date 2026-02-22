@@ -45,7 +45,6 @@
       <tr>
         <th>Nombre</th>
         <th>SKU</th>
-        <th>Código</th>
         <th>Precio</th>
         <th>Estado</th>
         <th></th>
@@ -55,7 +54,6 @@
       <tr>
         <td>{{ product.name }}</td>
         <td>{{ product.sku || '-' }}</td>
-        <td>{{ product.barcode || '-' }}</td>
         <td>{{ packagingPriceByProduct.get(product.id) ?? 0 | number: '1.2-2':'en-US' }}</td>
         <td>
           <span class="status" [class.inactive]="!product.isActive">{{ product.isActive ? 'Activo' : 'Inactivo' }}</span>
@@ -93,11 +91,11 @@
   styleClass="bc-dialog bc-products-dialog"
   [header]="editingProduct ? 'Editar producto' : 'Nuevo producto'"
 >
-  <bc-product-form
+  <app-product-form
     [product]="editingProduct"
     [enableVariants]="enableVariants"
     [saving]="saving"
     (save)="onFormSave($event)"
     (cancel)="dialogVisible = false"
-  ></bc-product-form>
+  ></app-product-form>
 </p-dialog>
