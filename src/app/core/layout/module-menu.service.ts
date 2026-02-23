@@ -92,6 +92,10 @@ export class ModuleMenuService {
         });
       }
       configItems.push({
+        label: 'Tienda de modulos',
+        routerLink: '/app/modules/store',
+      });
+      configItems.push({
         label: 'Catalogos',
         items: [{ label: 'Paises', routerLink: '/settings/countries' }],
       });

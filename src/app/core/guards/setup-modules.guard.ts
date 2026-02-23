@@ -34,7 +34,7 @@ export const SetupModulesGuard: CanActivateFn = () => {
       const isOwner =
         Boolean(organization?.ownerUserId && organization.ownerUserId === userId) ||
         (organization?.members ?? []).some((member) => member.userId === userId && member.roleKey === 'owner');
-      if (isOwner && organization?.setupStatus === 'pending') {
+      if (isOwner) {
         return true;
       }
       return redirect('/app');
