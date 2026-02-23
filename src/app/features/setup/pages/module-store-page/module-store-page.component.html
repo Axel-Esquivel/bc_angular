@@ -1,4 +1,4 @@
-<section class="module-store">
+﻿<section class="module-store">
   <header class="module-store__header">
     <div>
       <h1>Tienda de modulos</h1>
@@ -22,6 +22,56 @@
     </div>
   </header>
 
+  <div class="module-store__filters" *ngIf="organizationId">
+    <div class="filters-grid">
+      <div class="filters-search">
+        <label class="filters-label">Buscar</label>
+        <input
+          pInputText
+          type="text"
+          placeholder="Buscar modulos..."
+          [(ngModel)]="searchText"
+          (ngModelChange)="onToolbarChange()"
+        />
+      </div>
+      <div class="filters-field">
+        <label>Agrupar por</label>
+        <p-select
+          [options]="groupByOptions"
+          optionLabel="label"
+          optionValue="value"
+          [(ngModel)]="groupBy"
+          (onChange)="onToolbarChange()"
+          appendTo="body"
+        ></p-select>
+      </div>
+      <div class="filters-field">
+        <label>Ordenar por</label>
+        <p-select
+          [options]="sortByOptions"
+          optionLabel="label"
+          optionValue="value"
+          [(ngModel)]="sortBy"
+          (onChange)="onToolbarChange()"
+          appendTo="body"
+        ></p-select>
+      </div>
+      <div class="filters-field">
+        <label>Categorias</label>
+        <p-multiSelect
+          [options]="categoryOptions"
+          optionLabel="label"
+          optionValue="value"
+          display="chip"
+          [(ngModel)]="selectedCategories"
+          (onChange)="onToolbarChange()"
+          appendTo="body"
+          placeholder="Todas"
+        ></p-multiSelect>
+      </div>
+    </div>
+  </div>
+
   <div class="module-store__empty" *ngIf="!organizationId">
     Selecciona una organizacion para ver los modulos instalables.
   </div>
@@ -37,52 +87,71 @@
     <p-button label="Reintentar" icon="pi pi-refresh" (onClick)="retryLoad()"></p-button>
   </div>
 
-  <div class="module-store__grid" *ngIf="organizationId && !isLoading && !errorMessage">
-    <p-card
-      *ngFor="let module of modules"
-      class="module-card"
-      [header]="(module.name || module.key) + ' · v' + (module.version || '1.0.0')"
-    >
-      <div class="module-card__wrapper">
-        <div class="module-card__top">
-          <p-tag
-            [severity]="module.installed ? 'success' : 'info'"
-            [value]="module.installed ? 'Instalado' : 'Disponible'"
-          ></p-tag>
-        </div>
-        <div class="module-card__body">
-          <p class="module-desc" *ngIf="module.description">{{ module.description }}</p>
-          <div class="module-deps" *ngIf="module.dependencies?.length">
-            <span class="module-card__label">Dependencias</span>
-            <div class="module-card__chips">
-              <p-chip *ngFor="let dependency of module.dependencies" [label]="dependency"></p-chip>
-            </div>
+  <ng-container *ngIf="organizationId && !isLoading && !errorMessage">
+    <div class="module-store__grid" *ngIf="groupBy === 'none'">
+      <app-module-card
+        *ngFor="let module of visibleModules; trackBy: trackByKey"
+        [module]="module"
+        [isInstalling]="isInstalling(module.key)"
+        [isUninstalling]="isUninstalling(module.key)"
+        (install)="installModule(module)"
+        (uninstall)="uninstallModule(module)"
+      ></app-module-card>
+    </div>
+
+    <div class="module-store__groups" *ngIf="groupBy !== 'none' && groupedKeys.length > 0">
+      <div *ngFor="let groupKey of groupedKeys" class="group-card">
+        <div class="group-card__header">
+          <div class="group-title">
+            <h3>{{ getGroupLabel(groupKey) }}</h3>
+            <small>({{ getGroupInstalledCount(groupKey) }}/{{ getGroupTotalCount(groupKey) }} instalados)</small>
+          </div>
+          <div class="group-actions">
+            <ng-container *ngIf="groupBy === 'suite'">
+              <p-button
+                label="Instalar suite"
+                icon="pi pi-download"
+                size="small"
+                [text]="true"
+                [disabled]="!canInstallSuite(groupKey) || isSuiteInstalling(groupKey)"
+                [loading]="isSuiteInstalling(groupKey)"
+                (onClick)="installSuite(groupKey)"
+              ></p-button>
+              <p-button
+                label="Desinstalar suite"
+                icon="pi pi-trash"
+                size="small"
+                severity="danger"
+                [text]="true"
+                [disabled]="!canUninstallSuite(groupKey) || isSuiteUninstalling(groupKey)"
+                [loading]="isSuiteUninstalling(groupKey)"
+                (onClick)="uninstallSuite(groupKey)"
+              ></p-button>
+            </ng-container>
+            <p-button
+              [icon]="isGroupCollapsed(groupKey) ? 'pi pi-chevron-down' : 'pi pi-chevron-up'"
+              [text]="true"
+              size="small"
+              (onClick)="toggleGroup(groupKey)"
+            ></p-button>
           </div>
         </div>
-        <div class="module-card__actions">
-          <p-button
-            *ngIf="!module.installed"
-            label="Instalar"
-            icon="pi pi-download"
-            [disabled]="isInstalling(module.key)"
-            [loading]="isInstalling(module.key)"
-            (onClick)="installModule(module)"
-          ></p-button>
-          <p-button
-            *ngIf="module.installed"
-            label="Desinstalar"
-            severity="danger"
-            icon="pi pi-trash"
-            [disabled]="isUninstalling(module.key)"
-            [loading]="isUninstalling(module.key)"
-            (onClick)="uninstallModule(module)"
-          ></p-button>
+        <hr class="group-divider" />
+        <div class="module-store__grid" *ngIf="!isGroupCollapsed(groupKey)">
+          <app-module-card
+            *ngFor="let module of groupedModules[groupKey]; trackBy: trackByKey"
+            [module]="module"
+            [isInstalling]="isInstalling(module.key)"
+            [isUninstalling]="isUninstalling(module.key)"
+            (install)="installModule(module)"
+            (uninstall)="uninstallModule(module)"
+          ></app-module-card>
         </div>
       </div>
-    </p-card>
-  </div>
+    </div>
+  </ng-container>
 
-  <div class="module-store__empty" *ngIf="organizationId && !isLoading && !errorMessage && modules.length === 0">
+  <div class="module-store__empty" *ngIf="organizationId && !isLoading && !errorMessage && !hasVisibleModules()">
     No hay modulos instalables disponibles.
   </div>
 

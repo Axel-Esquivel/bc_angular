@@ -19,6 +19,7 @@ import {
   OrganizationModuleInstallResponse,
   OrganizationModuleStoreResponse,
   OrganizationModuleUninstallResponse,
+  SuiteOperationResponse,
 } from '../../shared/models/organization-module-store.model';
 import { Organization } from '../../shared/models/organization.model';
 
@@ -190,6 +191,20 @@ export class OrganizationsService {
     return this.http.post<ApiResponse<OrganizationModuleUninstallResponse>>(
       `${this.baseUrl}/${id}/modules/uninstall`,
       { moduleKey, cascade },
+    );
+  }
+
+  installSuite(id: string, suiteKey: string): Observable<ApiResponse<SuiteOperationResponse>> {
+    return this.http.post<ApiResponse<SuiteOperationResponse>>(
+      `${this.baseUrl}/${id}/modules/suite/${encodeURIComponent(suiteKey)}/install`,
+      {},
+    );
+  }
+
+  uninstallSuite(id: string, suiteKey: string): Observable<ApiResponse<SuiteOperationResponse>> {
+    return this.http.post<ApiResponse<SuiteOperationResponse>>(
+      `${this.baseUrl}/${id}/modules/suite/${encodeURIComponent(suiteKey)}/uninstall`,
+      {},
     );
   }
 

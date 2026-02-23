@@ -1,0 +1,52 @@
+<p-card class="module-card" [class.is-installed]="module.installed">
+  <ng-template pTemplate="header">
+    <div class="module-card__header">
+      <div class="module-card__title">
+        <h3>{{ headerTitle }}</h3>
+        <span class="module-card__version">v{{ headerVersion }}</span>
+      </div>
+      <div class="module-card__meta">
+        <p-tag [severity]="statusSeverity" [value]="statusLabel"></p-tag>
+        <div class="module-card__chips">
+          <p-chip [label]="module.suite"></p-chip>
+          <p-chip [label]="module.category"></p-chip>
+        </div>
+      </div>
+    </div>
+  </ng-template>
+  <div class="module-card__wrapper">
+    <div class="module-card__body">
+      <p class="module-desc" *ngIf="module.description">{{ module.description }}</p>
+      <div
+        class="module-deps"
+        [pTooltip]="module.dependencies.length ? module.dependencies.join(', ') : 'Sin dependencias'"
+        tooltipPosition="top"
+      >
+        <span class="module-card__label">Dependencias</span>
+        <div class="module-card__chips module-card__chips--scroll">
+          <p-chip *ngFor="let dependency of module.dependencies" [label]="dependency"></p-chip>
+          <span class="module-card__empty" *ngIf="!module.dependencies.length">Sin dependencias</span>
+        </div>
+      </div>
+    </div>
+    <div class="module-card__actions">
+      <p-button
+        *ngIf="!module.installed"
+        label="Instalar"
+        icon="pi pi-download"
+        [disabled]="isInstalling"
+        [loading]="isInstalling"
+        (onClick)="onInstall()"
+      ></p-button>
+      <p-button
+        *ngIf="module.installed"
+        label="Desinstalar"
+        severity="danger"
+        icon="pi pi-trash"
+        [disabled]="isUninstalling"
+        [loading]="isUninstalling"
+        (onClick)="onUninstall()"
+      ></p-button>
+    </div>
+  </div>
+</p-card>
