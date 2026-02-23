@@ -2,11 +2,14 @@ import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
+import { ConfirmationService } from 'primeng/api';
 import { Button } from 'primeng/button';
 import { Card } from 'primeng/card';
 import { Dialog } from 'primeng/dialog';
+import { ConfirmDialog } from 'primeng/confirmdialog';
 import { InputNumber } from 'primeng/inputnumber';
 import { InputText } from 'primeng/inputtext';
+import { Password } from 'primeng/password';
 import { Select } from 'primeng/select';
 import { TableModule } from 'primeng/table';
 import { ToggleSwitchModule } from 'primeng/toggleswitch';
@@ -27,6 +30,7 @@ import { prepaidRoutes } from './prepaid.routes';
     PrepaidBalancesPageComponent,
     PrepaidConfigsPageComponent,
   ],
+  providers: [ConfirmationService],
   imports: [
     CommonModule,
     FormsModule,
@@ -35,8 +39,10 @@ import { prepaidRoutes } from './prepaid.routes';
     Button,
     Card,
     Dialog,
+    ConfirmDialog,
     InputNumber,
     InputText,
+    Password,
     Select,
     TableModule,
     ToggleSwitchModule,

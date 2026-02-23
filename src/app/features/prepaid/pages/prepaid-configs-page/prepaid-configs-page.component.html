@@ -9,24 +9,42 @@
     <ng-template pTemplate="header">
       <tr>
         <th>Proveedor</th>
-        <th>Variante</th>
+        <th>Nombre</th>
         <th>Monto</th>
+        <th>Duración (días)</th>
         <th>Estado</th>
+        <th class="actions">Acciones</th>
       </tr>
     </ng-template>
     <ng-template pTemplate="body" let-config>
       <tr>
         <td>{{ getProviderName(config.providerId) }}</td>
-        <td>{{ config.variantId }}</td>
+        <td>{{ config.name }}</td>
         <td>{{ config.denomination | number: '1.2-2':'en-US' }}</td>
-        <td>{{ config.isActive ? 'Activo' : 'Inactivo' }}</td>
+        <td>{{ config.durationDays ?? '-' }}</td>
+        <td>
+          <p-toggleSwitch
+            [ngModel]="config.isActive"
+            [disabled]="isUpdating(config.id)"
+            (onChange)="toggleActive(config, $event.checked)"
+          ></p-toggleSwitch>
+        </td>
+        <td class="actions">
+          <p-button
+            icon="pi pi-pencil"
+            severity="secondary"
+            size="small"
+            [disabled]="saving"
+            (onClick)="openEdit(config)"
+          ></p-button>
+        </td>
       </tr>
     </ng-template>
   </p-table>
 </p-card>
 
 <p-dialog
-  header="Nueva denominación"
+  header="{{ editingConfig ? 'Editar denominación' : 'Nueva denominación' }}"
   [(visible)]="dialogVisible"
   [modal]="true"
   [draggable]="false"
@@ -42,8 +60,26 @@
       formControlName="providerId"
       appendTo="body"
     ></p-select>
-    <label for="variantId">Variante (ID)</label>
-    <input id="variantId" type="text" pInputText formControlName="variantId" />
+    <label for="configName">Nombre</label>
+    <input id="configName" type="text" pInputText formControlName="name" />
+    <label for="requestCodeTemplate">Código de recarga</label>
+    <input
+      id="requestCodeTemplate"
+      type="text"
+      pInputText
+      formControlName="requestCodeTemplate"
+      [placeholder]="'*905*2*1*{{telefono}}*{{pin}}*1#'"
+    />
+    <small class="help-text" ngNonBindable>
+      Puedes usar {{telefono}}, {{pin}}, {{monto}} según el proveedor.
+    </small>
+    <label for="durationDays">Duración (días)</label>
+    <p-inputNumber
+      inputId="durationDays"
+      formControlName="durationDays"
+      [min]="1"
+      [useGrouping]="false"
+    ></p-inputNumber>
     <label for="denomination">Monto</label>
     <p-inputNumber inputId="denomination" formControlName="denomination" [min]="0" locale="en-US"></p-inputNumber>
     <div class="field toggle">

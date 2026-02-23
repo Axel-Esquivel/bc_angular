@@ -1,8 +1,10 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, Validators } from '@angular/forms';
 import { MessageService } from 'primeng/api';
+import { finalize } from 'rxjs/operators';
 
 import { PrepaidApiService } from '../../../../core/api/prepaid-api.service';
+import { DashboardApiService } from '../../../../core/api/dashboard-api.service';
 import { ActiveContextStateService } from '../../../../core/context/active-context-state.service';
 import { PrepaidProvider } from '../../../../shared/models/prepaid.model';
 
@@ -16,6 +18,7 @@ import { PrepaidProvider } from '../../../../shared/models/prepaid.model';
 export class PrepaidProvidersPageComponent implements OnInit {
   private readonly prepaidApi = inject(PrepaidApiService);
   private readonly activeContextState = inject(ActiveContextStateService);
+  private readonly dashboardApi = inject(DashboardApiService);
   private readonly fb = inject(FormBuilder);
   private readonly messageService = inject(MessageService);
 
@@ -23,15 +26,19 @@ export class PrepaidProvidersPageComponent implements OnInit {
   loading = false;
   dialogVisible = false;
   saving = false;
+  pinLoading = false;
+  isOwner = false;
   editingProvider: PrepaidProvider | null = null;
 
   readonly form = this.fb.nonNullable.group({
     name: ['', Validators.required],
+    pin: '',
     isActive: true,
   });
 
   ngOnInit(): void {
     this.loadProviders();
+    this.loadOwnerStatus();
   }
 
   openCreate(): void {
@@ -44,9 +51,41 @@ export class PrepaidProvidersPageComponent implements OnInit {
     this.editingProvider = provider;
     this.form.reset({
       name: provider.name,
+      pin: '',
       isActive: provider.isActive,
     });
     this.dialogVisible = true;
+  }
+
+  showPin(): void {
+    if (this.pinLoading || !this.editingProvider) {
+      return;
+    }
+    const context = this.resolveContext();
+    if (!context) {
+      return;
+    }
+    this.pinLoading = true;
+    this.prepaidApi
+      .getProviderSecret({
+        id: this.editingProvider.id,
+        organizationId: context.organizationId,
+        enterpriseId: context.enterpriseId,
+      })
+      .pipe(
+        finalize(() => {
+          this.pinLoading = false;
+        }),
+      )
+      .subscribe({
+        next: (response) => {
+          const pin = response.result?.pin ?? '';
+          this.form.controls.pin.setValue(pin);
+        },
+        error: () => {
+          this.showError('No se pudo obtener el PIN');
+        },
+      });
   }
 
   save(): void {
@@ -59,6 +98,7 @@ export class PrepaidProvidersPageComponent implements OnInit {
     }
     const payload = {
       name: this.form.controls.name.value.trim(),
+      pin: this.form.controls.pin.value?.trim() || undefined,
       isActive: this.form.controls.isActive.value,
       OrganizationId: context.organizationId,
       companyId: context.companyId,
@@ -68,22 +108,27 @@ export class PrepaidProvidersPageComponent implements OnInit {
     const request$ = this.editingProvider
       ? this.prepaidApi.updateProvider(this.editingProvider.id, context.organizationId, {
           name: payload.name,
+          pin: payload.pin,
           isActive: payload.isActive,
         })
       : this.prepaidApi.createProvider(payload);
 
-    request$.subscribe({
-      next: () => {
-        this.dialogVisible = false;
-        this.saving = false;
-        this.loadProviders();
-        this.showSuccess(this.editingProvider ? 'Proveedor actualizado' : 'Proveedor creado');
-      },
-      error: () => {
-        this.saving = false;
-        this.showError('No se pudo guardar el proveedor');
-      },
-    });
+    request$
+      .pipe(
+        finalize(() => {
+          this.saving = false;
+        }),
+      )
+      .subscribe({
+        next: () => {
+          this.dialogVisible = false;
+          this.loadProviders();
+          this.showSuccess(this.editingProvider ? 'Proveedor actualizado' : 'Proveedor creado');
+        },
+        error: () => {
+          this.showError('No se pudo guardar el proveedor');
+        },
+      });
   }
 
   private loadProviders(): void {
@@ -103,6 +148,24 @@ export class PrepaidProvidersPageComponent implements OnInit {
           this.providers = [];
           this.loading = false;
           this.showError('No se pudieron cargar los proveedores');
+        },
+      });
+  }
+
+  private loadOwnerStatus(): void {
+    const context = this.activeContextState.getActiveContext();
+    if (!context.organizationId || !context.companyId) {
+      this.isOwner = false;
+      return;
+    }
+    this.dashboardApi
+      .getOverview({ orgId: context.organizationId, companyId: context.companyId })
+      .subscribe({
+        next: (response) => {
+          this.isOwner = response.result?.currentOrgRoleKey === 'owner';
+        },
+        error: () => {
+          this.isOwner = false;
         },
       });
   }

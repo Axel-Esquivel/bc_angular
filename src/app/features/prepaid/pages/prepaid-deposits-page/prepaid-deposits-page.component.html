@@ -1,4 +1,5 @@
 <p-toast></p-toast>
+<p-confirmDialog></p-confirmDialog>
 
 <p-card>
   <ng-template pTemplate="title">Depósitos</ng-template>
@@ -12,6 +13,7 @@
         <th>Depósito</th>
         <th>Crédito</th>
         <th>Referencia</th>
+        <th></th>
       </tr>
     </ng-template>
     <ng-template pTemplate="body" let-deposit>
@@ -20,6 +22,16 @@
         <td>{{ deposit.depositAmount | number: '1.2-2':'en-US' }}</td>
         <td>{{ deposit.creditedAmount | number: '1.2-2':'en-US' }}</td>
         <td>{{ deposit.reference || '-' }}</td>
+        <td class="actions">
+          <p-button
+            icon="pi pi-trash"
+            severity="danger"
+            size="small"
+            [loading]="deletingId === deposit.id"
+            [disabled]="deletingId === deposit.id || saving"
+            (onClick)="confirmDelete(deposit)"
+          ></p-button>
+        </td>
       </tr>
     </ng-template>
   </p-table>

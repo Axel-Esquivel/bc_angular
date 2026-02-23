@@ -303,7 +303,7 @@ export class PosTerminalPageComponent implements OnInit {
           const configs = response.result ?? [];
           this.prepaidConfigByVariant.clear();
           configs.forEach((config) => {
-            if (config.isActive) {
+            if (config.isActive && config.variantId) {
               this.prepaidConfigByVariant.set(config.variantId, config);
             }
           });

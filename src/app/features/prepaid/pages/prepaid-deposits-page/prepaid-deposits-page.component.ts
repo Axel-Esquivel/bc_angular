@@ -1,6 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, Validators } from '@angular/forms';
-import { MessageService } from 'primeng/api';
+import { ConfirmationService, MessageService } from 'primeng/api';
+import { finalize } from 'rxjs/operators';
 
 import { PrepaidApiService } from '../../../../core/api/prepaid-api.service';
 import { ActiveContextStateService } from '../../../../core/context/active-context-state.service';
@@ -20,12 +21,14 @@ export class PrepaidDepositsPageComponent implements OnInit {
   private readonly activeContextState = inject(ActiveContextStateService);
   private readonly fb = inject(FormBuilder);
   private readonly messageService = inject(MessageService);
+  private readonly confirmationService = inject(ConfirmationService);
 
   deposits: PrepaidDeposit[] = [];
   providers: PrepaidProvider[] = [];
   loading = false;
   dialogVisible = false;
   saving = false;
+  deletingId: string | null = null;
 
   readonly form = this.fb.nonNullable.group({
     providerId: ['', Validators.required],
@@ -75,18 +78,68 @@ export class PrepaidDepositsPageComponent implements OnInit {
       companyId: context.companyId,
       enterpriseId: context.enterpriseId,
     };
-    this.prepaidApi.createDeposit(payload).subscribe({
-      next: () => {
-        this.dialogVisible = false;
-        this.saving = false;
-        this.loadDeposits();
-        this.showSuccess('Depósito registrado');
-      },
-      error: () => {
-        this.saving = false;
-        this.showError('No se pudo registrar el depósito');
-      },
+    this.prepaidApi
+      .createDeposit(payload)
+      .pipe(
+        finalize(() => {
+          this.saving = false;
+        }),
+      )
+      .subscribe({
+        next: () => {
+          this.dialogVisible = false;
+          this.loadDeposits();
+          this.showSuccess('Depósito registrado');
+        },
+        error: () => {
+          this.showError('No se pudo registrar el depósito');
+        },
+      });
+  }
+
+  confirmDelete(deposit: PrepaidDeposit): void {
+    if (this.deletingId) {
+      return;
+    }
+    this.confirmationService.confirm({
+      header: 'Eliminar depósito',
+      message: '¿Seguro que deseas eliminar este depósito?',
+      icon: 'pi pi-exclamation-triangle',
+      acceptLabel: 'Eliminar',
+      rejectLabel: 'Cancelar',
+      accept: () => this.deleteDeposit(deposit),
     });
+  }
+
+  private deleteDeposit(deposit: PrepaidDeposit): void {
+    if (this.deletingId) {
+      return;
+    }
+    const context = this.resolveContext();
+    if (!context) {
+      return;
+    }
+    this.deletingId = deposit.id;
+    this.prepaidApi
+      .deleteDeposit({
+        id: deposit.id,
+        organizationId: context.organizationId,
+        enterpriseId: context.enterpriseId,
+      })
+      .pipe(
+        finalize(() => {
+          this.deletingId = null;
+        }),
+      )
+      .subscribe({
+        next: () => {
+          this.loadDeposits();
+          this.showSuccess('Depósito eliminado');
+        },
+        error: () => {
+          this.showError('No se pudo eliminar el depósito');
+        },
+      });
   }
 
   getProviderName(providerId: string): string {

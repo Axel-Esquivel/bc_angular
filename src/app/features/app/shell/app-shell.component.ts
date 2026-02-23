@@ -50,6 +50,11 @@ export class AppShellComponent {
                 icon: 'pi pi-cog',
                 routerLink: '/app/settings/modules',
               },
+              {
+                label: 'Tienda de módulos',
+                icon: 'pi pi-shopping-bag',
+                routerLink: '/app/modules/store',
+              },
             ],
           },
         ],

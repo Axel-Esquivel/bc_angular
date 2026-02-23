@@ -14,6 +14,7 @@ import {
 export interface CreatePrepaidProviderPayload {
   name: string;
   isActive?: boolean;
+  pin?: string;
   OrganizationId: string;
   companyId: string;
   enterpriseId: string;
@@ -22,6 +23,7 @@ export interface CreatePrepaidProviderPayload {
 export interface UpdatePrepaidProviderPayload {
   name?: string;
   isActive?: boolean;
+  pin?: string;
 }
 
 export interface CreatePrepaidDepositPayload {
@@ -35,9 +37,12 @@ export interface CreatePrepaidDepositPayload {
 }
 
 export interface CreatePrepaidVariantConfigPayload {
-  variantId: string;
+  variantId?: string;
+  name: string;
   providerId: string;
   denomination: number;
+  durationDays?: number;
+  requestCodeTemplate: string;
   isActive?: boolean;
   OrganizationId: string;
   companyId: string;
@@ -46,7 +51,10 @@ export interface CreatePrepaidVariantConfigPayload {
 
 export interface UpdatePrepaidVariantConfigPayload {
   providerId?: string;
+  name?: string;
   denomination?: number;
+  durationDays?: number;
+  requestCodeTemplate?: string;
   isActive?: boolean;
 }
 
@@ -82,6 +90,20 @@ export class PrepaidApiService {
     );
   }
 
+  getProviderSecret(params: {
+    id: string;
+    organizationId: string;
+    enterpriseId: string;
+  }): Observable<ApiResponse<{ pin: string | null }>> {
+    const httpParams = new HttpParams()
+      .set('organizationId', params.organizationId)
+      .set('enterpriseId', params.enterpriseId);
+    return this.http.get<ApiResponse<{ pin: string | null }>>(
+      `${this.baseUrl}/providers/${params.id}/secret`,
+      { params: httpParams },
+    );
+  }
+
   listBalances(params: {
     OrganizationId: string;
     enterpriseId: string;
@@ -112,6 +134,19 @@ export class PrepaidApiService {
       httpParams = httpParams.set('providerId', params.providerId);
     }
     return this.http.get<ApiResponse<PrepaidDeposit[]>>(`${this.baseUrl}/deposits`, { params: httpParams });
+  }
+
+  deleteDeposit(params: {
+    id: string;
+    organizationId: string;
+    enterpriseId: string;
+  }): Observable<ApiResponse<{ id: string }>> {
+    const httpParams = new HttpParams()
+      .set('organizationId', params.organizationId)
+      .set('enterpriseId', params.enterpriseId);
+    return this.http.delete<ApiResponse<{ id: string }>>(`${this.baseUrl}/deposits/${params.id}`, {
+      params: httpParams,
+    });
   }
 
   listVariantConfigs(params: {

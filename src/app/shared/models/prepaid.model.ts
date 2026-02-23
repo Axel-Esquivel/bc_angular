@@ -1,6 +1,7 @@
 export interface PrepaidProvider {
   id: string;
   name: string;
+  pin?: string;
   isActive: boolean;
   OrganizationId: string;
   companyId: string;
@@ -35,9 +36,12 @@ export interface PrepaidDeposit {
 
 export interface PrepaidVariantConfig {
   id: string;
-  variantId: string;
+  variantId?: string;
+  name: string;
   providerId: string;
   denomination: number;
+  durationDays?: number;
+  requestCodeTemplate: string;
   isActive: boolean;
   OrganizationId: string;
   companyId: string;

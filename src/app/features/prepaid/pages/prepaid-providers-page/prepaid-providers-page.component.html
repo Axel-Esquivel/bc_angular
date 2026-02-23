@@ -40,6 +40,26 @@
   <form [formGroup]="form" class="dialog-form">
     <label for="providerName">Nombre</label>
     <input id="providerName" type="text" pInputText formControlName="name" />
+    <div class="pin-header">
+      <label for="providerPin">PIN</label>
+      <p-button
+        *ngIf="editingProvider && isOwner"
+        label="Mostrar PIN"
+        icon="pi pi-eye"
+        size="small"
+        severity="secondary"
+        [text]="true"
+        [loading]="pinLoading"
+        [disabled]="pinLoading"
+        (onClick)="showPin()"
+      ></p-button>
+    </div>
+    <p-password
+      inputId="providerPin"
+      formControlName="pin"
+      [feedback]="false"
+      [toggleMask]="true"
+    ></p-password>
     <div class="field toggle">
       <label>Activo</label>
       <p-toggleSwitch formControlName="isActive"></p-toggleSwitch>
