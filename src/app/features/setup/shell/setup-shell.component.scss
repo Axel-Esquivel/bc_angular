@@ -1,5 +1,6 @@
 .setup-shell {
   min-height: 100vh;
   padding: 1.5rem;
-  background: var(--surface-ground, #f8fafc);
+  background: var(--surface-ground);
+  color: var(--text-color);
 }

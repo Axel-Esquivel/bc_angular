@@ -43,7 +43,7 @@ export class PrepaidShellComponent implements OnInit {
   }
 
   goToStore(): void {
-    void this.router.navigateByUrl('/setup/modules/store');
+    void this.router.navigate(['/setup/modules/store'], { queryParams: { returnUrl: '/app/home' } });
   }
 
   private isModuleEnabled(modules: OrganizationModuleOverviewItem[], key: string): boolean {

@@ -35,7 +35,7 @@
 .module-store__empty {
   padding: 1rem;
   border-radius: 12px;
-  background: var(--surface-card, #ffffff);
+  background: var(--surface-card);
   color: var(--text-color-secondary, #6b7280);
 }
 
@@ -45,7 +45,7 @@
   gap: 0.75rem;
   padding: 1rem;
   border-radius: 12px;
-  background: var(--surface-card, #ffffff);
+  background: var(--surface-card);
   color: var(--text-color-secondary, #6b7280);
 }
 
@@ -89,7 +89,12 @@
 
 .module-card.skeleton {
   min-height: 220px;
-  background: linear-gradient(120deg, #f2f2f2, #fafafa, #f2f2f2);
+  background: linear-gradient(
+    120deg,
+    var(--surface-card),
+    var(--surface-ground),
+    var(--surface-card)
+  );
   background-size: 200% 100%;
   animation: skeleton 1.6s ease-in-out infinite;
 }

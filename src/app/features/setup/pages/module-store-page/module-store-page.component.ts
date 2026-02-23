@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, DestroyRef, OnInit, inject } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { Button } from 'primeng/button';
@@ -37,6 +37,7 @@ export class ModuleStorePageComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
 
   modules: OrganizationModuleStoreItem[] = [];
   isLoading = false;
@@ -44,10 +45,21 @@ export class ModuleStorePageComponent implements OnInit {
   organization: IOrganization | null = null;
   isOwner = false;
   errorMessage: string | null = null;
+  returnUrl: string | null = null;
   private readonly installing = new Set<string>();
   private readonly uninstalling = new Set<string>();
 
   ngOnInit(): void {
+    this.route.queryParamMap
+      .pipe(
+        map((params) => params.get('returnUrl')),
+        distinctUntilChanged(),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((returnUrl) => {
+        this.returnUrl = this.normalizeReturnUrl(returnUrl);
+      });
+
     this.activeContextState.activeContext$
       .pipe(
         map((context) => context.organizationId ?? null),
@@ -69,6 +81,13 @@ export class ModuleStorePageComponent implements OnInit {
         this.loadOrganization(organizationId);
         this.loadModules(organizationId);
       });
+  }
+
+  goBack(): void {
+    if (!this.returnUrl) {
+      return;
+    }
+    void this.router.navigateByUrl(this.returnUrl);
   }
 
   isInstalling(moduleKey: string): boolean {
@@ -294,6 +313,17 @@ export class ModuleStorePageComponent implements OnInit {
           this.isOwner = false;
         },
       });
+  }
+
+  private normalizeReturnUrl(value: string | null): string | null {
+    if (!value) {
+      return null;
+    }
+    const trimmed = value.trim();
+    if (!trimmed.startsWith('/app')) {
+      return null;
+    }
+    return trimmed;
   }
 
   private buildErrorMessage(error: HttpErrorResponse): string | null {

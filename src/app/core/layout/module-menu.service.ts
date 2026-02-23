@@ -94,6 +94,7 @@ export class ModuleMenuService {
       configItems.push({
         label: 'Tienda de modulos',
         routerLink: '/app/modules/store',
+        queryParams: { returnUrl: '/app/home' },
       });
       configItems.push({
         label: 'Catalogos',
@@ -116,5 +117,6 @@ export class ModuleMenuService {
     return name.charAt(0).toUpperCase() + name.slice(1);
   }
 }
+
 
 

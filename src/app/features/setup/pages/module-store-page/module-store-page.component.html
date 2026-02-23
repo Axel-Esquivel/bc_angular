@@ -5,6 +5,13 @@
       <p>Instala y administra funcionalidades por organizacion.</p>
     </div>
     <div class="module-store__header-actions">
+      <p-button
+        *ngIf="returnUrl"
+        label="Volver al Dashboard"
+        icon="pi pi-arrow-left"
+        severity="secondary"
+        (onClick)="goBack()"
+      ></p-button>
       <p-tag *ngIf="organizationId" severity="success" value="Organizacion activa"></p-tag>
       <p-button
         *ngIf="organization && isOwner && organization.setupStatus !== 'completed'"

@@ -54,6 +54,7 @@ export class AppShellComponent {
                 label: 'Tienda de módulos',
                 icon: 'pi pi-shopping-bag',
                 routerLink: '/app/modules/store',
+                queryParams: { returnUrl: '/app/home' },
               },
             ],
           },
@@ -62,3 +63,4 @@ export class AppShellComponent {
     },
   ];
 }
+
