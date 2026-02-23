@@ -1,0 +1,51 @@
+.locations-tree {
+  display: grid;
+  gap: 1rem;
+}
+
+.tree-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.title {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.subtitle {
+  color: var(--text-color-secondary);
+}
+
+.node-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.node-info {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.node-name {
+  font-weight: 600;
+}
+
+.node-meta {
+  color: var(--text-color-secondary);
+}
+
+.node-actions {
+  display: inline-flex;
+  gap: 0.25rem;
+}
+
+.empty {
+  padding: 1rem 0;
+  color: var(--text-color-secondary);
+}

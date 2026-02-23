@@ -2,7 +2,9 @@ import { Routes, UrlMatcher } from '@angular/router';
 
 import { AppShellComponent } from './shell/app-shell.component';
 import { AppDashboardPageComponent } from './pages/dashboard-page/dashboard-page.component';
-import { StockListPageComponent } from '../inventory/pages/stock-list-page/stock-list-page.component';
+import { StockPageComponent } from '../inventory/pages/stock-page/stock-page.component';
+import { MovementsPageComponent } from '../inventory/pages/movements-page/movements-page.component';
+import { WarehousesPageComponent } from '../warehouses/pages/warehouses-page/warehouses-page.component';
 import { ModulePlaceholderPageComponent } from './modules/module-placeholder-page/module-placeholder-page.component';
 import { ActiveContextGuard } from '../../core/guards/active-context.guard';
 
@@ -30,7 +32,9 @@ export const appRoutes: Routes = [
       { path: 'products', loadChildren: () => import('../products/products.module').then((m) => m.ProductsModule) },
       { path: 'prepaid', loadChildren: () => import('../prepaid/prepaid.module').then((m) => m.PrepaidModule) },
       { path: 'settings', loadChildren: () => import('../settings/settings.module').then((m) => m.SettingsModule) },
-      { path: 'inventory', component: StockListPageComponent },
+      { path: 'inventory', component: StockPageComponent },
+      { path: 'inventory/movements', component: MovementsPageComponent },
+      { path: 'warehouses', component: WarehousesPageComponent },
       { matcher: moduleMatcher, component: ModulePlaceholderPageComponent },
     ],
   },

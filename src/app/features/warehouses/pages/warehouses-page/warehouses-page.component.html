@@ -1,0 +1,90 @@
+<div class="warehouses-page">
+  <p-card>
+    <ng-template pTemplate="title">Bodegas</ng-template>
+    <div class="actions">
+      <p-button label="Nueva bodega" icon="pi pi-plus" (onClick)="openCreateWarehouse()"></p-button>
+      <p-button
+        label="Refrescar"
+        icon="pi pi-refresh"
+        [text]="true"
+        (onClick)="loadWarehouses()"
+      ></p-button>
+    </div>
+  </p-card>
+
+  <div class="content-grid">
+    <p-card>
+      <p-table
+        [value]="warehouses"
+        [loading]="loadingWarehouses"
+        dataKey="id"
+        selectionMode="single"
+        [(selection)]="selectedWarehouse"
+        (onRowSelect)="onWarehouseSelected($event)"
+      >
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Codigo</th>
+            <th>Nombre</th>
+            <th>Activo</th>
+            <th></th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-warehouse>
+          <tr>
+            <td>{{ warehouse.code }}</td>
+            <td>{{ warehouse.name }}</td>
+            <td>{{ warehouse.active ? 'Si' : 'No' }}</td>
+            <td>
+              <div class="table-actions">
+                <p-button
+                  label="Editar"
+                  icon="pi pi-pencil"
+                  [text]="true"
+                  (onClick)="openEditWarehouse(warehouse)"
+                ></p-button>
+                <p-button
+                  label="Eliminar"
+                  icon="pi pi-trash"
+                  severity="danger"
+                  [text]="true"
+                  (onClick)="deleteWarehouse(warehouse)"
+                ></p-button>
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </p-card>
+
+    <p-card>
+      <app-locations-tree
+        [nodes]="treeNodes"
+        [loading]="locationsLoading"
+        [emptyMessage]="selectedWarehouse ? 'Sin ubicaciones registradas.' : 'Selecciona una bodega para ver ubicaciones.'"
+        (createRoot)="openCreateRootLocation()"
+        (createChild)="openCreateChildLocation($event)"
+        (editLocation)="openEditLocation($event)"
+      ></app-locations-tree>
+    </p-card>
+  </div>
+</div>
+
+<p-dialog header="Bodega" [(visible)]="warehouseDialogOpen" [modal]="true" [style]="{ width: '560px' }">
+  <app-warehouse-form-dialog
+    [warehouse]="editingWarehouse"
+    [submitting]="warehouseSubmitting"
+    (save)="saveWarehouse($event)"
+    (cancel)="warehouseDialogOpen = false"
+  ></app-warehouse-form-dialog>
+</p-dialog>
+
+<p-dialog header="Ubicacion" [(visible)]="locationDialogOpen" [modal]="true" [style]="{ width: '560px' }">
+  <app-location-form-dialog
+    [location]="editingLocation"
+    [parentLabel]="locationParentLabel"
+    [submitting]="locationSubmitting"
+    (save)="saveLocation($event)"
+    (cancel)="locationDialogOpen = false"
+  ></app-location-form-dialog>
+</p-dialog>

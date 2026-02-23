@@ -1,0 +1,57 @@
+<form class="dialog-form" [formGroup]="form" (ngSubmit)="onSave()">
+  <div class="parent-info">
+    <span class="label">Ubicacion padre</span>
+    <span class="value">{{ parentLabel }}</span>
+  </div>
+
+  <label for="location-code">Codigo</label>
+  <input
+    id="location-code"
+    pInputText
+    formControlName="code"
+    placeholder="Ej: PASILLO-1"
+    autocomplete="off"
+  />
+  <small class="help">Codigo corto y unico dentro de la bodega seleccionada.</small>
+
+  <label for="location-name">Nombre</label>
+  <input id="location-name" pInputText formControlName="name" autocomplete="off" />
+
+  <label for="location-type">Tipo</label>
+  <p-select
+    id="location-type"
+    [options]="typeOptions"
+    optionLabel="label"
+    optionValue="value"
+    formControlName="type"
+    appendTo="body"
+  ></p-select>
+  <small class="help">{{ typeHelp }}</small>
+
+  <label for="location-usage">Uso</label>
+  <p-select
+    id="location-usage"
+    [options]="usageOptions"
+    optionLabel="label"
+    optionValue="value"
+    formControlName="usage"
+    appendTo="body"
+  ></p-select>
+  <small class="help">{{ usageHelp }}</small>
+
+  <label class="checkbox-field">
+    <p-checkbox formControlName="active" [binary]="true"></p-checkbox>
+    <span>Activo</span>
+  </label>
+
+  <div class="dialog-actions">
+    <p-button type="button" label="Cancelar" [text]="true" (onClick)="onCancel()"></p-button>
+    <p-button
+      type="submit"
+      label="Guardar"
+      icon="pi pi-check"
+      [loading]="submitting"
+      [disabled]="submitting"
+    ></p-button>
+  </div>
+</form>

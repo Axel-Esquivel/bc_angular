@@ -1,0 +1,47 @@
+<div class="locations-tree">
+  <div class="tree-header">
+    <div class="title">
+      <span>Ubicaciones</span>
+      <small class="subtitle">Organiza niveles y zonas dentro de la bodega seleccionada.</small>
+    </div>
+    <p-button
+      label="Nueva ubicacion"
+      icon="pi pi-plus"
+      [disabled]="loading"
+      (onClick)="onCreateRoot()"
+    ></p-button>
+  </div>
+
+  <ng-container *ngIf="nodes.length > 0; else emptyState">
+    <p-tree [value]="nodes" [loading]="loading">
+      <ng-template pTemplate="default" let-node>
+        <div class="node-row">
+          <div class="node-info">
+            <div class="node-name">{{ node.label }}</div>
+            <small class="node-meta">
+              {{ node.data?.code }} - {{ node.data?.type }} - {{ node.data?.usage }}
+            </small>
+          </div>
+          <div class="node-actions">
+            <p-button
+              icon="pi pi-plus"
+              [text]="true"
+              [rounded]="true"
+              (onClick)="onCreateChild(node.data?.id ?? null)"
+            ></p-button>
+            <p-button
+              icon="pi pi-pencil"
+              [text]="true"
+              [rounded]="true"
+              (onClick)="onEdit(node.data?.id ?? null)"
+            ></p-button>
+          </div>
+        </div>
+      </ng-template>
+    </p-tree>
+  </ng-container>
+
+  <ng-template #emptyState>
+    <div class="empty" *ngIf="!loading">{{ emptyMessage }}</div>
+  </ng-template>
+</div>

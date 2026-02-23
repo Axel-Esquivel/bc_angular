@@ -1,0 +1,65 @@
+<div class="stock-page">
+  <p-card>
+    <ng-template pTemplate="title">Stock</ng-template>
+    <form class="filters" [formGroup]="filtersForm" (ngSubmit)="onApplyFilters()">
+      <div class="context-info" *ngIf="context?.enterpriseId">
+        Empresa activa: {{ context?.enterpriseId }}
+      </div>
+      <div class="filter-row">
+        <div class="field">
+          <label for="warehouse">Bodega</label>
+          <p-select
+            id="warehouse"
+            [options]="warehouseOptions"
+            formControlName="warehouseId"
+            (onChange)="onWarehouseChange()"
+            appendTo="body"
+          ></p-select>
+        </div>
+        <div class="field">
+          <label for="location">Ubicacion</label>
+          <p-select
+            id="location"
+            [options]="locationOptions"
+            formControlName="locationId"
+            appendTo="body"
+          ></p-select>
+        </div>
+        <div class="field">
+          <label for="product">Producto</label>
+          <input id="product" pInputText formControlName="productId" placeholder="ID producto" />
+        </div>
+        <div class="actions">
+          <p-button type="submit" label="Aplicar" icon="pi pi-filter"></p-button>
+          <p-button label="Limpiar" [text]="true" (onClick)="onReset()"></p-button>
+        </div>
+      </div>
+      <small class="help">Disponible = On hand - Reservado</small>
+    </form>
+  </p-card>
+
+  <p-card>
+    <p-table [value]="rows" [loading]="loading" dataKey="productId">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Producto</th>
+          <th>On hand</th>
+          <th>Reservado</th>
+          <th>Disponible</th>
+          <th>Bodega</th>
+          <th>Ubicacion</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-row>
+        <tr>
+          <td>{{ row.productId }}</td>
+          <td>{{ row.onHand }}</td>
+          <td>{{ row.reserved }}</td>
+          <td>{{ row.available }}</td>
+          <td>{{ row.warehouse }}</td>
+          <td>{{ row.location }}</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </p-card>
+</div>

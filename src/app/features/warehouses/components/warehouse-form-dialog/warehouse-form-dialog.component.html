@@ -1,0 +1,30 @@
+<form class="dialog-form" [formGroup]="form" (ngSubmit)="onSave()">
+  <label for="warehouse-code">Codigo</label>
+  <input
+    id="warehouse-code"
+    pInputText
+    formControlName="code"
+    placeholder="Ej: WH-CENTRAL"
+    autocomplete="off"
+  />
+  <small class="help">Codigo corto unico por empresa. Ej: WH-CENTRAL.</small>
+
+  <label for="warehouse-name">Nombre</label>
+  <input id="warehouse-name" pInputText formControlName="name" autocomplete="off" />
+
+  <label class="checkbox-field">
+    <p-checkbox formControlName="active" [binary]="true"></p-checkbox>
+    <span>Activo</span>
+  </label>
+
+  <div class="dialog-actions">
+    <p-button type="button" label="Cancelar" [text]="true" (onClick)="onCancel()"></p-button>
+    <p-button
+      type="submit"
+      label="Guardar"
+      icon="pi pi-check"
+      [loading]="submitting"
+      [disabled]="submitting"
+    ></p-button>
+  </div>
+</form>
