@@ -23,6 +23,14 @@
 .module-card {
   cursor: pointer;
   width: 100%;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.module-card:hover {
+  box-shadow:
+    0 0 0 2px rgba(34, 197, 94, 0.25),
+    0 10px 25px rgba(34, 197, 94, 0.18);
+  transform: translateY(-4px);
 }
 
 .module-card :is(.p-card-body, .p-card-content) {

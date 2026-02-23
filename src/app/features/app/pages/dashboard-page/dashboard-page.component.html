@@ -35,11 +35,6 @@
           <h3>{{ card.name }}</h3>
           <p *ngIf="card.description">{{ card.description }}</p>
         </div>
-        <p-button
-          label="Abrir"
-          icon="pi pi-arrow-right"
-          [disabled]="!card.hasRoute"
-        ></p-button>
       </div>
     </p-card>
   </div>
