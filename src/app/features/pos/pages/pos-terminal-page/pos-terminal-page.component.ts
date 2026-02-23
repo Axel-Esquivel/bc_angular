@@ -1,4 +1,5 @@
 import { Component, DestroyRef, OnInit, inject } from '@angular/core';
+import { FormBuilder, Validators } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
@@ -11,6 +12,8 @@ import { ActiveContext } from '../../../../shared/models/active-context.model';
 import { PosProduct } from '../../models/pos-product.model';
 import { PosHttpService } from '../../services/pos.service';
 import { PosProductsService } from '../../services/products.service';
+import { PrepaidApiService } from '../../../../core/api/prepaid-api.service';
+import { PrepaidVariantConfig } from '../../../../shared/models/prepaid.model';
 
 @Component({
   standalone: false,
@@ -27,6 +30,8 @@ export class PosTerminalPageComponent implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly realtimeService = inject(RealtimeService);
   private readonly warehousesApi = inject(WarehousesApiService);
+  private readonly prepaidApi = inject(PrepaidApiService);
+  private readonly fb = inject(FormBuilder);
 
   products: PosProduct[] = [];
   productsLoading = false;
@@ -37,6 +42,15 @@ export class PosTerminalPageComponent implements OnInit {
   selectedWarehouseId: string | null = null;
   readonly stockByVariant = new Map<string, number>();
   private context: ActiveContext | null = null;
+  private readonly prepaidConfigByVariant = new Map<string, PrepaidVariantConfig>();
+  prepaidDialogVisible = false;
+  prepaidDialogLockedDenomination = false;
+  pendingPrepaidProduct: PosProduct | null = null;
+
+  readonly prepaidForm = this.fb.nonNullable.group({
+    phoneNumber: ['', Validators.required],
+    denomination: [0, [Validators.min(0)]],
+  });
 
   ngOnInit(): void {
     const context = this.activeContext.getActiveContext();
@@ -68,6 +82,7 @@ export class PosTerminalPageComponent implements OnInit {
 
     this.loadWarehouses(context.companyId!);
     this.onSearchProducts('');
+    this.loadPrepaidConfigs();
   }
 
   onSearchProducts(term: string): void {
@@ -122,30 +137,18 @@ export class PosTerminalPageComponent implements OnInit {
       });
       return;
     }
-    const existing = this.cartLines.find((line) => line.productId === product.id);
-    if (existing) {
-      this.cartLines = this.cartLines.map((line) =>
-        line.productId === product.id
-          ? {
-              ...line,
-              quantity: line.quantity + 1,
-              subtotal: (line.quantity + 1) * (line.unitPrice ?? 0),
-            }
-          : line
-      );
-    } else {
-      this.cartLines = [
-        ...this.cartLines,
-        {
-          productId: product.id,
-          productName: product.name,
-          quantity: 1,
-          unitPrice: product.price,
-          subtotal: product.price,
-        },
-      ];
+    const prepaidConfig = this.prepaidConfigByVariant.get(product.id);
+    if (prepaidConfig) {
+      this.pendingPrepaidProduct = product;
+      this.prepaidDialogLockedDenomination = prepaidConfig.denomination > 0;
+      this.prepaidForm.reset({
+        phoneNumber: '',
+        denomination: prepaidConfig.denomination ?? 0,
+      });
+      this.prepaidDialogVisible = true;
+      return;
     }
-    this.recalculateTotals();
+    this.addOrUpdateLine(product);
   }
 
   onQuantityChange(lineId: string, quantity: number): void {
@@ -184,6 +187,9 @@ export class PosTerminalPageComponent implements OnInit {
         productId: line.productId,
         qty: line.quantity,
         unitPrice: line.unitPrice,
+        phoneNumber: line.prepaid?.phoneNumber,
+        denomination: line.prepaid?.denomination,
+        prepaidProviderId: line.prepaid?.providerId,
       })),
       payments: [
         {
@@ -215,8 +221,59 @@ export class PosTerminalPageComponent implements OnInit {
     });
   }
 
+  confirmPrepaidLine(): void {
+    if (this.prepaidForm.invalid || !this.pendingPrepaidProduct) {
+      this.prepaidForm.markAllAsTouched();
+      return;
+    }
+    const product = this.pendingPrepaidProduct;
+    const config = this.prepaidConfigByVariant.get(product.id);
+    const prepaid = {
+      phoneNumber: this.prepaidForm.controls.phoneNumber.value.trim(),
+      denomination: this.prepaidForm.controls.denomination.value,
+      providerId: config?.providerId,
+    };
+    this.addOrUpdateLine(product, prepaid);
+    this.pendingPrepaidProduct = null;
+    this.prepaidDialogVisible = false;
+  }
+
+  cancelPrepaidLine(): void {
+    this.pendingPrepaidProduct = null;
+    this.prepaidDialogVisible = false;
+  }
+
   private recalculateTotals(): void {
     this.total = this.cartLines.reduce((acc, line) => acc + line.subtotal, 0);
+  }
+
+  private addOrUpdateLine(product: PosProduct, prepaid?: PosCartLine['prepaid']): void {
+    const existing = this.cartLines.find((line) => line.productId === product.id);
+    if (existing) {
+      this.cartLines = this.cartLines.map((line) =>
+        line.productId === product.id
+          ? {
+              ...line,
+              quantity: line.quantity + 1,
+              subtotal: (line.quantity + 1) * (line.unitPrice ?? 0),
+              prepaid: prepaid ?? line.prepaid,
+            }
+          : line
+      );
+    } else {
+      this.cartLines = [
+        ...this.cartLines,
+        {
+          productId: product.id,
+          productName: product.name,
+          quantity: 1,
+          unitPrice: product.price,
+          subtotal: product.price,
+          prepaid,
+        },
+      ];
+    }
+    this.recalculateTotals();
   }
 
   private loadWarehouses(companyId: string) {
@@ -230,6 +287,31 @@ export class PosTerminalPageComponent implements OnInit {
         this.handleError(error, 'No se pudieron cargar los almacenes');
       },
     });
+  }
+
+  private loadPrepaidConfigs(): void {
+    if (!this.context?.organizationId || !this.context?.enterpriseId) {
+      return;
+    }
+    this.prepaidApi
+      .listVariantConfigs({
+        organizationId: this.context.organizationId,
+        enterpriseId: this.context.enterpriseId,
+      })
+      .subscribe({
+        next: (response) => {
+          const configs = response.result ?? [];
+          this.prepaidConfigByVariant.clear();
+          configs.forEach((config) => {
+            if (config.isActive) {
+              this.prepaidConfigByVariant.set(config.variantId, config);
+            }
+          });
+        },
+        error: () => {
+          this.prepaidConfigByVariant.clear();
+        },
+      });
   }
 
   openSession(): void {

@@ -4,6 +4,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { Button } from 'primeng/button';
 import { Card } from 'primeng/card';
+import { Dialog } from 'primeng/dialog';
 import { InputNumber } from 'primeng/inputnumber';
 import { InputText } from 'primeng/inputtext';
 import { Select } from 'primeng/select';
@@ -29,6 +30,7 @@ import { posRoutes } from './pos.routes';
     RouterModule.forChild(posRoutes),
     Button,
     Card,
+    Dialog,
     InputNumber,
     InputText,
     Select,

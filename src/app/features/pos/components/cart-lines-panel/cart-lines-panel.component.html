@@ -18,7 +18,15 @@
     </ng-template>
     <ng-template pTemplate="body" let-line>
       <tr>
-        <td>{{ line.productName }}</td>
+        <td>
+          <div class="line-title">{{ line.productName }}</div>
+          <div class="line-meta" *ngIf="line.prepaid">
+            <span *ngIf="line.prepaid.phoneNumber">Tel: {{ line.prepaid.phoneNumber }}</span>
+            <span *ngIf="line.prepaid.denomination !== undefined">
+              Denom: {{ line.prepaid.denomination | number: '1.2-2':'en-US' }}
+            </span>
+          </div>
+        </td>
         <td>
           <p-inputNumber
             [ngModel]="line.quantity"

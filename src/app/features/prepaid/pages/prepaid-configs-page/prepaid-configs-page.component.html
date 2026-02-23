@@ -1,0 +1,66 @@
+<p-toast></p-toast>
+
+<p-card>
+  <ng-template pTemplate="title">Denominaciones</ng-template>
+  <div class="section-actions">
+    <p-button label="Agregar denominación" icon="pi pi-plus" (onClick)="openCreate()"></p-button>
+  </div>
+  <p-table [value]="configs" [loading]="loading" dataKey="id">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Proveedor</th>
+        <th>Variante</th>
+        <th>Monto</th>
+        <th>Estado</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-config>
+      <tr>
+        <td>{{ getProviderName(config.providerId) }}</td>
+        <td>{{ config.variantId }}</td>
+        <td>{{ config.denomination | number: '1.2-2':'en-US' }}</td>
+        <td>{{ config.isActive ? 'Activo' : 'Inactivo' }}</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</p-card>
+
+<p-dialog
+  header="Nueva denominación"
+  [(visible)]="dialogVisible"
+  [modal]="true"
+  [draggable]="false"
+  [style]="{ width: '480px' }"
+>
+  <form [formGroup]="form" class="dialog-form">
+    <label for="providerId">Proveedor</label>
+    <p-select
+      inputId="providerId"
+      [options]="providerOptions"
+      optionLabel="label"
+      optionValue="value"
+      formControlName="providerId"
+      appendTo="body"
+    ></p-select>
+    <label for="variantId">Variante (ID)</label>
+    <input id="variantId" type="text" pInputText formControlName="variantId" />
+    <label for="denomination">Monto</label>
+    <p-inputNumber inputId="denomination" formControlName="denomination" [min]="0" locale="en-US"></p-inputNumber>
+    <div class="field toggle">
+      <label>Activo</label>
+      <p-toggleSwitch formControlName="isActive"></p-toggleSwitch>
+    </div>
+  </form>
+  <ng-template #footer>
+    <div class="dialog-actions">
+      <p-button label="Cancelar" severity="secondary" [disabled]="saving" (onClick)="dialogVisible = false"></p-button>
+      <p-button
+        label="Guardar"
+        icon="pi pi-check"
+        [loading]="saving"
+        [disabled]="saving || form.invalid"
+        (onClick)="save()"
+      ></p-button>
+    </div>
+  </ng-template>
+</p-dialog>

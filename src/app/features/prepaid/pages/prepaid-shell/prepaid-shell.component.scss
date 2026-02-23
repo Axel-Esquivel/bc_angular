@@ -1,0 +1,21 @@
+.prepaid-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.prepaid-tabs {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.prepaid-tabs :host ::ng-deep .p-button.active {
+  font-weight: 600;
+}
+
+.empty-state {
+  text-align: center;
+}

@@ -22,6 +22,7 @@ export class ModuleMenuService {
     products: '/app/products',
     inventory: '/app/inventory',
     pos: '/app/pos',
+    prepaid: '/app/prepaid',
   };
 
   getMenuItems(): Observable<MenuItem[]> {

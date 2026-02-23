@@ -1,0 +1,30 @@
+<section class="prepaid-shell">
+  <header class="prepaid-header">
+    <div>
+      <p class="eyebrow">Recargas</p>
+      <h1>Prepaid</h1>
+      <p class="muted">Administra proveedores, saldos y depósitos.</p>
+    </div>
+    <nav class="prepaid-tabs">
+      <p-button label="Proveedores" routerLink="providers" routerLinkActive="active" [text]="true"></p-button>
+      <p-button label="Depósitos" routerLink="deposits" routerLinkActive="active" [text]="true"></p-button>
+      <p-button label="Saldos" routerLink="balances" routerLinkActive="active" [text]="true"></p-button>
+      <p-button label="Denominaciones" routerLink="configs" routerLinkActive="active" [text]="true"></p-button>
+    </nav>
+  </header>
+
+  <p-card *ngIf="contextMissing" class="empty-state">
+    <h3>Selecciona un contexto</h3>
+    <p>Elige organización y empresa para ver recargas.</p>
+  </p-card>
+
+  <p-card *ngIf="!contextMissing && !loading && !moduleEnabled" class="empty-state">
+    <h3>Módulo no instalado</h3>
+    <p>Instala el módulo Prepaid para habilitar recargas.</p>
+    <p-button label="Ir a tienda de módulos" icon="pi pi-shopping-bag" (onClick)="goToStore()"></p-button>
+  </p-card>
+
+  <div *ngIf="!contextMissing && moduleEnabled">
+    <router-outlet></router-outlet>
+  </div>
+</section>

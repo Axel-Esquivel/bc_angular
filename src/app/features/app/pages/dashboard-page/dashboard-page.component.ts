@@ -36,6 +36,12 @@ const MODULE_META: Record<string, { icon: string; route: string; name?: string; 
     name: 'POS',
     description: 'Ventas en punto de venta.',
   },
+  prepaid: {
+    icon: 'pi pi-mobile',
+    route: '/app/prepaid',
+    name: 'Recargas',
+    description: 'Saldo por proveedor.',
+  },
   inventory: {
     icon: 'pi pi-box',
     route: '/app/inventory',

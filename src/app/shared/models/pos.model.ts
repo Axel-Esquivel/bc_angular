@@ -11,6 +11,11 @@ export interface PosCartLine {
   quantity: number;
   unitPrice: number;
   subtotal: number;
+  prepaid?: {
+    phoneNumber?: string;
+    denomination?: number;
+    providerId?: string;
+  };
 }
 
 export type PosPaymentMethod = 'CASH';

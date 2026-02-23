@@ -1,0 +1,69 @@
+<p-toast></p-toast>
+
+<p-card>
+  <ng-template pTemplate="title">Depósitos</ng-template>
+  <div class="section-actions">
+    <p-button label="Registrar depósito" icon="pi pi-plus" (onClick)="openCreate()"></p-button>
+  </div>
+  <p-table [value]="deposits" [loading]="loading" dataKey="id">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Proveedor</th>
+        <th>Depósito</th>
+        <th>Crédito</th>
+        <th>Referencia</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-deposit>
+      <tr>
+        <td>{{ getProviderName(deposit.providerId) }}</td>
+        <td>{{ deposit.depositAmount | number: '1.2-2':'en-US' }}</td>
+        <td>{{ deposit.creditedAmount | number: '1.2-2':'en-US' }}</td>
+        <td>{{ deposit.reference || '-' }}</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</p-card>
+
+<p-dialog
+  header="Registrar depósito"
+  [(visible)]="dialogVisible"
+  [modal]="true"
+  [draggable]="false"
+  [style]="{ width: '480px' }"
+>
+  <form [formGroup]="form" class="dialog-form">
+    <label for="providerId">Proveedor</label>
+    <p-select
+      inputId="providerId"
+      [options]="providerOptions"
+      optionLabel="label"
+      optionValue="value"
+      formControlName="providerId"
+      appendTo="body"
+    ></p-select>
+    <label for="depositAmount">Depósito</label>
+    <p-inputNumber inputId="depositAmount" formControlName="depositAmount" [min]="0" locale="en-US"></p-inputNumber>
+    <label for="creditedAmount">Crédito</label>
+    <p-inputNumber
+      inputId="creditedAmount"
+      formControlName="creditedAmount"
+      [min]="0"
+      locale="en-US"
+    ></p-inputNumber>
+    <label for="reference">Referencia</label>
+    <input id="reference" type="text" pInputText formControlName="reference" />
+  </form>
+  <ng-template #footer>
+    <div class="dialog-actions">
+      <p-button label="Cancelar" severity="secondary" [disabled]="saving" (onClick)="dialogVisible = false"></p-button>
+      <p-button
+        label="Guardar"
+        icon="pi pi-check"
+        [loading]="saving"
+        [disabled]="saving || form.invalid"
+        (onClick)="save()"
+      ></p-button>
+    </div>
+  </ng-template>
+</p-dialog>

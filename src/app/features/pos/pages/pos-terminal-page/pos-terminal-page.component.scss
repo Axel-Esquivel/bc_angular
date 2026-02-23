@@ -41,6 +41,18 @@
   color: var(--text-secondary, #6b7280);
 }
 
+.dialog-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
 @media (max-width: 960px) {
   .pos-header {
     flex-direction: column;

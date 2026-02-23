@@ -55,3 +55,30 @@
     </div>
   </section>
 </section>
+
+<p-dialog
+  header="Recarga"
+  [(visible)]="prepaidDialogVisible"
+  [modal]="true"
+  [draggable]="false"
+  [style]="{ width: '420px' }"
+>
+  <form [formGroup]="prepaidForm" class="dialog-form">
+    <label for="prepaidPhone">Número de teléfono</label>
+    <input id="prepaidPhone" type="text" pInputText formControlName="phoneNumber" />
+    <label for="prepaidDenomination">Denominación</label>
+    <p-inputNumber
+      inputId="prepaidDenomination"
+      formControlName="denomination"
+      [min]="0"
+      locale="en-US"
+      [readonly]="prepaidDialogLockedDenomination"
+    ></p-inputNumber>
+  </form>
+  <ng-template #footer>
+    <div class="dialog-actions">
+      <p-button label="Cancelar" severity="secondary" (onClick)="cancelPrepaidLine()"></p-button>
+      <p-button label="Agregar" icon="pi pi-check" (onClick)="confirmPrepaidLine()"></p-button>
+    </div>
+  </ng-template>
+</p-dialog>

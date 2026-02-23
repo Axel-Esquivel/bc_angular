@@ -24,6 +24,9 @@ export interface PosSaleLineInput {
   qty: number;
   unitPrice: number;
   taxRate?: number;
+  phoneNumber?: string;
+  denomination?: number;
+  prepaidProviderId?: string;
 }
 
 export interface PosPaymentInput {

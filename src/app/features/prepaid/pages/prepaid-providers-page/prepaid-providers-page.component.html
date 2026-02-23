@@ -1,0 +1,60 @@
+<p-toast></p-toast>
+
+<p-card>
+  <ng-template pTemplate="title">Proveedores</ng-template>
+  <div class="section-actions">
+    <p-button label="Agregar proveedor" icon="pi pi-plus" (onClick)="openCreate()"></p-button>
+  </div>
+  <p-table [value]="providers" [loading]="loading" dataKey="id">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Nombre</th>
+        <th>Estado</th>
+        <th></th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-provider>
+      <tr>
+        <td>{{ provider.name }}</td>
+        <td>{{ provider.isActive ? 'Activo' : 'Inactivo' }}</td>
+        <td class="actions">
+          <p-button
+            icon="pi pi-pencil"
+            severity="secondary"
+            size="small"
+            (onClick)="openEdit(provider)"
+          ></p-button>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</p-card>
+
+<p-dialog
+  header="{{ editingProvider ? 'Editar proveedor' : 'Nuevo proveedor' }}"
+  [(visible)]="dialogVisible"
+  [modal]="true"
+  [draggable]="false"
+  [style]="{ width: '420px' }"
+>
+  <form [formGroup]="form" class="dialog-form">
+    <label for="providerName">Nombre</label>
+    <input id="providerName" type="text" pInputText formControlName="name" />
+    <div class="field toggle">
+      <label>Activo</label>
+      <p-toggleSwitch formControlName="isActive"></p-toggleSwitch>
+    </div>
+  </form>
+  <ng-template #footer>
+    <div class="dialog-actions">
+      <p-button label="Cancelar" severity="secondary" [disabled]="saving" (onClick)="dialogVisible = false"></p-button>
+      <p-button
+        label="Guardar"
+        icon="pi pi-check"
+        [loading]="saving"
+        [disabled]="saving || form.invalid"
+        (onClick)="save()"
+      ></p-button>
+    </div>
+  </ng-template>
+</p-dialog>

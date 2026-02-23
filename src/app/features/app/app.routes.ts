@@ -28,6 +28,7 @@ export const appRoutes: Routes = [
       { path: 'home', component: AppDashboardPageComponent },
       { path: 'pos', loadChildren: () => import('../pos/pos.module').then((m) => m.PosModule) },
       { path: 'products', loadChildren: () => import('../products/products.module').then((m) => m.ProductsModule) },
+      { path: 'prepaid', loadChildren: () => import('../prepaid/prepaid.module').then((m) => m.PrepaidModule) },
       { path: 'settings', loadChildren: () => import('../settings/settings.module').then((m) => m.SettingsModule) },
       { path: 'inventory', component: StockListPageComponent },
       { matcher: moduleMatcher, component: ModulePlaceholderPageComponent },
