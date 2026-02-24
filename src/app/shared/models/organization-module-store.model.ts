@@ -5,6 +5,7 @@ export interface OrganizationModuleStoreItem {
   version: string;
   dependencies: string[];
   isSystem: boolean;
+  visibility?: 'app' | 'internal';
   category: string;
   suite: string;
   tags: string[];

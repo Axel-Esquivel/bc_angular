@@ -10,6 +10,7 @@ import { Tag } from 'primeng/tag';
 import { InputText } from 'primeng/inputtext';
 import { Select } from 'primeng/select';
 import { MultiSelect } from 'primeng/multiselect';
+import { ToggleSwitchModule } from 'primeng/toggleswitch';
 import { FormsModule } from '@angular/forms';
 import { finalize, map, distinctUntilChanged, timeout } from 'rxjs';
 
@@ -25,9 +26,11 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from '../../../../core/auth/auth.service';
 import { IOrganization } from '../../../../shared/models/organization.model';
 import { ModuleCardComponent } from '../../components/module-card/module-card.component';
+import { applyModuleUiMeta, ModuleVisibility } from '../../utils/module-classification';
 
 type GroupBy = 'suite' | 'category' | 'none';
 type SortBy = 'name' | 'status' | 'order';
+type GroupType = 'type';
 
 interface SelectOption<T = string> {
   label: string;
@@ -53,6 +56,7 @@ const SUITE_LABELS: Record<string, string> = {
     InputText,
     Select,
     MultiSelect,
+    ToggleSwitchModule,
     ConfirmDialog,
     ModuleCardComponent,
   ],
@@ -81,13 +85,15 @@ export class ModuleStorePageComponent implements OnInit {
   errorMessage: string | null = null;
   returnUrl: string | null = null;
   searchText = '';
-  groupBy: GroupBy = 'suite';
+  groupBy: GroupBy | GroupType = 'suite';
   sortBy: SortBy = 'order';
   selectedCategories: string[] = [];
+  showInternal = false;
   categoryOptions: Array<SelectOption> = [];
-  readonly groupByOptions: Array<SelectOption<GroupBy>> = [
+  readonly groupByOptions: Array<SelectOption<GroupBy | GroupType>> = [
     { label: 'Suite', value: 'suite' },
     { label: 'Categoria', value: 'category' },
+    { label: 'Tipo (Apps / Internos)', value: 'type' },
     { label: 'Sin agrupar', value: 'none' },
   ];
   readonly sortByOptions: Array<SelectOption<SortBy>> = [
@@ -478,23 +484,26 @@ export class ModuleStorePageComponent implements OnInit {
 
   private normalizeModules(response: { result?: OrganizationModuleStoreResponse }): OrganizationModuleStoreItem[] {
     const available = response.result?.available ?? [];
-    return available.map((module) => ({
-      ...module,
-      name: module.name?.trim() || module.key,
-      version: module.version?.trim() || '1.0.0',
-      dependencies: Array.isArray(module.dependencies) ? module.dependencies : [],
-      category: module.category?.trim() || 'utilities',
-      suite: module.suite?.trim() || 'utilities-suite',
-      tags: Array.isArray(module.tags)
-        ? module.tags.map((tag) => tag.trim()).filter((tag) => tag.length > 0)
-        : [],
-      order: typeof module.order === 'number' ? module.order : 100,
-      installed: Boolean(module.installed),
-    }));
+    return available.map((module) =>
+      applyModuleUiMeta({
+        ...module,
+        name: module.name?.trim() || module.key,
+        version: module.version?.trim() || '1.0.0',
+        dependencies: Array.isArray(module.dependencies) ? module.dependencies : [],
+        category: module.category?.trim() || 'utilities',
+        suite: module.suite?.trim() || 'utilities-suite',
+        tags: Array.isArray(module.tags)
+          ? module.tags.map((tag) => tag.trim()).filter((tag) => tag.length > 0)
+          : [],
+        order: typeof module.order === 'number' ? module.order : 100,
+        installed: Boolean(module.installed),
+        visibility: module.visibility,
+      })
+    );
   }
 
   private updateView(): void {
-    const filtered = this.filterModules(this.modules, this.searchText, this.selectedCategories);
+    const filtered = this.filterModules(this.modules, this.searchText, this.selectedCategories, this.showInternal);
     const sorted = this.sortModules(filtered, this.sortBy);
     if (this.groupBy === 'none') {
       this.visibleModules = sorted;
@@ -504,7 +513,10 @@ export class ModuleStorePageComponent implements OnInit {
     }
     const grouped = this.groupModules(sorted, this.groupBy);
     this.groupedModules = grouped;
-    this.groupedKeys = Object.keys(grouped).sort((a, b) => a.localeCompare(b));
+    this.groupedKeys =
+      this.groupBy === 'type'
+        ? (['Apps', 'Internos'] as string[]).filter((key) => grouped[key]?.length)
+        : Object.keys(grouped).sort((a, b) => a.localeCompare(b));
     this.collapsedGroups.forEach((key) => {
       if (!this.groupedModules[key]) {
         this.collapsedGroups.delete(key);
@@ -533,6 +545,7 @@ export class ModuleStorePageComponent implements OnInit {
     modules: OrganizationModuleStoreItem[],
     searchText: string,
     selectedCategories: string[],
+    showInternal: boolean,
   ): OrganizationModuleStoreItem[] {
     const normalizedSearch = searchText.trim().toLowerCase();
     const hasSearch = normalizedSearch.length > 0;
@@ -540,6 +553,9 @@ export class ModuleStorePageComponent implements OnInit {
     const hasCategories = categorySet.size > 0;
 
     return modules.filter((module) => {
+      if (!showInternal && module.visibility === 'internal') {
+        return false;
+      }
       if (hasCategories && !categorySet.has(module.category.toLowerCase())) {
         return false;
       }
@@ -595,10 +611,17 @@ export class ModuleStorePageComponent implements OnInit {
 
   private groupModules(
     modules: OrganizationModuleStoreItem[],
-    groupBy: Exclude<GroupBy, 'none'>,
+    groupBy: Exclude<GroupBy | GroupType, 'none'>,
   ): Record<string, OrganizationModuleStoreItem[]> {
     return modules.reduce<Record<string, OrganizationModuleStoreItem[]>>((acc, module) => {
-      const key = groupBy === 'suite' ? module.suite : module.category;
+      const key =
+        groupBy === 'suite'
+          ? module.suite
+          : groupBy === 'category'
+          ? module.category
+          : module.visibility === 'internal'
+          ? 'Internos'
+          : 'Apps';
       if (!acc[key]) {
         acc[key] = [];
       }

@@ -12,6 +12,7 @@ export interface OrganizationModuleOverviewItem {
   dependencies: string[];
   isSystem: boolean;
   state: OrganizationModuleState;
+  visibility?: 'app' | 'internal';
 }
 
 export interface OrganizationModulesOverviewResponse {

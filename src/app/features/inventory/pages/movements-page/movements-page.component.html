@@ -2,8 +2,8 @@
   <p-card>
     <ng-template pTemplate="title">Movimientos</ng-template>
     <form class="filters" [formGroup]="filtersForm" (ngSubmit)="onApplyFilters()">
-      <div class="context-info" *ngIf="context?.enterpriseId">
-        Empresa activa: {{ context?.enterpriseId }}
+      <div class="context-info" *ngIf="enterpriseName">
+        Empresa activa: {{ enterpriseName }}
       </div>
       <div class="filter-row">
         <div class="field">

@@ -11,6 +11,7 @@ import { TableModule } from 'primeng/table';
 
 import { ActiveContextStateService } from '../../../../core/context/active-context-state.service';
 import { ActiveContext } from '../../../../shared/models/active-context.model';
+import { CompaniesApiService } from '../../../../core/api/companies-api.service';
 import {
   InventoryStockService,
   StockMovement,
@@ -48,6 +49,7 @@ export class MovementsPageComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly stockService = inject(InventoryStockService);
   private readonly warehousesService = inject(WarehousesService);
+  private readonly companiesApi = inject(CompaniesApiService);
   private readonly activeContextState = inject(ActiveContextStateService);
   private readonly messageService = inject(MessageService);
 
@@ -60,6 +62,7 @@ export class MovementsPageComponent implements OnInit {
   });
 
   context: ActiveContext | null = null;
+  enterpriseName = '';
   warehouses: Warehouse[] = [];
   warehouseOptions: SelectOption[] = [{ label: 'Todas', value: '' }];
   locationOptions: SelectOption[] = [{ label: 'Todas', value: '' }];
@@ -81,6 +84,7 @@ export class MovementsPageComponent implements OnInit {
       return;
     }
     this.context = context;
+    this.loadEnterpriseName();
     this.loadWarehouses();
     this.loadMovements();
   }
@@ -198,6 +202,28 @@ export class MovementsPageComponent implements OnInit {
           });
         },
       });
+  }
+
+  private loadEnterpriseName(): void {
+    const context = this.context;
+    if (!context?.enterpriseId) {
+      this.enterpriseName = '';
+      return;
+    }
+    if (!context.companyId) {
+      this.enterpriseName = context.enterpriseId;
+      return;
+    }
+    this.companiesApi.getById(context.companyId).subscribe({
+      next: ({ result }) => {
+        const enterprise =
+          result?.enterprises?.find((item) => item.id === context.enterpriseId) ?? null;
+        this.enterpriseName = enterprise?.name ?? context.enterpriseId ?? '';
+      },
+      error: () => {
+        this.enterpriseName = context.enterpriseId ?? '';
+      },
+    });
   }
 
   private mapRow(item: StockMovement): MovementRow {

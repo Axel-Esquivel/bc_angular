@@ -13,6 +13,7 @@ import { AuthService } from '../../../../core/auth/auth.service';
 import { OrganizationModuleOverviewItem } from '../../../../shared/models/organization-modules.model';
 import { ApiResponse } from '../../../../shared/models/api-response.model';
 import { take } from 'rxjs';
+import { applyModuleUiMeta } from '../../../setup/utils/module-classification';
 
 interface HomeModuleCard {
   key: string;
@@ -187,7 +188,10 @@ export class AppDashboardPageComponent implements OnInit {
   }
 
   private mapToCards(modules: OrganizationModuleOverviewItem[]): HomeModuleCard[] {
-    return modules.map((module) => {
+    return modules
+      .map((module) => applyModuleUiMeta(module))
+      .filter((module) => module.visibility === 'app')
+      .map((module) => {
       const meta = MODULE_META[module.key] ?? {
         icon: 'pi pi-th-large',
         route: `/app/${module.key}`,
