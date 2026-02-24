@@ -1,5 +1,5 @@
 import { APP_INITIALIZER, ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
-import { provideRouter } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
@@ -13,8 +13,8 @@ import { routes } from './app.routes';
 import { AuthInterceptor } from './core/auth/auth.interceptor';
 import { AuthService } from './core/auth/auth.service';
 
-const authInitializer = (authService: AuthService) => () => {
-  if (!authService.hasToken()) {
+const authInitializer = (authService: AuthService, router: Router) => () => {
+  if (!authService.hasStoredAccessToken()) {
     return Promise.resolve();
   }
 
@@ -23,7 +23,14 @@ const authInitializer = (authService: AuthService) => () => {
       catchError((error) => {
         const status = error?.status ?? error?.error?.status;
         if (status === 401 || status === 419) {
-          authService.logout();
+          authService.logoutLocal();
+          const returnUrl = router.url;
+          const target = `/auth/login?returnUrl=${encodeURIComponent(returnUrl)}`;
+          void router.navigate(['/auth/login'], { queryParams: { returnUrl } }).then((navigated) => {
+            if (!navigated) {
+              window.location.assign(target);
+            }
+          });
         }
         return of(null);
       })
@@ -45,7 +52,7 @@ export const appConfig: ApplicationConfig = {
       },
     }),
     { provide: APP_CONFIG_TOKEN, useValue: APP_CONFIG },
-    { provide: APP_INITIALIZER, useFactory: authInitializer, deps: [AuthService], multi: true },
+    { provide: APP_INITIALIZER, useFactory: authInitializer, deps: [AuthService, Router], multi: true },
     MessageService,
     { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },
   ],

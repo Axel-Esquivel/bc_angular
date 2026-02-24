@@ -1,4 +1,4 @@
-import {
+﻿import {
   HttpErrorResponse,
   HttpEvent,
   HttpHandler,
@@ -14,6 +14,7 @@ import { APP_CONFIG_TOKEN, AppConfig } from '../config/app-config';
 import { AuthService } from './auth.service';
 import { AuthStateService } from './auth-state.service';
 import { ActiveContextStateService } from '../context/active-context-state.service';
+import { TokenStorageService } from './token-storage.service';
 
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
@@ -23,6 +24,7 @@ export class AuthInterceptor implements HttpInterceptor {
     private readonly authState: AuthStateService,
     private readonly messageService: MessageService,
     private readonly activeContextState: ActiveContextStateService,
+    private readonly tokenStorage: TokenStorageService,
     private readonly router: Router
   ) {}
 
@@ -88,13 +90,18 @@ export class AuthInterceptor implements HttpInterceptor {
     }
 
     if (this.isAuthEndpoint(originalRequest.url)) {
+      return throwError(() => error);
+    }
+
+    const refreshToken = this.tokenStorage.getRefreshToken();
+    if (!refreshToken) {
       this.handleSessionExpired();
       return throwError(() => error);
     }
 
     return this.authService.refreshToken().pipe(
       switchMap((tokens) => {
-        if (!tokens?.accessToken) {
+        if (!tokens?.accessToken || !tokens.refreshToken) {
           this.handleSessionExpired();
           return throwError(() => error);
         }
@@ -103,10 +110,7 @@ export class AuthInterceptor implements HttpInterceptor {
         return next.handle(retryRequest);
       }),
       catchError((refreshError) => {
-        const status = refreshError instanceof HttpErrorResponse ? refreshError.status : null;
-        if (status === 401 || status === 419) {
-          this.handleSessionExpired();
-        }
+        this.handleSessionExpired();
         return throwError(() => refreshError);
       })
     );
@@ -119,22 +123,41 @@ export class AuthInterceptor implements HttpInterceptor {
   }
 
   private isAuthEndpoint(url: string): boolean {
-    return url.includes('/auth/logout') || url.includes('/auth/me') || url.includes('/auth/refresh');
+    return (
+      url.includes('/auth/login') ||
+      url.includes('/auth/register') ||
+      url.includes('/auth/logout') ||
+      url.includes('/auth/me') ||
+      url.includes('/auth/refresh')
+    );
   }
 
   private logoutAndRedirect(): void {
     this.authService.logoutLocal();
     this.activeContextState.clearActiveContext();
-    void this.router.navigateByUrl('/auth/login');
+    if (this.isAuthRoute(this.router.url)) {
+      return;
+    }
+    const returnUrl = this.router.url;
+    const target = `/auth/login?returnUrl=${encodeURIComponent(returnUrl)}`;
+    void this.router.navigate(['/auth/login'], { queryParams: { returnUrl } }).then((navigated) => {
+      if (!navigated) {
+        window.location.assign(target);
+      }
+    });
   }
 
   private handleSessionExpired(): void {
     this.messageService.add({
       severity: 'warn',
-      summary: 'Sesión',
-      detail: 'Sesión expirada. Inicia sesión nuevamente.',
+      summary: 'Sesion',
+      detail: 'Sesion expirada. Inicia sesion nuevamente.',
     });
     this.logoutAndRedirect();
+  }
+
+  private isAuthRoute(url: string): boolean {
+    return url.startsWith('/auth/login') || url.startsWith('/auth/register');
   }
 
   private isContextMissing(error: HttpErrorResponse): boolean {

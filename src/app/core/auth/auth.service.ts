@@ -33,9 +33,6 @@ import { ActiveContextStateService } from '../context/active-context-state.servi
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private static readonly TOKEN_KEY = 'bc_token';
-  private static readonly USER_KEY = 'bc_user';
-
   private readonly currentUserSubject = new BehaviorSubject<AuthUser | null>(null);
   private readonly authStateSubject = new BehaviorSubject<boolean>(false);
   private readonly refreshSubject = new BehaviorSubject<AuthTokens | null>(null);
@@ -51,16 +48,13 @@ export class AuthService {
     private readonly logger: LoggerService
   ) {
     const storedToken = this.tokenStorage.getAccessToken();
-    if (storedToken && !this.getToken()) {
-      this.setToken(storedToken);
-    }
     if (storedToken) {
       this.realtimeSocket.setAuthToken(storedToken);
     }
-    const storedUser = this.getCurrentUser();
+    const storedUser = this.tokenStorage.getUser();
     this.currentUserSubject.next(storedUser);
     this.companyState.syncFromUser(storedUser);
-    this.authStateSubject.next(this.hasToken());
+    this.authStateSubject.next(Boolean(storedToken));
   }
 
   login(credentials: LoginRequest): Observable<AuthUser | null> {
@@ -139,11 +133,15 @@ export class AuthService {
   }
 
   getToken(): string | null {
-    return localStorage.getItem(AuthService.TOKEN_KEY);
+    return this.tokenStorage.getAccessToken();
   }
 
   hasToken(): boolean {
     return !!this.getToken();
+  }
+
+  hasStoredAccessToken(): boolean {
+    return !!this.tokenStorage.getAccessToken();
   }
 
   getCurrentUser(): AuthUser | null {
@@ -151,18 +149,7 @@ export class AuthService {
     if (cached) {
       return cached;
     }
-
-    const raw = localStorage.getItem(AuthService.USER_KEY);
-    if (!raw) {
-      return null;
-    }
-
-    try {
-      return JSON.parse(raw) as AuthUser;
-    } catch {
-      localStorage.removeItem(AuthService.USER_KEY);
-      return null;
-    }
+    return this.tokenStorage.getUser();
   }
 
   get isAuthenticated$(): Observable<boolean> {
@@ -208,10 +195,12 @@ export class AuthService {
     }
 
     const tokens = this.extractTokens(response);
-    if (tokens) {
-      this.tokenStorage.setTokens(tokens);
-      this.setToken(tokens.accessToken);
+    if (!tokens || !tokens.refreshToken) {
+      this.performLogout(false);
+      return;
     }
+    this.tokenStorage.setTokens(tokens);
+    this.setToken(tokens.accessToken);
 
     if ('deviceId' in response) {
       this.tokenStorage.setDeviceId((response as LoginResult | RegisterResult).deviceId ?? null);
@@ -221,7 +210,6 @@ export class AuthService {
     this.companyState.syncFromContext(activeContext);
     if ('user' in response && response.user) {
       const mappedUser = this.mapUser(response.user);
-      this.setUser(mappedUser);
       this.tokenStorage.setUser(mappedUser);
       this.currentUserSubject.next(mappedUser);
       this.companyState.syncFromUser(mappedUser);
@@ -237,8 +225,12 @@ export class AuthService {
     if (!accessToken) {
       return null;
     }
+    const refreshToken = (payload as LoginResult).refreshToken ?? null;
+    if (!refreshToken) {
+      return null;
+    }
 
-    return { accessToken, refreshToken: (payload as LoginResult).refreshToken ?? null };
+    return { accessToken, refreshToken };
   }
 
   private mapUser(user?: AuthUser | null): AuthUser | null {
@@ -251,28 +243,7 @@ export class AuthService {
   }
 
   private setToken(token: string | null): void {
-    if (token) {
-      localStorage.setItem(AuthService.TOKEN_KEY, token);
-      this.authStateSubject.next(true);
-      return;
-    }
-
-    localStorage.removeItem(AuthService.TOKEN_KEY);
-    this.authStateSubject.next(false);
-  }
-
-  private setUser(user: AuthUser | null): void {
-    if (!user) {
-      localStorage.removeItem(AuthService.USER_KEY);
-      return;
-    }
-
-    localStorage.setItem(AuthService.USER_KEY, JSON.stringify(user));
-  }
-
-  private clearAuthStorage(): void {
-    localStorage.removeItem(AuthService.TOKEN_KEY);
-    localStorage.removeItem(AuthService.USER_KEY);
+    this.authStateSubject.next(Boolean(token));
   }
 
   private performLogout(callApi: boolean): void {
@@ -307,7 +278,6 @@ export class AuthService {
     this.realtimeSocket.disconnect();
     this.realtimeSocket.setAuthToken(null);
     this.tokenStorage.clearTokens();
-    this.clearAuthStorage();
     this.activeContextState.clear();
     this.currentUserSubject.next(null);
     this.authStateSubject.next(false);

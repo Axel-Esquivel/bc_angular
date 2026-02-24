@@ -4,7 +4,9 @@ import { MessageService, TreeNode } from 'primeng/api';
 import { Button } from 'primeng/button';
 import { Card } from 'primeng/card';
 import { Dialog } from 'primeng/dialog';
+import { Tag } from 'primeng/tag';
 import { TableModule, TableRowSelectEvent } from 'primeng/table';
+import { Router } from '@angular/router';
 
 import { ActiveContextStateService } from '../../../../core/context/active-context-state.service';
 import { ActiveContext } from '../../../../shared/models/active-context.model';
@@ -26,6 +28,15 @@ import {
   WarehouseFormDialogComponent,
   WarehouseFormValue,
 } from '../../components/warehouse-form-dialog/warehouse-form-dialog.component';
+import { OrganizationsService } from '../../../../core/api/organizations-api.service';
+import { OrganizationModuleOverviewItem } from '../../../../shared/models/organization-modules.model';
+
+interface OperationCard {
+  key: string;
+  title: string;
+  description: string;
+  route: string;
+}
 
 @Component({
   selector: 'app-warehouses-page',
@@ -35,6 +46,7 @@ import {
     Card,
     TableModule,
     Button,
+    Tag,
     Dialog,
     LocationsTreeComponent,
     WarehouseFormDialogComponent,
@@ -47,7 +59,9 @@ import {
 export class WarehousesPageComponent implements OnInit {
   private readonly warehousesService = inject(WarehousesService);
   private readonly activeContextState = inject(ActiveContextStateService);
+  private readonly organizationsService = inject(OrganizationsService);
   private readonly messageService = inject(MessageService);
+  private readonly router = inject(Router);
 
   warehouses: Warehouse[] = [];
   selectedWarehouse: Warehouse | null = null;
@@ -68,6 +82,46 @@ export class WarehousesPageComponent implements OnInit {
 
   private locationIndex = new Map<string, LocationNode>();
   private context: ActiveContext | null = null;
+  private installedModules = new Set<string>();
+
+  readonly operationCards: OperationCard[] = [
+    {
+      key: 'stock',
+      title: 'Stock',
+      description: 'Consulta existencias por bodega y ubicacion.',
+      route: '/app/inventory',
+    },
+    {
+      key: 'stock-movements',
+      title: 'Movimientos',
+      description: 'Kardex y movimientos de stock.',
+      route: '/app/inventory/movements',
+    },
+    {
+      key: 'inventory-adjustments',
+      title: 'Ajustes',
+      description: 'Conteos fisicos y ajustes de inventario.',
+      route: '/app/inventory/adjustments',
+    },
+    {
+      key: 'transfers',
+      title: 'Transferencias',
+      description: 'Traslados entre bodegas y transito.',
+      route: '/app/inventory/transfers',
+    },
+    {
+      key: 'stock-reservations',
+      title: 'Reservas',
+      description: 'Reservas de stock para picking.',
+      route: '/app/inventory/reservations',
+    },
+    {
+      key: 'inventory-events',
+      title: 'Eventos/Outbox',
+      description: 'Eventos de inventario publicados.',
+      route: '/app/inventory/events',
+    },
+  ];
 
   ngOnInit(): void {
     const context = this.activeContextState.getActiveContext();
@@ -81,6 +135,7 @@ export class WarehousesPageComponent implements OnInit {
     }
     this.context = context;
     this.loadWarehouses();
+    this.loadInstalledModules();
   }
 
   onWarehouseSelected(event: TableRowSelectEvent<Warehouse>): void {
@@ -90,6 +145,17 @@ export class WarehousesPageComponent implements OnInit {
     }
     this.selectedWarehouse = selected;
     this.loadLocations(selected);
+  }
+
+  openOperation(card: OperationCard): void {
+    if (!this.isModuleInstalled(card.key)) {
+      return;
+    }
+    void this.router.navigateByUrl(card.route);
+  }
+
+  isModuleInstalled(moduleKey: string): boolean {
+    return this.installedModules.has(moduleKey);
   }
 
   openCreateWarehouse(): void {
@@ -368,5 +434,27 @@ export class WarehousesPageComponent implements OnInit {
       return null;
     }
     return { organizationId: context.organizationId, enterpriseId: context.enterpriseId };
+  }
+
+  private loadInstalledModules(): void {
+    const context = this.context ?? this.activeContextState.getActiveContext();
+    const organizationId = context.organizationId;
+    if (!organizationId) {
+      this.installedModules.clear();
+      return;
+    }
+    this.organizationsService.getModulesOverview(organizationId).subscribe({
+      next: ({ result }) => {
+        const modules: OrganizationModuleOverviewItem[] = result?.modules ?? [];
+        this.installedModules = new Set(
+          modules
+            .filter((module) => module.state?.status !== 'disabled')
+            .map((module) => module.key)
+        );
+      },
+      error: () => {
+        this.installedModules.clear();
+      },
+    });
   }
 }

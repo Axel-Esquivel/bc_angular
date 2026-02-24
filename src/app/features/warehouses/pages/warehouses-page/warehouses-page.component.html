@@ -68,6 +68,32 @@
       ></app-locations-tree>
     </p-card>
   </div>
+
+  <section class="operations-section">
+    <div class="operations-header">
+      <h2>Operacion</h2>
+      <p>Accesos rapidos a las herramientas de inventario.</p>
+    </div>
+    <div class="operations-grid">
+      <ng-container *ngFor="let card of operationCards">
+        <p-card
+          *ngIf="isModuleInstalled(card.key)"
+          class="operation-card"
+          (click)="openOperation(card)"
+          role="button"
+          tabindex="0"
+        >
+          <div class="operation-card__body">
+            <div class="operation-card__text">
+              <h3>{{ card.title }}</h3>
+              <p>{{ card.description }}</p>
+            </div>
+            <p-tag value="Instalado" severity="success"></p-tag>
+          </div>
+        </p-card>
+      </ng-container>
+    </div>
+  </section>
 </div>
 
 <p-dialog header="Bodega" [(visible)]="warehouseDialogOpen" [modal]="true" [style]="{ width: '560px' }">
