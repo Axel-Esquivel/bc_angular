@@ -33,12 +33,24 @@
 .module-card .p-card-body,
 .module-card .p-card-content {
   height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 1.25rem;
+}
+
+.module-card .p-card-header {
+  padding: 1rem 1.25rem 0;
 }
 
 .module-card__wrapper {
   height: 100%;
   display: flex;
   flex-direction: column;
+  flex: 1 1 auto;
+}
+
+.module-card__content {
+  flex: 1 1 auto;
 }
 
 .module-card__header {
@@ -48,18 +60,16 @@
 }
 
 .module-card__title {
-  display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
-
-  h3 {
-    margin: 0;
-    font-size: 1.05rem;
-  }
+  margin: 0;
+  /* font-size: 1.35rem;
+  font-weight: 700; */
 }
 
 .module-card__version {
   font-size: 0.85rem;
+  font-weight: 500;
+  opacity: 0.7;
+  margin-left: 0.5rem;
   color: var(--text-color-secondary, #6b7280);
 }
 
@@ -130,4 +140,5 @@
   margin-top: auto;
   display: flex;
   justify-content: flex-end;
+  padding-top: 1rem;
 }

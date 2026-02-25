@@ -1,10 +1,10 @@
 <p-card class="module-card" [class.is-installed]="module.installed">
   <ng-template pTemplate="header">
     <div class="module-card__header">
-      <div class="module-card__title">
-        <h3>{{ headerTitle }}</h3>
+      <h1 class="module-card__title">
+        {{ headerTitle }}
         <span class="module-card__version">v{{ headerVersion }}</span>
-      </div>
+      </h1>
       <div class="module-card__meta">
         <p-tag [severity]="statusSeverity" [value]="statusLabel"></p-tag>
         <div class="module-card__chips">
@@ -15,7 +15,8 @@
     </div>
   </ng-template>
   <div class="module-card__wrapper">
-    <div class="module-card__body">
+    <div class="module-card__content">
+      <div class="module-card__body">
       <p class="module-desc" *ngIf="module.description">{{ module.description }}</p>
       <div
         class="module-deps"
@@ -27,6 +28,7 @@
           <p-chip *ngFor="let dependency of module.dependencies" [label]="dependency"></p-chip>
           <span class="module-card__empty" *ngIf="!module.dependencies.length">Sin dependencias</span>
         </div>
+      </div>
       </div>
     </div>
     <div class="module-card__actions">
