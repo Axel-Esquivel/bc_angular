@@ -10,7 +10,6 @@ import { Tag } from 'primeng/tag';
 import { InputText } from 'primeng/inputtext';
 import { Select } from 'primeng/select';
 import { MultiSelect } from 'primeng/multiselect';
-import { ToggleSwitchModule } from 'primeng/toggleswitch';
 import { FormsModule } from '@angular/forms';
 import { finalize, map, distinctUntilChanged, timeout } from 'rxjs';
 
@@ -56,7 +55,6 @@ const SUITE_LABELS: Record<string, string> = {
     InputText,
     Select,
     MultiSelect,
-    ToggleSwitchModule,
     ConfirmDialog,
     ModuleCardComponent,
   ],

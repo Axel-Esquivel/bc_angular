@@ -9,6 +9,7 @@
   border: 1px solid rgba(148, 163, 184, 0.25);
   border-radius: 12px;
   background: var(--surface-card);
+  position: relative;
   transition:
     transform 0.2s ease,
     box-shadow 0.2s ease,
@@ -47,6 +48,8 @@
   display: flex;
   flex-direction: column;
   flex: 1 1 auto;
+  position: relative;
+  padding-bottom: 3.25rem;
 }
 
 .module-card__content {
@@ -137,8 +140,9 @@
 }
 
 .module-card__actions {
-  margin-top: auto;
+  position: absolute;
+  right: 1rem;
+  bottom: 1rem;
   display: flex;
   justify-content: flex-end;
-  padding-top: 1rem;
 }
