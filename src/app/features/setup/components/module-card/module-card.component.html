@@ -1,4 +1,4 @@
-<p-card class="module-card" [class.is-installed]="module.installed">
+<p-card class="module-card" [ngClass]="{ 'is-installed': module.installed }">
   <ng-template #title>
     <div class="module-card__titleRow">
       <span class="module-card__titleText">{{ module.name || module.key }}</span>
