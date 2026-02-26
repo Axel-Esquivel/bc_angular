@@ -4,14 +4,13 @@ import { Button } from 'primeng/button';
 import { Card } from 'primeng/card';
 import { Chip } from 'primeng/chip';
 import { Tag } from 'primeng/tag';
-import { Tooltip } from 'primeng/tooltip';
 
 import { OrganizationModuleStoreItem } from '../../../../shared/models/organization-module-store.model';
 
 @Component({
   selector: 'app-module-card',
   standalone: true,
-  imports: [CommonModule, Card, Button, Tag, Chip, Tooltip],
+  imports: [CommonModule, Card, Button, Tag, Chip],
   templateUrl: './module-card.component.html',
   styleUrl: './module-card.component.scss',
 })

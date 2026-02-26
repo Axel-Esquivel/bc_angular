@@ -1,54 +1,58 @@
 <p-card class="module-card" [class.is-installed]="module.installed">
-  <ng-template pTemplate="header">
-    <div class="module-card__header">
-      <h3 class="module-card__title">
-        {{ module.name || module.key }}
-        <span class="module-card__version" *ngIf="module.version">v{{ module.version }}</span>
-      </h3>
-      <div class="module-card__meta">
-        <p-tag [severity]="statusSeverity" [value]="statusLabel"></p-tag>
-        <div class="module-card__chips">
-          <p-chip [label]="module.suite"></p-chip>
-          <p-chip [label]="module.category"></p-chip>
-        </div>
-      </div>
+  <ng-template #title>
+    <div class="module-card__titleRow">
+      <span class="module-card__titleText">{{ module.name || module.key }}</span>
+      <span class="module-card__version" *ngIf="module.version">v{{ module.version }}</span>
     </div>
   </ng-template>
-  <div class="module-card__wrapper">
-    <div class="module-card__content">
-      <div class="module-card__body">
-        <p class="module-desc" *ngIf="module.description">{{ module.description }}</p>
-        <div
-          class="module-deps"
-          [pTooltip]="module.dependencies.length ? module.dependencies.join(', ') : 'Sin dependencias'"
-          tooltipPosition="top"
-        >
-          <span class="module-card__label">Dependencias</span>
-          <div class="module-card__chips module-card__chips--scroll">
-            <p-chip *ngFor="let dependency of module.dependencies" [label]="dependency"></p-chip>
-            <span class="module-card__empty" *ngIf="!module.dependencies.length">Sin dependencias</span>
-          </div>
-        </div>
-      </div>
+
+  <ng-template #subtitle>
+    <p class="module-card__desc" *ngIf="module.description">{{ module.description }}</p>
+  </ng-template>
+
+  <div class="module-card__body">
+    <div class="module-card__chips">
+      <p-tag *ngIf="module.installed" severity="success" value="Instalado"></p-tag>
+      <p-chip *ngIf="module.suite" [label]="module.suite"></p-chip>
+      <p-chip *ngIf="module.category" [label]="module.category"></p-chip>
     </div>
-    <div class="module-card__actions">
+
+    <div class="module-card__deps">
+      <div class="module-card__depsTitle">DEPENDENCIAS</div>
+
+      <ng-container *ngIf="module.dependencies?.length; else noDeps">
+        <div class="module-card__depsList">
+          <p-chip *ngFor="let dep of module.dependencies" [label]="dep"></p-chip>
+        </div>
+      </ng-container>
+
+      <ng-template #noDeps>
+        <div class="module-card__depsEmpty">Sin dependencias</div>
+      </ng-template>
+    </div>
+  </div>
+
+  <ng-template #footer>
+    <div class="module-card__footer">
       <p-button
         *ngIf="!module.installed"
         label="Instalar"
         icon="pi pi-download"
+        severity="success"
         [disabled]="isInstalling"
         [loading]="isInstalling"
         (onClick)="onInstall()"
       ></p-button>
+
       <p-button
         *ngIf="module.installed"
         label="Desinstalar"
-        severity="danger"
         icon="pi pi-trash"
+        severity="danger"
         [disabled]="isUninstalling"
         [loading]="isUninstalling"
         (onClick)="onUninstall()"
       ></p-button>
     </div>
-  </div>
+  </ng-template>
 </p-card>
