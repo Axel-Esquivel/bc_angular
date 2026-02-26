@@ -1,10 +1,10 @@
 <p-card class="module-card" [class.is-installed]="module.installed">
   <ng-template pTemplate="header">
     <div class="module-card__header">
-      <h1 class="module-card__title">
-        {{ headerTitle }} ssssssssssssssss
-        <span class="module-card__version">v{{ headerVersion }}</span>
-      </h1>
+      <h3 class="module-card__title">
+        {{ headerTitle }}
+        <span class="module-card__version" *ngIf="module.version">v{{ headerVersion }}</span>
+      </h3>
       <div class="module-card__meta">
         <p-tag [severity]="statusSeverity" [value]="statusLabel"></p-tag>
         <div class="module-card__chips">
@@ -17,18 +17,18 @@
   <div class="module-card__wrapper">
     <div class="module-card__content">
       <div class="module-card__body">
-      <p class="module-desc" *ngIf="module.description">{{ module.description }}</p>
-      <div
-        class="module-deps"
-        [pTooltip]="module.dependencies.length ? module.dependencies.join(', ') : 'Sin dependencias'"
-        tooltipPosition="top"
-      >
-        <span class="module-card__label">Dependencias</span>
-        <div class="module-card__chips module-card__chips--scroll">
-          <p-chip *ngFor="let dependency of module.dependencies" [label]="dependency"></p-chip>
-          <span class="module-card__empty" *ngIf="!module.dependencies.length">Sin dependencias</span>
+        <p class="module-desc" *ngIf="module.description">{{ module.description }}</p>
+        <div
+          class="module-deps"
+          [pTooltip]="module.dependencies.length ? module.dependencies.join(', ') : 'Sin dependencias'"
+          tooltipPosition="top"
+        >
+          <span class="module-card__label">Dependencias</span>
+          <div class="module-card__chips module-card__chips--scroll">
+            <p-chip *ngFor="let dependency of module.dependencies" [label]="dependency"></p-chip>
+            <span class="module-card__empty" *ngIf="!module.dependencies.length">Sin dependencias</span>
+          </div>
         </div>
-      </div>
       </div>
     </div>
     <div class="module-card__actions">
