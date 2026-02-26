@@ -15,8 +15,8 @@ export const routes: Routes = [
     children: [
       {
         path: 'setup',
-        canActivate: [AuthGuard, NoOrganizationGuard],
-        loadChildren: () => import('./features/org-setup/org-setup.routes').then((m) => m.orgSetupRoutes),
+        pathMatch: 'full',
+        redirectTo: '/setup',
       },
     ],
   },
@@ -25,8 +25,8 @@ export const routes: Routes = [
     children: [
       {
         path: '',
-        canActivate: [AuthGuard, NoOrganizationGuard],
-        loadChildren: () => import('./features/org-setup/org-setup.routes').then((m) => m.orgSetupRoutes),
+        pathMatch: 'full',
+        redirectTo: '/setup',
       },
     ],
   },

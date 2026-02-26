@@ -12,7 +12,7 @@ import { FloatLabel } from 'primeng/floatlabel';
 import { InputText } from 'primeng/inputtext';
 import { StepperModule } from 'primeng/stepper';
 
-import { OrgSetupComponentsModule } from '../../components/org-setup-components.module';
+import { SetupComponentsModule } from '../../components/setup-components.module';
 import { OrganizationsService } from '../../../../core/api/organizations-api.service';
 import { ActiveContextStateService } from '../../../../core/context/active-context-state.service';
 import { SessionStateService } from '../../../../core/services/session-state.service';
@@ -28,7 +28,7 @@ type EditableCountry = { id: string; name: string; code?: string };
 type EditableCurrency = { id: string; name: string; code?: string; symbol?: string };
 
 @Component({
-  selector: 'app-org-create-page',
+  selector: 'app-setup-create-page',
   standalone: true,
   imports: [
     CommonModule,
@@ -40,13 +40,13 @@ type EditableCurrency = { id: string; name: string; code?: string; symbol?: stri
     FloatLabel,
     InputText,
     StepperModule,
-    OrgSetupComponentsModule,
+    SetupComponentsModule,
   ],
-  templateUrl: './org-create-page.component.html',
-  styleUrl: './org-create-page.component.scss',
+  templateUrl: './setup-create-page.component.html',
+  styleUrl: './setup-create-page.component.scss',
   providers: [ConfirmationService],
 })
-export class OrgCreatePageComponent implements OnInit {
+export class SetupCreatePageComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly fb = inject(FormBuilder);
   private readonly organizationsApi = inject(OrganizationsService);

@@ -6,12 +6,12 @@ import { take } from 'rxjs/operators';
 import { OrganizationsService } from '../../../../core/api/organizations-api.service';
 
 @Component({
-  selector: 'app-org-step-organization-form',
-  templateUrl: './org-step-organization-form.component.html',
-  styleUrl: './org-step-organization-form.component.scss',
+  selector: 'app-setup-step-organization-form',
+  templateUrl: './setup-step-organization-form.component.html',
+  styleUrl: './setup-step-organization-form.component.scss',
   standalone: false,
 })
-export class OrgStepOrganizationFormComponent implements OnChanges, OnInit {
+export class SetupStepOrganizationFormComponent implements OnChanges, OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly organizationsApi = inject(OrganizationsService);
   private readonly messageService = inject(MessageService);

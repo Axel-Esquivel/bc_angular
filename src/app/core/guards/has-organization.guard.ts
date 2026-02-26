@@ -17,11 +17,11 @@ export const HasOrganizationGuard: CanActivateFn = (_route, state) => {
 
   const pending = sessionState.getPendingOrgSetup();
   if (pending) {
-    return redirect('/org/setup');
+    return redirect('/setup');
   }
 
   if (!sessionState.hasOrganizations()) {
-    return redirect('/org/setup');
+    return redirect('/setup');
   }
 
   if (sessionState.hasDefaults()) {

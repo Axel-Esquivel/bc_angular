@@ -11,14 +11,14 @@ import { InputText } from 'primeng/inputtext';
 import { OrganizationService } from '../../services/organization.service';
 
 @Component({
-  selector: 'app-org-join-page',
+  selector: 'app-setup-join-page',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, Button, Card, FloatLabel, InputText],
-  templateUrl: './org-join-page.component.html',
-  styleUrl: './org-join-page.component.scss',
+  templateUrl: './setup-join-page.component.html',
+  styleUrl: './setup-join-page.component.scss',
   providers: [MessageService],
 })
-export class OrgJoinPageComponent {
+export class SetupJoinPageComponent {
   private readonly fb = inject(FormBuilder);
   private readonly organizationService = inject(OrganizationService);
   private readonly router = inject(Router);
@@ -45,7 +45,7 @@ export class OrgJoinPageComponent {
           summary: 'Listo',
           detail: 'Solicitud enviada. Espera la aprobacion de un administrador.',
         });
-        this.router.navigateByUrl('/org/setup', { state: { refresh: true } });
+        this.router.navigateByUrl('/setup', { state: { refresh: true } });
       },
       error: () => {
         this.isSubmitting = false;

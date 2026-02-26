@@ -17,8 +17,8 @@ export const NoOrganizationGuard: CanActivateFn = (_route, state) => {
 
   const pending = sessionState.getPendingOrgSetup();
   if (pending) {
-    if (state.url.startsWith('/org/setup/create')) {
-      return history.state?.continueSetup ? true : redirect('/org/setup');
+    if (state.url.startsWith('/setup/create')) {
+      return history.state?.continueSetup ? true : redirect('/setup');
     }
     return true;
   }

@@ -11,19 +11,19 @@
       <p-step-panels>
         <p-step-panel [value]="1">
           <ng-template #content>
-            <app-org-step-organization-form
+            <app-setup-step-organization-form
               [isSubmitting]="isSubmittingOrg"
               [organizationId]="createdOrganizationId"
               [existingOrganizations]="existingOrganizations"
               (created)="onOrganizationCreated($event)"
               (validChange)="onStep1ValidChange($event)"
-            ></app-org-step-organization-form>
+            ></app-setup-step-organization-form>
           </ng-template>
         </p-step-panel>
 
         <p-step-panel [value]="2">
           <ng-template #content>
-            <app-org-step-countries-currencies
+            <app-setup-step-countries-currencies
               [organizationId]="createdOrganizationId"
               [refreshToken]="step2RefreshToken"
               (readyChange)="onStep2ReadyChange($event)"
@@ -31,31 +31,31 @@
               (deleteCountry)="onDeleteCountry($event)"
               (editCurrency)="onEditCurrency($event)"
               (deleteCurrency)="onDeleteCurrency($event)"
-            ></app-org-step-countries-currencies>
+            ></app-setup-step-countries-currencies>
           </ng-template>
         </p-step-panel>
 
         <p-step-panel [value]="3">
           <ng-template #content>
-            <app-org-step-companies-by-country
+            <app-setup-step-companies-by-country
               [organizationId]="createdOrganizationId"
               [refreshToken]="step3RefreshToken"
               (readyChange)="onStep3ReadyChange($event)"
               (editCompany)="onEditCompany($event)"
               (deleteCompany)="onDeleteCompany($event)"
-            ></app-org-step-companies-by-country>
+            ></app-setup-step-companies-by-country>
           </ng-template>
         </p-step-panel>
 
         <p-step-panel [value]="4">
           <ng-template #content>
-            <app-org-step-branches-by-company
+            <app-setup-step-branches-by-company
               [organizationId]="createdOrganizationId"
               [refreshToken]="step4RefreshToken"
               (finished)="onStep4Finished()"
               (editBranch)="onEditBranch($event)"
               (deleteBranch)="onDeleteBranch($event)"
-            ></app-org-step-branches-by-company>
+            ></app-setup-step-branches-by-company>
           </ng-template>
         </p-step-panel>
       </p-step-panels>

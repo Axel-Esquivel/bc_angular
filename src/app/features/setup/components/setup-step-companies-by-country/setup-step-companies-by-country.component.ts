@@ -10,12 +10,12 @@ import { Company } from '../../../../shared/models/company.model';
 import { CoreCountry, CoreCurrency } from '../../../../shared/models/organization-core.model';
 
 @Component({
-  selector: 'app-org-step-companies-by-country',
-  templateUrl: './org-step-companies-by-country.component.html',
-  styleUrl: './org-step-companies-by-country.component.scss',
+  selector: 'app-setup-step-companies-by-country',
+  templateUrl: './setup-step-companies-by-country.component.html',
+  styleUrl: './setup-step-companies-by-country.component.scss',
   standalone: false,
 })
-export class OrgStepCompaniesByCountryComponent implements OnChanges {
+export class SetupStepCompaniesByCountryComponent implements OnChanges {
   private readonly fb = inject(FormBuilder);
   private readonly companiesApi = inject(CompaniesApiService);
   private readonly organizationCoreApi = inject(OrganizationCoreApiService);

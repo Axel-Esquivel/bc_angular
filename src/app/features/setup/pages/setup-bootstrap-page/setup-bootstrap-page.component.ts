@@ -15,14 +15,14 @@ import { OrganizationsService } from '../../../../core/api/organizations-api.ser
 import { SetupStateService } from '../../services/setup-state.service';
 
 @Component({
-  selector: 'app-org-bootstrap-page',
+  selector: 'app-setup-bootstrap-page',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, Button, Card, FloatLabel, InputText, Select],
-  templateUrl: './org-bootstrap-page.component.html',
-  styleUrl: './org-bootstrap-page.component.scss',
+  templateUrl: './setup-bootstrap-page.component.html',
+  styleUrl: './setup-bootstrap-page.component.scss',
   providers: [MessageService],
 })
-export class OrgBootstrapPageComponent implements OnInit {
+export class SetupBootstrapPageComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly setupState = inject(SetupStateService);
   private readonly organizationsApi = inject(OrganizationsService);
@@ -43,7 +43,7 @@ export class OrgBootstrapPageComponent implements OnInit {
   ngOnInit(): void {
     const draft = this.setupState.getOrganizationDraft();
     if (!draft) {
-      this.router.navigate(['/org/setup/create']);
+      this.router.navigate(['/setup/create']);
       return;
     }
 
@@ -95,7 +95,7 @@ export class OrgBootstrapPageComponent implements OnInit {
         summary: 'Error',
         detail: 'Completa los datos de la organizacion antes de continuar.',
       });
-      this.router.navigate(['/org/setup/create']);
+      this.router.navigate(['/setup/create']);
       return;
     }
 
@@ -108,7 +108,7 @@ export class OrgBootstrapPageComponent implements OnInit {
         summary: 'Error',
         detail: 'Selecciona pais y moneda para la organizacion.',
       });
-      this.router.navigate(['/org/setup/create']);
+      this.router.navigate(['/setup/create']);
       return;
     }
 
@@ -145,7 +145,7 @@ export class OrgBootstrapPageComponent implements OnInit {
           }
           this.setupState.setOrganizationId(organizationId);
           this.isSubmitting = false;
-          this.router.navigateByUrl('/org/setup', { state: { refresh: true } });
+          this.router.navigateByUrl('/setup', { state: { refresh: true } });
         },
         error: () => {
           this.isSubmitting = false;

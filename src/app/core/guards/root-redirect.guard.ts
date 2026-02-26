@@ -28,11 +28,11 @@ export const RootRedirectGuard: CanActivateFn = () => {
 
   const pending = sessionState.getPendingOrgSetup();
   if (pending) {
-    return redirect('/org/setup');
+    return redirect('/setup');
   }
 
   if (!sessionState.hasOrganizations()) {
-    return redirect('/org/setup');
+    return redirect('/setup');
   }
 
   const user = authService.getCurrentUser();

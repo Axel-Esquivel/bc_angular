@@ -1,26 +1,26 @@
 import { Injectable } from '@angular/core';
 
-export interface OrgSetupOrganizationDraft {
+export interface SetupOrganizationDraft {
   name: string;
   countryId: string | null;
   currencyId: string | null;
 }
 
-export interface OrgSetupModulesState {
+export interface SetupModulesState {
   modules: Record<string, boolean>;
 }
 
 @Injectable({ providedIn: 'root' })
 export class SetupStateService {
-  private organizationDraft: OrgSetupOrganizationDraft | null = null;
+  private organizationDraft: SetupOrganizationDraft | null = null;
   private organizationId: string | null = null;
-  private modulesState: OrgSetupModulesState | null = null;
+  private modulesState: SetupModulesState | null = null;
 
-  setOrganizationDraft(state: OrgSetupOrganizationDraft): void {
+  setOrganizationDraft(state: SetupOrganizationDraft): void {
     this.organizationDraft = { ...state };
   }
 
-  getOrganizationDraft(): OrgSetupOrganizationDraft | null {
+  getOrganizationDraft(): SetupOrganizationDraft | null {
     return this.organizationDraft ? { ...this.organizationDraft } : null;
   }
 
@@ -32,11 +32,11 @@ export class SetupStateService {
     return this.organizationId;
   }
 
-  setModulesState(state: OrgSetupModulesState): void {
+  setModulesState(state: SetupModulesState): void {
     this.modulesState = { modules: { ...state.modules } };
   }
 
-  getModulesState(): OrgSetupModulesState | null {
+  getModulesState(): SetupModulesState | null {
     return this.modulesState ? { modules: { ...this.modulesState.modules } } : null;
   }
 

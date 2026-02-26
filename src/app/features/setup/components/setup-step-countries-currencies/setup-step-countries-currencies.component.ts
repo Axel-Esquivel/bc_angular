@@ -7,12 +7,12 @@ import { Country } from '../../../../shared/models/country.model';
 import { Currency } from '../../../../shared/models/currency.model';
 import { CoreCountry, CoreCurrency } from '../../../../shared/models/organization-core.model';
 @Component({
-  selector: 'app-org-step-countries-currencies',
-  templateUrl: './org-step-countries-currencies.component.html',
-  styleUrl: './org-step-countries-currencies.component.scss',
+  selector: 'app-setup-step-countries-currencies',
+  templateUrl: './setup-step-countries-currencies.component.html',
+  styleUrl: './setup-step-countries-currencies.component.scss',
   standalone: false,
 })
-export class OrgStepCountriesCurrenciesComponent implements OnChanges {
+export class SetupStepCountriesCurrenciesComponent implements OnChanges {
   private readonly organizationCoreApi = inject(OrganizationCoreApiService);
   private readonly messageService = inject(MessageService);
 

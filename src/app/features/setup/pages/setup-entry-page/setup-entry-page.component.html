@@ -180,7 +180,7 @@
   [contentStyle]="{ overflow: 'auto', maxHeight: 'calc(90vh - 8rem)', padding: '0' }"
   (onHide)="onWizardCancelled()"
 >
-  <app-org-create-page
+  <app-setup-create-page
     [organizationId]="wizardOrganizationId || undefined"
     [startStep]="wizardStartStep"
     [managePending]="false"
@@ -192,7 +192,7 @@
     (completed)="onWizardCompleted($event)"
     (organizationCreated)="onWizardOrganizationCreated($event)"
     (stepChanged)="onWizardStepChanged($event)"
-  ></app-org-create-page>
+  ></app-setup-create-page>
 </p-dialog>
 
 <p-dialog

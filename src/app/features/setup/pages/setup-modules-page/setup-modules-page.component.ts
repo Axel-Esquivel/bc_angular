@@ -14,14 +14,14 @@ import { OrganizationModuleOverviewItem } from '../../../../shared/models/organi
 import { SetupStateService } from '../../services/setup-state.service';
 
 @Component({
-  selector: 'app-org-modules-page',
+  selector: 'app-setup-modules-page',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, Button, Card, Checkbox],
-  templateUrl: './org-modules-page.component.html',
-  styleUrl: './org-modules-page.component.scss',
+  templateUrl: './setup-modules-page.component.html',
+  styleUrl: './setup-modules-page.component.scss',
   providers: [MessageService],
 })
-export class OrgModulesPageComponent implements OnInit {
+export class SetupModulesPageComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly setupState = inject(SetupStateService);
   private readonly organizationsApi = inject(OrganizationsService);
@@ -45,7 +45,7 @@ export class OrgModulesPageComponent implements OnInit {
   ngOnInit(): void {
     const organizationId = this.setupState.getOrganizationId();
     if (!organizationId) {
-      this.router.navigate(['/org/setup/create']);
+      this.router.navigate(['/setup/create']);
       return;
     }
 
@@ -89,7 +89,7 @@ export class OrgModulesPageComponent implements OnInit {
 
     const organizationId = this.setupState.getOrganizationId();
     if (!organizationId) {
-      this.router.navigate(['/org/setup/create']);
+      this.router.navigate(['/setup/create']);
       return;
     }
 

@@ -11,12 +11,12 @@ import { Company } from '../../../../shared/models/company.model';
 import { CoreCurrency } from '../../../../shared/models/organization-core.model';
 
 @Component({
-  selector: 'app-org-step-branches-by-company',
-  templateUrl: './org-step-branches-by-company.component.html',
-  styleUrl: './org-step-branches-by-company.component.scss',
+  selector: 'app-setup-step-branches-by-company',
+  templateUrl: './setup-step-branches-by-company.component.html',
+  styleUrl: './setup-step-branches-by-company.component.scss',
   standalone: false,
 })
-export class OrgStepBranchesByCompanyComponent implements OnChanges {
+export class SetupStepBranchesByCompanyComponent implements OnChanges {
   private readonly fb = inject(FormBuilder);
   private readonly branchesApi = inject(BranchesApiService);
   private readonly companiesApi = inject(CompaniesApiService);

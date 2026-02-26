@@ -21,17 +21,17 @@ import { SessionStateService } from '../../../../core/services/session-state.ser
 import { Country } from '../../../../shared/models/country.model';
 import { Currency } from '../../../../shared/models/currency.model';
 import { IOrganization, IOrganizationMembership } from '../../../../shared/models/organization.model';
-import { OrgCreatePageComponent } from '../org-create-page/org-create-page.component';
+import { SetupCreatePageComponent } from '../setup-create-page/setup-create-page.component';
 
 @Component({
-  selector: 'app-org-entry-page',
+  selector: 'app-setup-entry-page',
   standalone: true,
-  imports: [CommonModule, FormsModule, Button, Card, Dialog, FloatLabel, InputText, TableModule, OrgCreatePageComponent],
-  templateUrl: './org-entry-page.component.html',
-  styleUrl: './org-entry-page.component.scss',
+  imports: [CommonModule, FormsModule, Button, Card, Dialog, FloatLabel, InputText, TableModule, SetupCreatePageComponent],
+  templateUrl: './setup-entry-page.component.html',
+  styleUrl: './setup-entry-page.component.scss',
   providers: [MessageService],
 })
-export class OrgEntryPageComponent implements OnInit {
+export class SetupEntryPageComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly organizationsApi = inject(OrganizationsService);
   private readonly countriesApi = inject(CountriesApiService);
@@ -436,7 +436,7 @@ export class OrgEntryPageComponent implements OnInit {
   }
 
   goJoin(): void {
-    this.router.navigate(['/org/setup/join']);
+    this.router.navigate(['/setup/join']);
   }
 
   closeWizardDialog(): void {
