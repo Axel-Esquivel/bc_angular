@@ -11,16 +11,6 @@ export const routes: Routes = [
   { path: '', pathMatch: 'full', canActivate: [RootRedirectGuard], component: RootRedirectPageComponent },
   { path: 'auth', loadChildren: () => import('./features/auth/auth.routes').then((m) => m.authRoutes) },
   {
-    path: 'org',
-    children: [
-      {
-        path: 'setup',
-        pathMatch: 'full',
-        redirectTo: '/setup',
-      },
-    ],
-  },
-  {
     path: 'organizations',
     children: [
       {

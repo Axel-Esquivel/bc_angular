@@ -2,8 +2,8 @@
   <ng-template pTemplate="header">
     <div class="module-card__header">
       <h3 class="module-card__title">
-        {{ headerTitle }}
-        <span class="module-card__version" *ngIf="module.version">v{{ headerVersion }}</span>
+        {{ module.name || module.key }}
+        <span class="module-card__version" *ngIf="module.version">v{{ module.version }}</span>
       </h3>
       <div class="module-card__meta">
         <p-tag [severity]="statusSeverity" [value]="statusLabel"></p-tag>

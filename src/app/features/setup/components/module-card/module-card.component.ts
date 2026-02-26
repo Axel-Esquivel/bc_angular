@@ -28,7 +28,7 @@ export class ModuleCardComponent {
   }
 
   get headerVersion(): string {
-    return this.module.version || '1.0.0';
+    return this.module.version || '';
   }
 
   get statusLabel(): string {
