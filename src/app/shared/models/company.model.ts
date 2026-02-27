@@ -16,6 +16,7 @@ export interface CompanyModuleStates {
 
 export interface CompanyEnterprise {
   id: string;
+  _id?: string;
   name: string;
   countryId: string;
   currencyIds: string[];
@@ -24,6 +25,7 @@ export interface CompanyEnterprise {
 
 export interface Company {
   id?: string;
+  _id?: string;
   organizationId: string;
   name: string;
   legalName?: string;

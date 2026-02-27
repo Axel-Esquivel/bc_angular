@@ -4,13 +4,16 @@ import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { Button } from 'primeng/button';
 import { Card } from 'primeng/card';
-import { InputText } from 'primeng/inputtext';
+import { AutoComplete } from 'primeng/autocomplete';
 import { Select } from 'primeng/select';
 import { TableModule } from 'primeng/table';
 
+import { ProductsApiService } from '../../../../core/api/products-api.service';
 import { ActiveContextStateService } from '../../../../core/context/active-context-state.service';
+import { ActiveEnterpriseLabelService } from '../../../../core/context/active-enterprise-label.service';
 import { ActiveContext } from '../../../../shared/models/active-context.model';
-import { CompaniesApiService } from '../../../../core/api/companies-api.service';
+import { Product } from '../../../../shared/models/product.model';
+import { distinctUntilChanged, map } from 'rxjs';
 import {
   InventoryStockService,
   StockItem,
@@ -38,7 +41,7 @@ interface StockRow {
 @Component({
   selector: 'app-stock-page',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, Card, TableModule, Select, InputText, Button],
+  imports: [CommonModule, ReactiveFormsModule, Card, TableModule, Select, AutoComplete, Button],
   templateUrl: './stock-page.component.html',
   styleUrl: './stock-page.component.scss',
   providers: [MessageService],
@@ -47,21 +50,28 @@ export class StockPageComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly stockService = inject(InventoryStockService);
   private readonly warehousesService = inject(WarehousesService);
-  private readonly companiesApi = inject(CompaniesApiService);
+  private readonly productsApi = inject(ProductsApiService);
   private readonly activeContextState = inject(ActiveContextStateService);
+  private readonly enterpriseLabelService = inject(ActiveEnterpriseLabelService);
   private readonly messageService = inject(MessageService);
 
-  readonly filtersForm = this.fb.nonNullable.group({
-    warehouseId: '',
-    locationId: '',
-    productId: '',
+  readonly filtersForm = this.fb.group({
+    warehouseId: this.fb.nonNullable.control(''),
+    locationId: this.fb.nonNullable.control(''),
+    productSearch: this.fb.control<Product | string | null>(null),
+    productId: this.fb.nonNullable.control(''),
   });
 
   context: ActiveContext | null = null;
-  enterpriseName = '';
+  readonly enterpriseId$ = this.activeContextState.activeContext$.pipe(
+    map((context) => context.enterpriseId ?? null),
+    distinctUntilChanged(),
+  );
+  readonly enterpriseName$ = this.enterpriseLabelService.enterpriseName$;
   warehouses: Warehouse[] = [];
   warehouseOptions: SelectOption[] = [{ label: 'Todas', value: '' }];
   locationOptions: SelectOption[] = [{ label: 'Todas', value: '' }];
+  productSuggestions: Product[] = [];
 
   loading = false;
   rows: StockRow[] = [];
@@ -80,7 +90,6 @@ export class StockPageComponent implements OnInit {
       return;
     }
     this.context = context;
-    this.loadEnterpriseName();
     this.loadWarehouses();
     this.loadStock();
   }
@@ -101,10 +110,41 @@ export class StockPageComponent implements OnInit {
   }
 
   onReset(): void {
-    this.filtersForm.reset({ warehouseId: '', locationId: '', productId: '' });
+    this.filtersForm.reset({ warehouseId: '', locationId: '', productSearch: null, productId: '' });
     this.locationOptions = [{ label: 'Todas', value: '' }];
     this.locationIndex.clear();
+    this.productSuggestions = [];
     this.loadStock();
+  }
+
+  searchProducts(event: { query: string }): void {
+    const query = event.query?.trim() ?? '';
+    if (!query || !this.context?.enterpriseId) {
+      this.productSuggestions = [];
+      return;
+    }
+
+    this.productsApi
+      .getProducts({ enterpriseId: this.context.enterpriseId, search: query, limit: 10 })
+      .subscribe({
+        next: (response) => {
+          this.productSuggestions = response?.result?.items ?? [];
+        },
+        error: () => {
+          this.productSuggestions = [];
+        },
+      });
+  }
+
+  onProductSelect(event: { value: Product }): void {
+    const product = event.value;
+    this.filtersForm.controls.productSearch.setValue(this.formatProductLabel(product));
+    this.filtersForm.controls.productId.setValue(product.id);
+  }
+
+  onProductClear(): void {
+    this.filtersForm.controls.productSearch.setValue(null);
+    this.filtersForm.controls.productId.setValue('');
   }
 
   private loadWarehouses(): void {
@@ -192,26 +232,9 @@ export class StockPageComponent implements OnInit {
       });
   }
 
-  private loadEnterpriseName(): void {
-    const context = this.context;
-    if (!context?.enterpriseId) {
-      this.enterpriseName = '';
-      return;
-    }
-    if (!context.companyId) {
-      this.enterpriseName = context.enterpriseId;
-      return;
-    }
-    this.companiesApi.getById(context.companyId).subscribe({
-      next: ({ result }) => {
-        const enterprise =
-          result?.enterprises?.find((item) => item.id === context.enterpriseId) ?? null;
-        this.enterpriseName = enterprise?.name ?? context.enterpriseId ?? '';
-      },
-      error: () => {
-        this.enterpriseName = context.enterpriseId ?? '';
-      },
-    });
+  private formatProductLabel(product: Product): string {
+    const sku = product.sku ? ` (${product.sku})` : '';
+    return `${product.name}${sku}`;
   }
 
   private mapRow(item: StockItem): StockRow {

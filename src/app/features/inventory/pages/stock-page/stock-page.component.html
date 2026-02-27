@@ -2,8 +2,8 @@
   <p-card>
     <ng-template pTemplate="title">Stock</ng-template>
     <form class="filters" [formGroup]="filtersForm" (ngSubmit)="onApplyFilters()">
-      <div class="context-info" *ngIf="enterpriseName">
-        Empresa activa: {{ enterpriseName }}
+      <div class="context-info">
+        Empresa activa: {{ (enterpriseName$ | async) || (enterpriseId$ | async) || '-' }}
       </div>
       <div class="filter-row">
         <div class="field">
@@ -27,7 +27,16 @@
         </div>
         <div class="field">
           <label for="product">Producto</label>
-          <input id="product" pInputText formControlName="productId" placeholder="ID producto" />
+          <p-autoComplete
+            id="product"
+            formControlName="productSearch"
+            [suggestions]="productSuggestions"
+            [optionLabel]="'name'"
+            placeholder="Nombre o SKU"
+            (completeMethod)="searchProducts($event)"
+            (onSelect)="onProductSelect($event)"
+            (onClear)="onProductClear()"
+          ></p-autoComplete>
         </div>
         <div class="actions">
           <p-button type="submit" label="Aplicar" icon="pi pi-filter"></p-button>

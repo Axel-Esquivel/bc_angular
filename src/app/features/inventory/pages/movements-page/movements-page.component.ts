@@ -4,14 +4,17 @@ import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { Button } from 'primeng/button';
 import { Card } from 'primeng/card';
+import { AutoComplete } from 'primeng/autocomplete';
 import { DatePicker } from 'primeng/datepicker';
-import { InputText } from 'primeng/inputtext';
 import { Select } from 'primeng/select';
 import { TableModule } from 'primeng/table';
 
+import { ProductsApiService } from '../../../../core/api/products-api.service';
 import { ActiveContextStateService } from '../../../../core/context/active-context-state.service';
+import { ActiveEnterpriseLabelService } from '../../../../core/context/active-enterprise-label.service';
 import { ActiveContext } from '../../../../shared/models/active-context.model';
-import { CompaniesApiService } from '../../../../core/api/companies-api.service';
+import { Product } from '../../../../shared/models/product.model';
+import { distinctUntilChanged, map } from 'rxjs';
 import {
   InventoryStockService,
   StockMovement,
@@ -40,7 +43,7 @@ interface MovementRow {
 @Component({
   selector: 'app-movements-page',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, Card, TableModule, Select, InputText, DatePicker, Button],
+  imports: [CommonModule, ReactiveFormsModule, Card, TableModule, Select, AutoComplete, DatePicker, Button],
   templateUrl: './movements-page.component.html',
   styleUrl: './movements-page.component.scss',
   providers: [MessageService],
@@ -49,23 +52,30 @@ export class MovementsPageComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly stockService = inject(InventoryStockService);
   private readonly warehousesService = inject(WarehousesService);
-  private readonly companiesApi = inject(CompaniesApiService);
+  private readonly productsApi = inject(ProductsApiService);
   private readonly activeContextState = inject(ActiveContextStateService);
+  private readonly enterpriseLabelService = inject(ActiveEnterpriseLabelService);
   private readonly messageService = inject(MessageService);
 
-  readonly filtersForm = this.fb.nonNullable.group({
-    warehouseId: '',
-    locationId: '',
-    productId: '',
-    startDate: new Date(),
-    endDate: new Date(),
+  readonly filtersForm = this.fb.group({
+    warehouseId: this.fb.nonNullable.control(''),
+    locationId: this.fb.nonNullable.control(''),
+    productSearch: this.fb.control<Product | string | null>(null),
+    productId: this.fb.nonNullable.control(''),
+    startDate: this.fb.nonNullable.control(new Date()),
+    endDate: this.fb.nonNullable.control(new Date()),
   });
 
   context: ActiveContext | null = null;
-  enterpriseName = '';
+  readonly enterpriseId$ = this.activeContextState.activeContext$.pipe(
+    map((context) => context.enterpriseId ?? null),
+    distinctUntilChanged(),
+  );
+  readonly enterpriseName$ = this.enterpriseLabelService.enterpriseName$;
   warehouses: Warehouse[] = [];
   warehouseOptions: SelectOption[] = [{ label: 'Todas', value: '' }];
   locationOptions: SelectOption[] = [{ label: 'Todas', value: '' }];
+  productSuggestions: Product[] = [];
 
   loading = false;
   rows: MovementRow[] = [];
@@ -84,7 +94,6 @@ export class MovementsPageComponent implements OnInit {
       return;
     }
     this.context = context;
-    this.loadEnterpriseName();
     this.loadWarehouses();
     this.loadMovements();
   }
@@ -108,13 +117,45 @@ export class MovementsPageComponent implements OnInit {
     this.filtersForm.reset({
       warehouseId: '',
       locationId: '',
+      productSearch: null,
       productId: '',
       startDate: new Date(),
       endDate: new Date(),
     });
     this.locationOptions = [{ label: 'Todas', value: '' }];
     this.locationIndex.clear();
+    this.productSuggestions = [];
     this.loadMovements();
+  }
+
+  searchProducts(event: { query: string }): void {
+    const query = event.query?.trim() ?? '';
+    if (!query || !this.context?.enterpriseId) {
+      this.productSuggestions = [];
+      return;
+    }
+
+    this.productsApi
+      .getProducts({ enterpriseId: this.context.enterpriseId, search: query, limit: 10 })
+      .subscribe({
+        next: (response) => {
+          this.productSuggestions = response?.result?.items ?? [];
+        },
+        error: () => {
+          this.productSuggestions = [];
+        },
+      });
+  }
+
+  onProductSelect(event: { value: Product }): void {
+    const product = event.value;
+    this.filtersForm.controls.productSearch.setValue(this.formatProductLabel(product));
+    this.filtersForm.controls.productId.setValue(product.id);
+  }
+
+  onProductClear(): void {
+    this.filtersForm.controls.productSearch.setValue(null);
+    this.filtersForm.controls.productId.setValue('');
   }
 
   private loadWarehouses(): void {
@@ -204,26 +245,9 @@ export class MovementsPageComponent implements OnInit {
       });
   }
 
-  private loadEnterpriseName(): void {
-    const context = this.context;
-    if (!context?.enterpriseId) {
-      this.enterpriseName = '';
-      return;
-    }
-    if (!context.companyId) {
-      this.enterpriseName = context.enterpriseId;
-      return;
-    }
-    this.companiesApi.getById(context.companyId).subscribe({
-      next: ({ result }) => {
-        const enterprise =
-          result?.enterprises?.find((item) => item.id === context.enterpriseId) ?? null;
-        this.enterpriseName = enterprise?.name ?? context.enterpriseId ?? '';
-      },
-      error: () => {
-        this.enterpriseName = context.enterpriseId ?? '';
-      },
-    });
+  private formatProductLabel(product: Product): string {
+    const sku = product.sku ? ` (${product.sku})` : '';
+    return `${product.name}${sku}`;
   }
 
   private mapRow(item: StockMovement): MovementRow {
