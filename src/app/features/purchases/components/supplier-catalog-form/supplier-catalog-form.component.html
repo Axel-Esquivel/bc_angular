@@ -1,0 +1,130 @@
+<form class="catalog-form" [formGroup]="form" (ngSubmit)="onSubmit()">
+  <div class="catalog-grid">
+    <p-floatLabel class="field">
+      <p-select
+        inputId="variantId"
+        formControlName="variantId"
+        [options]="variantOptions"
+        optionLabel="label"
+        optionValue="value"
+      ></p-select>
+      <label for="variantId">Variante</label>
+    </p-floatLabel>
+    <small class="field-error" *ngIf="form.controls.variantId.invalid && form.controls.variantId.touched">
+      Selecciona una variante.
+    </small>
+
+    <p-floatLabel class="field">
+      <p-inputNumber
+        inputId="unitCost"
+        formControlName="unitCost"
+        [min]="0"
+        [minFractionDigits]="2"
+        [maxFractionDigits]="2"
+      ></p-inputNumber>
+      <label for="unitCost">Costo unitario</label>
+    </p-floatLabel>
+
+    <p-floatLabel class="field">
+      <input pInputText id="currency" type="text" formControlName="currency" />
+      <label for="currency">Moneda</label>
+    </p-floatLabel>
+
+    <p-floatLabel class="field">
+      <p-inputNumber
+        inputId="freightCost"
+        formControlName="freightCost"
+        [min]="0"
+        [minFractionDigits]="2"
+        [maxFractionDigits]="2"
+      ></p-inputNumber>
+      <label for="freightCost">Flete</label>
+    </p-floatLabel>
+
+    <p-floatLabel class="field">
+      <p-select
+        inputId="bonusType"
+        formControlName="bonusType"
+        [options]="bonusOptions"
+        optionLabel="label"
+        optionValue="value"
+      ></p-select>
+      <label for="bonusType">Tipo bono</label>
+    </p-floatLabel>
+
+    <p-floatLabel class="field">
+      <p-inputNumber
+        inputId="bonusValue"
+        formControlName="bonusValue"
+        [min]="0"
+        [minFractionDigits]="2"
+        [maxFractionDigits]="2"
+      ></p-inputNumber>
+      <label for="bonusValue">Valor bono</label>
+    </p-floatLabel>
+    <small class="field-error" *ngIf="bonusValueInvalid">
+      El valor del bono es requerido cuando el tipo no es "Sin bono".
+    </small>
+
+    <p-floatLabel class="field">
+      <p-inputNumber
+        inputId="minQty"
+        formControlName="minQty"
+        [min]="0"
+        [minFractionDigits]="0"
+        [maxFractionDigits]="0"
+      ></p-inputNumber>
+      <label for="minQty">Cantidad mínima</label>
+    </p-floatLabel>
+
+    <p-floatLabel class="field">
+      <p-inputNumber
+        inputId="leadTimeDays"
+        formControlName="leadTimeDays"
+        [min]="0"
+        [minFractionDigits]="0"
+        [maxFractionDigits]="0"
+      ></p-inputNumber>
+      <label for="leadTimeDays">Lead time (días)</label>
+    </p-floatLabel>
+
+    <p-floatLabel class="field">
+      <p-datepicker
+        inputId="validFrom"
+        formControlName="validFrom"
+        [showIcon]="true"
+        dateFormat="yy-mm-dd"
+      ></p-datepicker>
+      <label for="validFrom">Válido desde</label>
+    </p-floatLabel>
+
+    <p-floatLabel class="field">
+      <p-datepicker
+        inputId="validTo"
+        formControlName="validTo"
+        [showIcon]="true"
+        dateFormat="yy-mm-dd"
+      ></p-datepicker>
+      <label for="validTo">Válido hasta</label>
+    </p-floatLabel>
+    <small class="field-error" *ngIf="dateRangeInvalid">
+      La fecha fin debe ser mayor o igual a la fecha inicio.
+    </small>
+
+    <p-floatLabel class="field">
+      <p-select
+        inputId="status"
+        formControlName="status"
+        [options]="statusOptions"
+        optionLabel="label"
+        optionValue="value"
+      ></p-select>
+      <label for="status">Estado</label>
+    </p-floatLabel>
+  </div>
+
+  <div class="form-actions">
+    <p-button label="Cancelar" severity="secondary" type="button" (onClick)="onCancel()"></p-button>
+    <p-button label="Guardar" icon="pi pi-check" type="submit"></p-button>
+  </div>
+</form>

@@ -1,0 +1,89 @@
+<p-toolbar>
+  <ng-template pTemplate="start">
+    <div class="toolbar-title">
+      <span>Catálogo proveedor-producto</span>
+    </div>
+  </ng-template>
+  <ng-template pTemplate="end">
+    <p-button label="Nuevo" icon="pi pi-plus" (onClick)="openCreate()"></p-button>
+  </ng-template>
+</p-toolbar>
+
+<div class="supplier-selector">
+  <p-floatLabel class="field">
+    <p-select
+      inputId="supplierId"
+      [options]="providerOptions"
+      optionLabel="label"
+      optionValue="value"
+      [(ngModel)]="selectedProviderId"
+      (onChange)="onProviderChange()"
+      [disabled]="providerOptions.length === 0"
+    ></p-select>
+    <label for="supplierId">Proveedor</label>
+  </p-floatLabel>
+</div>
+
+<div class="catalog-table">
+  <p-table [value]="catalog" [loading]="loading" dataKey="id" [rows]="20" [paginator]="catalog.length > 20">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Variante</th>
+        <th>Costo</th>
+        <th>Moneda</th>
+        <th>Flete</th>
+        <th>Tipo bono</th>
+        <th>Valor bono</th>
+        <th>Min qty</th>
+        <th>Lead time</th>
+        <th>Estado</th>
+        <th class="actions">Acciones</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-item>
+      <tr>
+        <td>{{ item.variantId }}</td>
+        <td>{{ item.unitCost }}</td>
+        <td>{{ item.currency || '—' }}</td>
+        <td>{{ item.freightCost ?? '—' }}</td>
+        <td>{{ item.bonusType || 'none' }}</td>
+        <td>{{ item.bonusValue ?? '—' }}</td>
+        <td>{{ item.minQty ?? '—' }}</td>
+        <td>{{ item.leadTimeDays ?? '—' }}</td>
+        <td>{{ resolveStatusLabel(item.status) }}</td>
+        <td class="actions">
+          <p-button
+            icon="pi pi-pencil"
+            label="Editar"
+            size="small"
+            severity="secondary"
+            (onClick)="openEdit(item)"
+          ></p-button>
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="10">
+          {{ contextMissing ? 'Selecciona organización y empresa.' : 'Sin datos para el proveedor seleccionado.' }}
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<p-dialog
+  [header]="editingItem ? 'Editar ítem' : 'Nuevo ítem'"
+  [(visible)]="dialogVisible"
+  [modal]="true"
+  [closable]="true"
+  [draggable]="false"
+  [style]="{ width: '560px' }"
+>
+  <app-supplier-catalog-form
+    [item]="editingItem ?? undefined"
+    [variantOptions]="variantOptions"
+    (save)="onFormSave($event)"
+    (cancel)="closeDialog()"
+  ></app-supplier-catalog-form>
+</p-dialog>

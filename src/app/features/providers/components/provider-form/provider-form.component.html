@@ -1,0 +1,59 @@
+<form class="provider-form" [formGroup]="form" (ngSubmit)="onSubmit()">
+  <div class="provider-grid">
+    <p-floatLabel class="field">
+      <input pInputText id="provider-name" type="text" formControlName="name" />
+      <label for="provider-name">Nombre</label>
+    </p-floatLabel>
+    <small class="field-error" *ngIf="form.controls.name.invalid && form.controls.name.touched">
+      El nombre es requerido.
+    </small>
+
+    <p-floatLabel class="field">
+      <input pInputText id="provider-nit" type="text" formControlName="nit" />
+      <label for="provider-nit">NIT</label>
+    </p-floatLabel>
+
+    <p-floatLabel class="field">
+      <input pInputText id="provider-address" type="text" formControlName="address" />
+      <label for="provider-address">Dirección</label>
+    </p-floatLabel>
+
+    <p-floatLabel class="field">
+      <p-inputNumber
+        inputId="provider-credit-days"
+        formControlName="creditDays"
+        [min]="0"
+        [minFractionDigits]="0"
+        [maxFractionDigits]="0"
+      ></p-inputNumber>
+      <label for="provider-credit-days">Días de crédito</label>
+    </p-floatLabel>
+
+    <p-floatLabel class="field">
+      <p-inputNumber
+        inputId="provider-credit-limit"
+        formControlName="creditLimit"
+        [min]="0"
+        [minFractionDigits]="2"
+        [maxFractionDigits]="2"
+      ></p-inputNumber>
+      <label for="provider-credit-limit">Límite de crédito</label>
+    </p-floatLabel>
+
+    <p-floatLabel class="field">
+      <p-select
+        inputId="provider-status"
+        formControlName="status"
+        [options]="statusOptions"
+        optionLabel="label"
+        optionValue="value"
+      ></p-select>
+      <label for="provider-status">Estado</label>
+    </p-floatLabel>
+  </div>
+
+  <div class="form-actions">
+    <p-button label="Cancelar" severity="secondary" type="button" (onClick)="onCancel()"></p-button>
+    <p-button label="Guardar" icon="pi pi-check" type="submit"></p-button>
+  </div>
+</form>
