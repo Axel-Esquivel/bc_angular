@@ -11,6 +11,7 @@ import { InputText } from 'primeng/inputtext';
 import { Select } from 'primeng/select';
 import { TableModule } from 'primeng/table';
 import { Toolbar } from 'primeng/toolbar';
+import { Message } from 'primeng/message';
 
 import { SupplierCatalogFormComponent } from './components/supplier-catalog-form/supplier-catalog-form.component';
 import { SupplierCatalogPageComponent } from './pages/supplier-catalog-page/supplier-catalog-page.component';
@@ -32,6 +33,7 @@ import { purchasesRoutes } from './purchases.routes';
     Select,
     TableModule,
     Toolbar,
+    Message,
   ],
 })
 export class PurchasesModule {}

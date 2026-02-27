@@ -20,6 +20,15 @@ export interface SupplierCatalogItem {
   lastReceiptCost?: number;
 }
 
+export interface SupplierProductVariantItem {
+  supplierId: string;
+  variantId: string;
+  active: boolean;
+  lastCost: number | null;
+  lastCurrency: string | null;
+  lastRecordedAt: string | null;
+}
+
 export interface CreateSupplierCatalogDto {
   supplierId: string;
   variantId: string;

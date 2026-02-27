@@ -7,13 +7,17 @@
   font-size: 1.1rem;
 }
 
-.supplier-selector {
-  margin: 1rem 0;
-  max-width: 360px;
+.toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
 }
 
-.field {
-  width: 100%;
+.messages {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 1rem 0;
 }
 
 .catalog-table {

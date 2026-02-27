@@ -1,35 +1,58 @@
 <p-toolbar>
   <ng-template pTemplate="start">
     <div class="toolbar-title">
-      <span>Catálogo proveedor-producto</span>
+      <span>Cat&aacute;logo proveedor-producto</span>
     </div>
   </ng-template>
   <ng-template pTemplate="end">
-    <p-button label="Nuevo" icon="pi pi-plus" (onClick)="openCreate()"></p-button>
+    <div class="toolbar-actions">
+      <p-select
+        inputId="supplierId"
+        [options]="providerOptions"
+        optionLabel="label"
+        optionValue="value"
+        [(ngModel)]="selectedProviderId"
+        (onChange)="onProviderChange()"
+        [disabled]="providerOptions.length === 0"
+        placeholder="Proveedor"
+      ></p-select>
+      <p-button
+        label="Nuevo"
+        icon="pi pi-plus"
+        (onClick)="openCreate()"
+        [disabled]="providerOptions.length === 0"
+      ></p-button>
+    </div>
   </ng-template>
 </p-toolbar>
 
-<div class="supplier-selector">
-  <p-floatLabel class="field">
-    <p-select
-      inputId="supplierId"
-      [options]="providerOptions"
-      optionLabel="label"
-      optionValue="value"
-      [(ngModel)]="selectedProviderId"
-      (onChange)="onProviderChange()"
-      [disabled]="providerOptions.length === 0"
-    ></p-select>
-    <label for="supplierId">Proveedor</label>
-  </p-floatLabel>
+<div class="messages">
+  <p-message
+    *ngIf="!contextMissing && providerOptions.length === 0"
+    severity="warn"
+    text="No hay proveedores. Crea uno para poder registrar precios."
+  ></p-message>
+  <p-button
+    *ngIf="!contextMissing && providerOptions.length === 0"
+    label="Ir a proveedores"
+    icon="pi pi-arrow-right"
+    severity="secondary"
+    text="true"
+    (onClick)="navigateToProviders()"
+  ></p-button>
+  <p-message
+    *ngIf="!contextMissing && providerOptions.length > 0 && !selectedProviderId"
+    severity="info"
+    text="Selecciona un proveedor para ver sus productos."
+  ></p-message>
 </div>
 
 <div class="catalog-table">
-  <p-table [value]="catalog" [loading]="loading" dataKey="id" [rows]="20" [paginator]="catalog.length > 20">
+  <p-table [value]="rows" [loading]="loading" dataKey="variantId" [rows]="20" [paginator]="rows.length > 20">
     <ng-template pTemplate="header">
       <tr>
         <th>Variante</th>
-        <th>Costo</th>
+        <th>Costo sugerido</th>
         <th>Moneda</th>
         <th>Flete</th>
         <th>Tipo bono</th>
@@ -40,24 +63,24 @@
         <th class="actions">Acciones</th>
       </tr>
     </ng-template>
-    <ng-template pTemplate="body" let-item>
+    <ng-template pTemplate="body" let-row>
       <tr>
-        <td>{{ item.variantId }}</td>
-        <td>{{ item.unitCost }}</td>
-        <td>{{ item.currency || '—' }}</td>
-        <td>{{ item.freightCost ?? '—' }}</td>
-        <td>{{ item.bonusType || 'none' }}</td>
-        <td>{{ item.bonusValue ?? '—' }}</td>
-        <td>{{ item.minQty ?? '—' }}</td>
-        <td>{{ item.leadTimeDays ?? '—' }}</td>
-        <td>{{ resolveStatusLabel(item.status) }}</td>
+        <td>{{ row.variantLabel }}</td>
+        <td>{{ row.unitCost ?? '—' }}</td>
+        <td>{{ row.currency || '—' }}</td>
+        <td>{{ row.freightCost ?? '—' }}</td>
+        <td>{{ row.bonusType || 'none' }}</td>
+        <td>{{ row.bonusValue ?? '—' }}</td>
+        <td>{{ row.minQty ?? '—' }}</td>
+        <td>{{ row.leadTimeDays ?? '—' }}</td>
+        <td>{{ resolveStatusLabel(row.status) }}</td>
         <td class="actions">
           <p-button
             icon="pi pi-pencil"
             label="Editar"
             size="small"
             severity="secondary"
-            (onClick)="openEdit(item)"
+            (onClick)="openEdit(row)"
           ></p-button>
         </td>
       </tr>
@@ -65,7 +88,7 @@
     <ng-template pTemplate="emptymessage">
       <tr>
         <td colspan="10">
-          {{ contextMissing ? 'Selecciona organización y empresa.' : 'Sin datos para el proveedor seleccionado.' }}
+          {{ contextMissing ? 'Selecciona organizaci&oacute;n y empresa.' : 'Sin datos para el proveedor seleccionado.' }}
         </td>
       </tr>
     </ng-template>
@@ -73,7 +96,7 @@
 </div>
 
 <p-dialog
-  [header]="editingItem ? 'Editar ítem' : 'Nuevo ítem'"
+  [header]="editingOverrideId ? 'Editar \u00edtem' : 'Nuevo \u00edtem'"
   [(visible)]="dialogVisible"
   [modal]="true"
   [closable]="true"
