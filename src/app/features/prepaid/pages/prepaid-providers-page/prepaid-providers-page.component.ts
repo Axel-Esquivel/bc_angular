@@ -34,6 +34,7 @@ export class PrepaidProvidersPageComponent implements OnInit {
     name: ['', Validators.required],
     pin: '',
     isActive: true,
+    minimumBalance: this.fb.nonNullable.control(0, { validators: [Validators.min(0)] }),
   });
 
   ngOnInit(): void {
@@ -43,7 +44,7 @@ export class PrepaidProvidersPageComponent implements OnInit {
 
   openCreate(): void {
     this.editingProvider = null;
-    this.form.reset({ name: '', isActive: true });
+    this.form.reset({ name: '', isActive: true, minimumBalance: 0 });
     this.dialogVisible = true;
   }
 
@@ -53,6 +54,7 @@ export class PrepaidProvidersPageComponent implements OnInit {
       name: provider.name,
       pin: '',
       isActive: provider.isActive,
+      minimumBalance: provider.minimumBalance ?? 0,
     });
     this.dialogVisible = true;
   }
@@ -100,6 +102,7 @@ export class PrepaidProvidersPageComponent implements OnInit {
       name: this.form.controls.name.value.trim(),
       pin: this.form.controls.pin.value?.trim() || undefined,
       isActive: this.form.controls.isActive.value,
+      minimumBalance: this.form.controls.minimumBalance.value,
       OrganizationId: context.organizationId,
       companyId: context.companyId,
       enterpriseId: context.enterpriseId,
@@ -110,6 +113,7 @@ export class PrepaidProvidersPageComponent implements OnInit {
           name: payload.name,
           pin: payload.pin,
           isActive: payload.isActive,
+          minimumBalance: payload.minimumBalance,
         })
       : this.prepaidApi.createProvider(payload);
 

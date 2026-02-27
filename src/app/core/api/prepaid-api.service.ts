@@ -15,6 +15,7 @@ export interface CreatePrepaidProviderPayload {
   name: string;
   isActive?: boolean;
   pin?: string;
+  minimumBalance?: number;
   OrganizationId: string;
   companyId: string;
   enterpriseId: string;
@@ -24,6 +25,7 @@ export interface UpdatePrepaidProviderPayload {
   name?: string;
   isActive?: boolean;
   pin?: string;
+  minimumBalance?: number;
 }
 
 export interface CreatePrepaidDepositPayload {

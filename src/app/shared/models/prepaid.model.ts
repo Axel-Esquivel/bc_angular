@@ -3,6 +3,7 @@ export interface PrepaidProvider {
   name: string;
   pin?: string;
   isActive: boolean;
+  minimumBalance?: number;
   OrganizationId: string;
   companyId: string;
   enterpriseId: string;

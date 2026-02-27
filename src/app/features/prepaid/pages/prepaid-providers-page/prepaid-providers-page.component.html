@@ -9,6 +9,7 @@
     <ng-template pTemplate="header">
       <tr>
         <th>Nombre</th>
+        <th>Minimo</th>
         <th>Estado</th>
         <th></th>
       </tr>
@@ -16,6 +17,7 @@
     <ng-template pTemplate="body" let-provider>
       <tr>
         <td>{{ provider.name }}</td>
+        <td>{{ provider.minimumBalance ?? 0 }}</td>
         <td>{{ provider.isActive ? 'Activo' : 'Inactivo' }}</td>
         <td class="actions">
           <p-button
@@ -60,6 +62,13 @@
       [feedback]="false"
       [toggleMask]="true"
     ></p-password>
+    <label for="providerMinimum">Monto minimo</label>
+    <p-inputNumber
+      inputId="providerMinimum"
+      formControlName="minimumBalance"
+      [min]="0"
+      [useGrouping]="true"
+    ></p-inputNumber>
     <div class="field toggle">
       <label>Activo</label>
       <p-toggleSwitch formControlName="isActive"></p-toggleSwitch>
