@@ -346,17 +346,24 @@ export class WarehousesPageComponent implements OnInit {
     this.loadingWarehouses = true;
     this.warehousesService.getAll(ids.organizationId, ids.enterpriseId).subscribe({
       next: ({ result }) => {
-        this.warehouses = result ?? [];
-        this.loadingWarehouses = false;
-        if (this.warehouses.length > 0) {
-          const selectedId = this.selectedWarehouse?.id;
-          const nextSelection = this.warehouses.find((item) => item.id === selectedId) ?? this.warehouses[0];
-          this.selectedWarehouse = nextSelection;
-          this.loadLocations(nextSelection);
-        } else {
-          this.selectedWarehouse = null;
-          this.treeNodes = [];
+        const list = result ?? [];
+        if (list.length === 0 && ids.enterpriseId) {
+          this.warehousesService.getAll(ids.organizationId).subscribe({
+            next: ({ result: fallback }) => {
+              this.applyWarehouses(fallback ?? []);
+            },
+            error: () => {
+              this.applyWarehouses([]);
+              this.messageService.add({
+                severity: 'error',
+                summary: 'Bodegas',
+                detail: 'No se pudieron cargar las bodegas.',
+              });
+            },
+          });
+          return;
         }
+        this.applyWarehouses(list);
       },
       error: () => {
         this.loadingWarehouses = false;
@@ -367,6 +374,20 @@ export class WarehousesPageComponent implements OnInit {
         });
       },
     });
+  }
+
+  private applyWarehouses(list: Warehouse[]): void {
+    this.warehouses = list;
+    this.loadingWarehouses = false;
+    if (this.warehouses.length > 0) {
+      const selectedId = this.selectedWarehouse?.id;
+      const nextSelection = this.warehouses.find((item) => item.id === selectedId) ?? this.warehouses[0];
+      this.selectedWarehouse = nextSelection;
+      this.loadLocations(nextSelection);
+    } else {
+      this.selectedWarehouse = null;
+      this.treeNodes = [];
+    }
   }
 
   private loadLocations(warehouse: Warehouse): void {

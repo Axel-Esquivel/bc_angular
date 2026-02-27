@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
@@ -89,10 +89,12 @@ export class WarehousesService {
     this.baseUrl = this.config.apiBaseUrl;
   }
 
-  getAll(organizationId: string, enterpriseId: string): Observable<ApiResponse<Warehouse[]>> {
-    return this.http.get<ApiResponse<Warehouse[]>>(
-      `${this.baseUrl}/warehouses?organizationId=${organizationId}&enterpriseId=${enterpriseId}`,
-    );
+  getAll(organizationId: string, enterpriseId?: string): Observable<ApiResponse<Warehouse[]>> {
+    let params = new HttpParams().set('organizationId', organizationId);
+    if (enterpriseId) {
+      params = params.set('enterpriseId', enterpriseId);
+    }
+    return this.http.get<ApiResponse<Warehouse[]>>(`${this.baseUrl}/warehouses`, { params });
   }
 
   create(payload: WarehouseCreatePayload): Observable<ApiResponse<Warehouse>> {
