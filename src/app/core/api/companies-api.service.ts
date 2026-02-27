@@ -1,6 +1,6 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
 
 import { APP_CONFIG_TOKEN, AppConfig } from '../config/app-config';
 import { ApiResponse } from '../../shared/models/api-response.model';
@@ -18,7 +18,19 @@ export class CompaniesApiService {
 
   listByOrganization(orgId: string, countryId?: string): Observable<ApiResponse<Company[]>> {
     const params = countryId ? new HttpParams().set('countryId', countryId) : undefined;
-    return this.http.get<ApiResponse<Company[]>>(`${this.baseUrl}/organizations/${orgId}/companies`, { params });
+    return this.http
+      .get<CompanyListResponse>(`${this.baseUrl}/organizations/${orgId}/companies`, { params })
+      .pipe(
+        map((response) => {
+          const companies = normalizeCompanies(extractCompanies(response));
+          return {
+            status: 'success',
+            message: 'Companies loaded',
+            result: companies,
+            error: null,
+          };
+        }),
+      );
   }
 
   create(orgId: string, payload: CreateOrganizationCompanyDto): Observable<ApiResponse<Company>> {
@@ -68,5 +80,39 @@ export class CompaniesApiService {
     );
   }
 }
+
+type CompanyListResponse = ApiResponse<Company[]> | { data: Company[] } | Company[];
+
+const extractCompanies = (response: CompanyListResponse): Company[] => {
+  if (Array.isArray(response)) {
+    return response;
+  }
+  if (response && typeof response === 'object' && 'result' in response) {
+    const result = response.result;
+    return Array.isArray(result) ? result : [];
+  }
+  if (response && typeof response === 'object' && 'data' in response) {
+    const data = response.data;
+    return Array.isArray(data) ? data : [];
+  }
+  return [];
+};
+
+const getId = (value: { id?: string; _id?: string } | null | undefined): string | undefined => {
+  const raw = value?.id ?? value?._id;
+  return typeof raw === 'string' && raw.trim().length > 0 ? raw : undefined;
+};
+
+const normalizeCompanies = (companies: Company[]): Company[] =>
+  companies.map((company) => ({
+    ...company,
+    id: company.id ?? getId(company),
+    enterprises: Array.isArray(company.enterprises)
+      ? company.enterprises.map((enterprise) => ({
+          ...enterprise,
+          id: enterprise.id ?? getId(enterprise),
+        }))
+      : [],
+  }));
 
 

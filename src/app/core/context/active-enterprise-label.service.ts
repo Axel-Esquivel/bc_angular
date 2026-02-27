@@ -34,9 +34,12 @@ export class ActiveEnterpriseLabelService {
         return this.companiesApi.listByOrganization(organizationId).pipe(
           map((response) => response.result ?? []),
           map((companies: Company[]) => {
-            const match = companies
-              .flatMap((company) => company.enterprises ?? [])
-              .find((enterprise: CompanyEnterprise) => (enterprise.id ?? enterprise._id ?? '') === enterpriseId);
+            const enterprises = companies.flatMap((company) =>
+              Array.isArray(company.enterprises) ? company.enterprises : [],
+            );
+            const match = enterprises.find(
+              (enterprise: CompanyEnterprise) => getId(enterprise) === enterpriseId,
+            );
             return match?.name ?? null;
           }),
           catchError(() => of(null)),
@@ -46,3 +49,8 @@ export class ActiveEnterpriseLabelService {
     );
   }
 }
+
+const getId = (value: { id?: string; _id?: string } | null | undefined): string | null => {
+  const raw = value?.id ?? value?._id;
+  return typeof raw === 'string' && raw.trim().length > 0 ? raw : null;
+};
