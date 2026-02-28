@@ -36,7 +36,11 @@ export class PurchasesProductsLookupService {
           }
           const name = variant.name?.toLowerCase() ?? '';
           const sku = variant.sku?.toLowerCase() ?? '';
-          return name.includes(needle) || sku.includes(needle);
+          const barcodes = Array.isArray(variant.barcodes)
+            ? variant.barcodes.map((code) => code.toLowerCase())
+            : [];
+          const barcodeMatch = barcodes.some((code) => code.includes(needle));
+          return name.includes(needle) || sku.includes(needle) || barcodeMatch;
         }),
       ),
       map((variants) => variants.slice(0, 20)),

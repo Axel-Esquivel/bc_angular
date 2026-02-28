@@ -3,7 +3,12 @@
     <div class="toolbar-title">Pedidos</div>
   </ng-template>
   <ng-template pTemplate="end">
-    <p-button label="Nuevo pedido" icon="pi pi-plus" (onClick)="openNewOrder()"></p-button>
+    <p-button
+      label="Nuevo pedido"
+      icon="pi pi-plus"
+      (onClick)="openNewOrderDialog()"
+      [disabled]="!organizationId || !companyId"
+    ></p-button>
   </ng-template>
 </p-toolbar>
 
@@ -40,3 +45,18 @@
     </ng-template>
   </p-table>
 </div>
+
+<p-dialog
+  header="Nuevo pedido"
+  [(visible)]="newOrderDialogVisible"
+  [modal]="true"
+  [dismissableMask]="true"
+  [style]="{ width: '90%', height: '90%' }"
+  (onHide)="closeNewOrderDialog()"
+>
+  <app-purchase-order-create-page
+    [embedded]="true"
+    (saved)="onOrderSaved()"
+    (cancel)="onOrderCancel()"
+  ></app-purchase-order-create-page>
+</p-dialog>

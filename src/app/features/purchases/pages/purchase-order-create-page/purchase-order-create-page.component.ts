@@ -1,7 +1,6 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, inject } from '@angular/core';
 import { MessageService } from 'primeng/api';
 import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
 
 import { ActiveContextStateService } from '../../../../core/context/active-context-state.service';
 import { ProvidersService } from '../../../providers/services/providers.service';
@@ -35,7 +34,10 @@ export class PurchaseOrderCreatePageComponent implements OnInit {
   private readonly messageService = inject(MessageService);
   private readonly fb = inject(FormBuilder);
   private readonly lookupService = inject(PurchasesProductsLookupService);
-  private readonly router = inject(Router);
+
+  @Input() embedded = false;
+  @Output() saved = new EventEmitter<void>();
+  @Output() cancel = new EventEmitter<void>();
 
   providers: Provider[] = [];
   providerOptions: SelectOption[] = [];
@@ -51,6 +53,7 @@ export class PurchaseOrderCreatePageComponent implements OnInit {
   saving = false;
   contextMissing = false;
   addDialogVisible = false;
+  assignDialogVisible = false;
 
   ngOnInit(): void {
     this.preloadVariants();
@@ -85,14 +88,25 @@ export class PurchaseOrderCreatePageComponent implements OnInit {
     this.addDialogVisible = false;
   }
 
-  assignProducts(): void {
+  openAssignDialog(): void {
     if (!this.selectedProviderId) {
       this.showError('Selecciona un proveedor.');
       return;
     }
-    void this.router.navigate(['/app/purchases/supplier-catalog'], {
-      queryParams: { supplierId: this.selectedProviderId },
-    });
+    this.assignDialogVisible = true;
+  }
+
+  closeAssignDialog(): void {
+    this.assignDialogVisible = false;
+  }
+
+  onAssignSaved(): void {
+    this.assignDialogVisible = false;
+    this.loadSupplierProducts();
+  }
+
+  onCancel(): void {
+    this.cancel.emit();
   }
 
   onProductAdded(payload: AddOrderProductResult): void {
@@ -182,6 +196,7 @@ export class PurchaseOrderCreatePageComponent implements OnInit {
             summary: 'Pedidos',
             detail: 'Pedido creado correctamente.',
           });
+          this.saved.emit();
         },
         error: () => {
           this.saving = false;

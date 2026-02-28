@@ -17,6 +17,7 @@ import { AutoComplete } from 'primeng/autocomplete';
 import { AddOrderProductDialogComponent } from './components/add-order-product-dialog/add-order-product-dialog.component';
 import { SupplierCatalogFormComponent } from './components/supplier-catalog-form/supplier-catalog-form.component';
 import { PurchaseOrderLinesComponent } from './components/purchase-order-lines/purchase-order-lines.component';
+import { SupplierCatalogAssignComponent } from './components/supplier-catalog-assign/supplier-catalog-assign.component';
 import { SupplierCatalogPageComponent } from './pages/supplier-catalog-page/supplier-catalog-page.component';
 import { PurchaseOrderCreatePageComponent } from './pages/purchase-order-create-page/purchase-order-create-page.component';
 import { PurchaseOrdersListPageComponent } from './pages/purchase-orders-list-page/purchase-orders-list-page.component';
@@ -29,6 +30,7 @@ import { purchasesRoutes } from './purchases.routes';
     PurchaseOrderCreatePageComponent,
     PurchaseOrderLinesComponent,
     AddOrderProductDialogComponent,
+    SupplierCatalogAssignComponent,
     PurchaseOrdersListPageComponent,
   ],
   imports: [

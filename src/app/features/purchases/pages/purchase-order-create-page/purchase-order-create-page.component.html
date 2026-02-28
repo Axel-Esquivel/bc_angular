@@ -17,9 +17,22 @@
         (onClick)="openAddProduct()"
         [disabled]="!selectedProviderId"
       ></p-button>
+      <p-button
+        label="Asignar productos"
+        icon="pi pi-list"
+        severity="secondary"
+        (onClick)="openAssignDialog()"
+        [disabled]="!selectedProviderId"
+      ></p-button>
     </div>
   </ng-template>
   <ng-template pTemplate="end">
+    <p-button
+      *ngIf="embedded"
+      label="Cancelar"
+      severity="secondary"
+      (onClick)="onCancel()"
+    ></p-button>
     <p-button
       label="Guardar"
       icon="pi pi-save"
@@ -45,12 +58,6 @@
       severity="info"
       text="Este proveedor no tiene productos asignados."
     ></p-message>
-    <p-button
-      label="Asignar productos"
-      icon="pi pi-list"
-      severity="secondary"
-      (onClick)="assignProducts()"
-    ></p-button>
   </div>
 </div>
 
@@ -78,4 +85,21 @@
     (save)="onProductAdded($event)"
     (cancel)="closeAddProduct()"
   ></app-add-order-product-dialog>
+</p-dialog>
+
+<p-dialog
+  header="Asignar productos"
+  [(visible)]="assignDialogVisible"
+  [modal]="true"
+  [closable]="true"
+  [draggable]="false"
+  [style]="{ width: '900px' }"
+>
+  <app-supplier-catalog-assign
+    [organizationId]="organizationId || ''"
+    [companyId]="companyId || ''"
+    [supplierId]="selectedProviderId || ''"
+    (saved)="onAssignSaved()"
+    (cancel)="closeAssignDialog()"
+  ></app-supplier-catalog-assign>
 </p-dialog>

@@ -1,0 +1,30 @@
+.assign-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.title {
+  font-weight: 600;
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.assign-add {
+  margin-top: 1rem;
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.assign-add p-autoComplete {
+  flex: 1;
+}
+
+.assign-table {
+  margin-top: 1rem;
+}

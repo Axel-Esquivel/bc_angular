@@ -1,6 +1,5 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { MessageService } from 'primeng/api';
-import { Router } from '@angular/router';
 
 import { ActiveContextStateService } from '../../../../core/context/active-context-state.service';
 import { ProvidersService } from '../../../providers/services/providers.service';
@@ -27,11 +26,11 @@ export class PurchaseOrdersListPageComponent implements OnInit {
   private readonly providersService = inject(ProvidersService);
   private readonly activeContextState = inject(ActiveContextStateService);
   private readonly messageService = inject(MessageService);
-  private readonly router = inject(Router);
 
   rows: PurchaseOrderRow[] = [];
   loading = false;
   contextMissing = false;
+  newOrderDialogVisible = false;
 
   private providerIndex = new Map<string, string>();
 
@@ -39,8 +38,41 @@ export class PurchaseOrdersListPageComponent implements OnInit {
     this.loadProviders();
   }
 
-  openNewOrder(): void {
-    void this.router.navigateByUrl('/app/purchases/orders/new');
+  get organizationId(): string | null {
+    return this.activeContextState.getActiveContext().organizationId ?? null;
+  }
+
+  get companyId(): string | null {
+    return this.activeContextState.getActiveContext().companyId ?? null;
+  }
+
+  openNewOrderDialog(): void {
+    if (!this.organizationId || !this.companyId) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Pedidos',
+        detail: 'Selecciona organizacion y empresa antes de crear pedidos.',
+      });
+      return;
+    }
+    this.newOrderDialogVisible = true;
+  }
+
+  closeNewOrderDialog(): void {
+    this.newOrderDialogVisible = false;
+  }
+
+  onOrderSaved(): void {
+    this.newOrderDialogVisible = false;
+    const OrganizationId = this.organizationId ?? undefined;
+    const companyId = this.companyId ?? undefined;
+    if (OrganizationId && companyId) {
+      this.loadOrders(OrganizationId, companyId);
+    }
+  }
+
+  onOrderCancel(): void {
+    this.newOrderDialogVisible = false;
   }
 
   private loadProviders(): void {

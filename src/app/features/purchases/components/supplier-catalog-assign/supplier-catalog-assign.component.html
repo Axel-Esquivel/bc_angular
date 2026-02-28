@@ -1,0 +1,57 @@
+<div class="assign-header">
+  <div class="title">Asignar productos</div>
+  <div class="actions">
+    <p-button label="Cerrar" severity="secondary" (onClick)="close()"></p-button>
+  </div>
+</div>
+
+<div class="assign-add">
+  <p-autoComplete
+    inputId="variantSearch"
+    [(ngModel)]="selectedVariant"
+    [suggestions]="variantSuggestions"
+    [optionLabel]="'display'"
+    emptyMessage="No hay variantes"
+    placeholder="Buscar por nombre, SKU o barcode"
+    (completeMethod)="onSearch($event)"
+    (onSelect)="onVariantSelect($event)"
+  ></p-autoComplete>
+  <p-button
+    label="Agregar"
+    icon="pi pi-plus"
+    (onClick)="addSelectedVariant()"
+    [disabled]="!selectedVariant || saving"
+  ></p-button>
+</div>
+
+<div class="assign-table">
+  <p-table [value]="items" [loading]="loading" dataKey="id">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Producto</th>
+        <th>Estado</th>
+        <th class="actions">Acciones</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-row>
+      <tr>
+        <td>{{ getVariantLabel(row.variantId) }}</td>
+        <td>{{ resolveStatusLabel(row.status) }}</td>
+        <td class="actions">
+          <p-button
+            label="Eliminar"
+            icon="pi pi-trash"
+            size="small"
+            severity="danger"
+            (onClick)="removeItem(row)"
+          ></p-button>
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="3">Sin productos asignados.</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>

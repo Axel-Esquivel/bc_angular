@@ -129,6 +129,17 @@ export class PurchasesService {
     );
   }
 
+  deleteSupplierCatalog(
+    id: string,
+    OrganizationId: string,
+    companyId: string,
+  ): Observable<ApiResponse<{ id: string }>> {
+    const httpParams = new HttpParams().set('OrganizationId', OrganizationId).set('companyId', companyId);
+    return this.http.delete<ApiResponse<{ id: string }>>(`${this.baseUrl}/supplier-catalog/${id}`, {
+      params: httpParams,
+    });
+  }
+
   createPurchaseOrder(payload: CreatePurchaseOrderPayload): Observable<ApiResponse<PurchaseOrder>> {
     return this.http.post<ApiResponse<PurchaseOrder>>(`${this.baseUrl}/orders`, payload);
   }
