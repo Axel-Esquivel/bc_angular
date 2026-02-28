@@ -12,13 +12,23 @@ import { Select } from 'primeng/select';
 import { TableModule } from 'primeng/table';
 import { Toolbar } from 'primeng/toolbar';
 import { Message } from 'primeng/message';
+import { AutoComplete } from 'primeng/autocomplete';
 
+import { AddOrderProductDialogComponent } from './components/add-order-product-dialog/add-order-product-dialog.component';
 import { SupplierCatalogFormComponent } from './components/supplier-catalog-form/supplier-catalog-form.component';
+import { PurchaseOrderLinesComponent } from './components/purchase-order-lines/purchase-order-lines.component';
 import { SupplierCatalogPageComponent } from './pages/supplier-catalog-page/supplier-catalog-page.component';
+import { PurchaseOrderCreatePageComponent } from './pages/purchase-order-create-page/purchase-order-create-page.component';
 import { purchasesRoutes } from './purchases.routes';
 
 @NgModule({
-  declarations: [SupplierCatalogPageComponent, SupplierCatalogFormComponent],
+  declarations: [
+    SupplierCatalogPageComponent,
+    SupplierCatalogFormComponent,
+    PurchaseOrderCreatePageComponent,
+    PurchaseOrderLinesComponent,
+    AddOrderProductDialogComponent,
+  ],
   imports: [
     CommonModule,
     FormsModule,
@@ -34,6 +44,7 @@ import { purchasesRoutes } from './purchases.routes';
     TableModule,
     Toolbar,
     Message,
+    AutoComplete,
   ],
 })
 export class PurchasesModule {}

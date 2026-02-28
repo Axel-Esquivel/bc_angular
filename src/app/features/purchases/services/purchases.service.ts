@@ -22,6 +22,47 @@ export interface CreateSupplierCatalogPayload extends CreateSupplierCatalogDto {
   companyId: string;
 }
 
+export interface PurchaseOrderLinePayload {
+  variantId: string;
+  qty: number;
+  unitCost: number;
+  currency?: string;
+}
+
+export interface CreatePurchaseOrderPayload {
+  OrganizationId: string;
+  companyId: string;
+  supplierId: string;
+  lines: PurchaseOrderLinePayload[];
+  warehouseId?: string;
+}
+
+export interface SupplierLastCostResult {
+  lastCost: number | null;
+  lastCurrency: string | null;
+  lastRecordedAt: string | null;
+}
+
+export interface PurchaseOrderLine {
+  id: string;
+  variantId: string;
+  quantity: number;
+  receivedQuantity: number;
+  unitCost: number;
+  currency?: string;
+  status: string;
+}
+
+export interface PurchaseOrder {
+  id: string;
+  supplierId: string;
+  warehouseId?: string;
+  status: string;
+  OrganizationId: string;
+  companyId: string;
+  lines: PurchaseOrderLine[];
+}
+
 @Injectable({ providedIn: 'root' })
 export class PurchasesService {
   private readonly baseUrl: string;
@@ -39,6 +80,21 @@ export class PurchasesService {
       .set('companyId', params.companyId);
     return this.http.get<ApiResponse<SupplierProductVariantItem[]>>(
       `${this.baseUrl}/suppliers/${params.supplierId}/products`,
+      { params: httpParams },
+    );
+  }
+
+  getSupplierVariantLastCost(params: {
+    OrganizationId: string;
+    companyId: string;
+    supplierId: string;
+    variantId: string;
+  }): Observable<ApiResponse<SupplierLastCostResult>> {
+    const httpParams = new HttpParams()
+      .set('OrganizationId', params.OrganizationId)
+      .set('companyId', params.companyId);
+    return this.http.get<ApiResponse<SupplierLastCostResult>>(
+      `${this.baseUrl}/suppliers/${params.supplierId}/products/${params.variantId}/last-cost`,
       { params: httpParams },
     );
   }
@@ -69,5 +125,9 @@ export class PurchasesService {
       payload,
       { params: httpParams },
     );
+  }
+
+  createPurchaseOrder(payload: CreatePurchaseOrderPayload): Observable<ApiResponse<PurchaseOrder>> {
+    return this.http.post<ApiResponse<PurchaseOrder>>(`${this.baseUrl}/orders`, payload);
   }
 }

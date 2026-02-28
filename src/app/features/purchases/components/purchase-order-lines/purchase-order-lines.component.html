@@ -1,0 +1,55 @@
+<div class="lines-table" [formGroup]="form">
+  <div formArrayName="lines">
+    <p-table [value]="lines" dataKey="variantId">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Variante</th>
+          <th>Costo sugerido</th>
+          <th>Moneda</th>
+          <th>Cantidad</th>
+          <th>Precio</th>
+          <th class="actions">Acciones</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-line let-rowIndex="rowIndex">
+        <tr [formGroupName]="rowIndex">
+          <td>{{ line.variantLabel }}</td>
+          <td>{{ line.lastCost ?? '—' }}</td>
+          <td>{{ line.lastCurrency || '—' }}</td>
+          <td>
+            <p-inputNumber
+              inputId="qty-{{ rowIndex }}"
+              formControlName="qty"
+              [min]="0"
+              [minFractionDigits]="0"
+              [maxFractionDigits]="2"
+            ></p-inputNumber>
+          </td>
+          <td>
+            <p-inputNumber
+              inputId="price-{{ rowIndex }}"
+              formControlName="unitCost"
+              [min]="0"
+              [minFractionDigits]="2"
+              [maxFractionDigits]="2"
+            ></p-inputNumber>
+          </td>
+          <td class="actions">
+            <p-button
+              icon="pi pi-trash"
+              label="Quitar"
+              severity="secondary"
+              size="small"
+              (onClick)="onRemove(rowIndex)"
+            ></p-button>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="6">Sin l&iacute;neas.</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+</div>

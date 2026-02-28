@@ -22,6 +22,12 @@
         (onClick)="openCreate()"
         [disabled]="providerOptions.length === 0"
       ></p-button>
+      <p-button
+        label="Crear pedido"
+        icon="pi pi-shopping-cart"
+        severity="secondary"
+        (onClick)="createOrder()"
+      ></p-button>
     </div>
   </ng-template>
 </p-toolbar>

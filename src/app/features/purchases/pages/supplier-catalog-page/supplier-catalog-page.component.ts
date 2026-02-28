@@ -166,6 +166,14 @@ export class SupplierCatalogPageComponent implements OnInit {
     void this.router.navigateByUrl('/app/providers');
   }
 
+  createOrder(): void {
+    if (!this.selectedProviderId) {
+      this.showError('Selecciona un proveedor.');
+      return;
+    }
+    void this.router.navigateByUrl('/app/purchases/orders/new');
+  }
+
   loadProviders(): void {
     const context = this.activeContextState.getActiveContext();
     const organizationId = context.organizationId ?? undefined;

@@ -1,0 +1,74 @@
+<p-toolbar>
+  <ng-template pTemplate="start">
+    <div class="toolbar-actions">
+      <p-select
+        inputId="supplierId"
+        [options]="providerOptions"
+        optionLabel="label"
+        optionValue="value"
+        [(ngModel)]="selectedProviderId"
+        (onChange)="onProviderChange()"
+        [disabled]="providerOptions.length === 0"
+        placeholder="Proveedor"
+      ></p-select>
+      <p-button
+        label="Agregar producto"
+        icon="pi pi-plus"
+        (onClick)="openAddProduct()"
+        [disabled]="!selectedProviderId"
+      ></p-button>
+    </div>
+  </ng-template>
+  <ng-template pTemplate="end">
+    <p-button
+      label="Guardar"
+      icon="pi pi-save"
+      (onClick)="saveOrder()"
+      [disabled]="saving"
+    ></p-button>
+  </ng-template>
+</p-toolbar>
+
+<div class="messages">
+  <p-message
+    *ngIf="!contextMissing && providerOptions.length === 0"
+    severity="warn"
+    text="No hay proveedores. Crea uno para poder registrar pedidos."
+  ></p-message>
+  <p-message
+    *ngIf="!contextMissing && providerOptions.length > 0 && !selectedProviderId"
+    severity="info"
+    text="Selecciona un proveedor para ver sus productos."
+  ></p-message>
+  <p-message
+    *ngIf="!contextMissing && selectedProviderId && !loadingProducts && lineItems.length === 0"
+    severity="info"
+    text="Este proveedor no tiene productos asignados."
+  ></p-message>
+</div>
+
+<div class="order-lines">
+  <app-purchase-order-lines
+    [form]="orderForm"
+    [lines]="lineItems"
+    (change)="onLinesChange($event)"
+    (remove)="removeLine($event)"
+  ></app-purchase-order-lines>
+</div>
+
+<p-dialog
+  header="Agregar producto"
+  [(visible)]="addDialogVisible"
+  [modal]="true"
+  [closable]="true"
+  [draggable]="false"
+  [style]="{ width: '520px' }"
+>
+  <app-add-order-product-dialog
+    [supplierId]="selectedProviderId"
+    [OrganizationId]="organizationId"
+    [companyId]="companyId"
+    (save)="onProductAdded($event)"
+    (cancel)="closeAddProduct()"
+  ></app-add-order-product-dialog>
+</p-dialog>

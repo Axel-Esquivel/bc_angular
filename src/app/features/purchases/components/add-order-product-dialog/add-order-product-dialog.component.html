@@ -1,0 +1,57 @@
+<form [formGroup]="form" class="dialog-form">
+  <div class="field">
+    <label for="variant">Variante</label>
+    <p-autoComplete
+      inputId="variant"
+      formControlName="variant"
+      [suggestions]="filteredVariants"
+      (completeMethod)="onSearch($event)"
+      (onSelect)="onVariantSelect($event.value)"
+      [dropdown]="true"
+      optionLabel="label"
+      placeholder="Buscar variante"
+    ></p-autoComplete>
+  </div>
+
+  <div class="field-group">
+    <div class="field">
+      <label for="qty">Cantidad</label>
+      <p-inputNumber
+        inputId="qty"
+        formControlName="qty"
+        [min]="0"
+        [minFractionDigits]="0"
+        [maxFractionDigits]="2"
+      ></p-inputNumber>
+    </div>
+    <div class="field">
+      <label for="unitCost">Precio</label>
+      <p-inputNumber
+        inputId="unitCost"
+        formControlName="unitCost"
+        [min]="0"
+        [minFractionDigits]="2"
+        [maxFractionDigits]="2"
+      ></p-inputNumber>
+    </div>
+  </div>
+
+  <div class="hint" *ngIf="lastCost?.lastCost !== null && lastCost?.lastCost !== undefined">
+    Costo sugerido: {{ lastCost?.lastCost }} {{ lastCost?.lastCurrency || '' }}
+  </div>
+
+  <div class="actions">
+    <p-button
+      label="Cancelar"
+      severity="secondary"
+      (onClick)="close()"
+      type="button"
+    ></p-button>
+    <p-button
+      label="Agregar"
+      icon="pi pi-plus"
+      (onClick)="confirm()"
+      type="button"
+    ></p-button>
+  </div>
+</form>
