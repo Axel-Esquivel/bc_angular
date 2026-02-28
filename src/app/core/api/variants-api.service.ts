@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
@@ -66,5 +66,13 @@ export class VariantsApiService {
 
   deleteVariant(id: string): Observable<ApiResponse<{ id: string }>> {
     return this.http.delete<ApiResponse<{ id: string }>>(`${this.baseUrl}/${id}`);
+  }
+
+  listAll(params?: { organizationId?: string }): Observable<ApiResponse<ProductVariant[]>> {
+    let httpParams = new HttpParams();
+    if (params?.organizationId) {
+      httpParams = httpParams.set('organizationId', params.organizationId);
+    }
+    return this.http.get<ApiResponse<ProductVariant[]>>(this.baseUrl, { params: httpParams });
   }
 }

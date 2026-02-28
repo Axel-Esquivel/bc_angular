@@ -1,0 +1,42 @@
+<p-toolbar>
+  <ng-template pTemplate="start">
+    <div class="toolbar-title">Pedidos</div>
+  </ng-template>
+  <ng-template pTemplate="end">
+    <p-button label="Nuevo pedido" icon="pi pi-plus" (onClick)="openNewOrder()"></p-button>
+  </ng-template>
+</p-toolbar>
+
+<div class="messages" *ngIf="contextMissing">
+  <p-message severity="warn" text="Selecciona organizaci&oacute;n y empresa."></p-message>
+</div>
+
+<div class="orders-table">
+  <p-table [value]="rows" [loading]="loading" dataKey="id" [rows]="20" [paginator]="rows.length > 20">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Fecha pedido</th>
+        <th>Proveedor</th>
+        <th>Fecha entrega estimada</th>
+        <th>Estado</th>
+        <th>Acciones</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-row>
+      <tr>
+        <td>{{ row.createdAt ? (row.createdAt | date: 'short') : '-' }}</td>
+        <td>{{ row.supplierName }}</td>
+        <td>{{ row.expectedDeliveryDate ? (row.expectedDeliveryDate | date: 'shortDate') : '-' }}</td>
+        <td>{{ row.status }}</td>
+        <td>
+          <p-button label="Ver" icon="pi pi-eye" size="small" severity="secondary"></p-button>
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="5">Sin pedidos.</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>

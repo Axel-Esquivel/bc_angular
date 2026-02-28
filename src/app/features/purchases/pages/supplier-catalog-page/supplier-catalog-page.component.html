@@ -23,8 +23,8 @@
         [disabled]="providerOptions.length === 0"
       ></p-button>
       <p-button
-        label="Crear pedido"
-        icon="pi pi-shopping-cart"
+        label="Ir a Nuevo pedido"
+        icon="pi pi-arrow-right"
         severity="secondary"
         (onClick)="createOrder()"
       ></p-button>
@@ -57,7 +57,7 @@
   <p-table [value]="rows" [loading]="loading" dataKey="variantId" [rows]="20" [paginator]="rows.length > 20">
     <ng-template pTemplate="header">
       <tr>
-        <th>Variante</th>
+        <th>Producto</th>
         <th>Costo sugerido</th>
         <th>Moneda</th>
         <th>Flete</th>
@@ -111,7 +111,6 @@
 >
   <app-supplier-catalog-form
     [item]="editingItem ?? undefined"
-    [variantOptions]="variantOptions"
     (save)="onFormSave($event)"
     (cancel)="closeDialog()"
   ></app-supplier-catalog-form>

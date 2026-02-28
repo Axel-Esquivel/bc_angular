@@ -61,6 +61,8 @@ export interface PurchaseOrder {
   OrganizationId: string;
   companyId: string;
   lines: PurchaseOrderLine[];
+  createdAt?: string | Date;
+  expectedDeliveryDate?: string | Date;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -129,5 +131,12 @@ export class PurchasesService {
 
   createPurchaseOrder(payload: CreatePurchaseOrderPayload): Observable<ApiResponse<PurchaseOrder>> {
     return this.http.post<ApiResponse<PurchaseOrder>>(`${this.baseUrl}/orders`, payload);
+  }
+
+  listPurchaseOrders(params: { OrganizationId: string; companyId: string }): Observable<ApiResponse<PurchaseOrder[]>> {
+    const httpParams = new HttpParams()
+      .set('OrganizationId', params.OrganizationId)
+      .set('companyId', params.companyId);
+    return this.http.get<ApiResponse<PurchaseOrder[]>>(`${this.baseUrl}/orders`, { params: httpParams });
   }
 }

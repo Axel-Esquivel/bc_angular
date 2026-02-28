@@ -1,13 +1,16 @@
 <form class="catalog-form" [formGroup]="form" (ngSubmit)="onSubmit()">
   <div class="catalog-grid">
     <p-floatLabel class="field">
-      <p-select
+      <p-autoComplete
         inputId="variantId"
-        formControlName="variantId"
-        [options]="variantOptions"
-        optionLabel="label"
-        optionValue="value"
-      ></p-select>
+        formControlName="variantOption"
+        [suggestions]="variantSuggestions"
+        [optionLabel]="'display'"
+        emptyMessage="No hay variantes"
+        (completeMethod)="onVariantSearch($event)"
+        (onSelect)="onVariantSelect($event)"
+        (onClear)="onVariantClear()"
+      ></p-autoComplete>
       <label for="variantId">Variante</label>
     </p-floatLabel>
     <small class="field-error" *ngIf="form.controls.variantId.invalid && form.controls.variantId.touched">

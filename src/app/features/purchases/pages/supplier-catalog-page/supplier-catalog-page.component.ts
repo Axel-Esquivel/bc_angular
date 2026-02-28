@@ -1,15 +1,12 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { MessageService } from 'primeng/api';
-import { forkJoin, of, switchMap } from 'rxjs';
-import { Router } from '@angular/router';
+import { forkJoin } from 'rxjs';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { ActiveContextStateService } from '../../../../core/context/active-context-state.service';
 import { ProvidersService } from '../../../providers/services/providers.service';
 import { PurchasesService } from '../../services/purchases.service';
-import { ProductsApiService } from '../../../../core/api/products-api.service';
-import { VariantsApiService } from '../../../../core/api/variants-api.service';
-import { Product } from '../../../../shared/models/product.model';
-import { ProductVariant } from '../../../../shared/models/product-variant.model';
+import { PurchasesProductsLookupService } from '../../services/purchases-products-lookup.service';
 import { Provider } from '../../../../shared/models/provider.model';
 import {
   CreateSupplierCatalogDto,
@@ -49,15 +46,16 @@ interface SupplierCatalogRow {
 export class SupplierCatalogPageComponent implements OnInit {
   private readonly providersService = inject(ProvidersService);
   private readonly purchasesService = inject(PurchasesService);
-  private readonly productsApi = inject(ProductsApiService);
-  private readonly variantsApi = inject(VariantsApiService);
   private readonly activeContextState = inject(ActiveContextStateService);
   private readonly messageService = inject(MessageService);
   private readonly router = inject(Router);
+  private readonly lookupService = inject(PurchasesProductsLookupService);
+  private readonly route = inject(ActivatedRoute);
 
   providers: Provider[] = [];
   providerOptions: SelectOption[] = [];
   selectedProviderId: string | null = null;
+  private requestedSupplierId: string | null = null;
 
   supplierProducts: SupplierProductVariantItem[] = [];
   catalogOverrides: SupplierCatalogItem[] = [];
@@ -70,13 +68,12 @@ export class SupplierCatalogPageComponent implements OnInit {
   editingOverrideId: string | null = null;
   contextMissing = false;
 
-  variantOptions: SelectOption[] = [];
-  private variantLabelById = new Map<string, string>();
   private overridesByVariant = new Map<string, SupplierCatalogItem>();
 
   ngOnInit(): void {
+    this.preloadProducts();
+    this.requestedSupplierId = this.route.snapshot.queryParamMap.get('supplierId');
     this.loadProviders();
-    this.loadVariants();
   }
 
   get hasProviders(): boolean {
@@ -128,7 +125,7 @@ export class SupplierCatalogPageComponent implements OnInit {
     const supplierId = this.selectedProviderId ?? undefined;
 
     if (!OrganizationId || !companyId || !supplierId) {
-      this.showError('Selecciona organizaci\u00f3n, empresa y proveedor.');
+      this.showError('Selecciona organizacion, empresa y proveedor.');
       return;
     }
 
@@ -157,7 +154,7 @@ export class SupplierCatalogPageComponent implements OnInit {
       },
       error: () => {
         this.saving = false;
-        this.showError('No se pudo guardar el \u00edtem de cat\u00e1logo.');
+        this.showError('No se pudo guardar el item de catalogo.');
       },
     });
   }
@@ -199,7 +196,11 @@ export class SupplierCatalogPageComponent implements OnInit {
           label: provider.name,
           value: provider.id,
         }));
-        if (!this.selectedProviderId && this.providerOptions.length > 0) {
+        if (this.requestedSupplierId) {
+          const match = this.providerOptions.find((option) => option.value === this.requestedSupplierId);
+          this.selectedProviderId = match?.value ?? this.providerOptions[0]?.value ?? null;
+          this.requestedSupplierId = null;
+        } else if (!this.selectedProviderId && this.providerOptions.length > 0) {
           this.selectedProviderId = this.providerOptions[0].value;
         }
         this.loadSupplierData();
@@ -243,7 +244,7 @@ export class SupplierCatalogPageComponent implements OnInit {
         this.catalogOverrides = [];
         this.rows = [];
         this.loading = false;
-        this.showError('No se pudo cargar el cat\u00e1logo.');
+        this.showError('No se pudo cargar el catalogo.');
       },
     });
   }
@@ -253,55 +254,14 @@ export class SupplierCatalogPageComponent implements OnInit {
   }
 
   getVariantLabel(variantId: string): string {
-    return this.variantLabelById.get(variantId) ?? variantId;
+    return this.lookupService.getVariantById(variantId)?.name ?? variantId;
   }
 
-  private loadVariants(): void {
-    const context = this.activeContextState.getActiveContext();
-    const enterpriseId = context.enterpriseId ?? undefined;
-    if (!enterpriseId) {
-      this.variantOptions = [];
-      this.variantLabelById.clear();
-      return;
-    }
-
-    this.productsApi
-      .getProducts({ enterpriseId, includeInactive: true })
-      .pipe(
-        switchMap((response) => {
-          const products = response.result?.items ?? [];
-          if (products.length === 0) {
-            return of({ products, variants: [] as ProductVariant[] });
-          }
-          const variantRequests = products.map((product) => this.variantsApi.getByProduct(product.id));
-          return forkJoin(variantRequests).pipe(
-            switchMap((variantResponses) => {
-              const variants = variantResponses.flatMap((variantResponse) => variantResponse.result ?? []);
-              return of({ products, variants });
-            }),
-          );
-        }),
-      )
-      .subscribe({
-        next: ({ products, variants }) => {
-          this.variantOptions = this.mapVariantOptions(products, variants);
-        },
-        error: () => {
-          this.variantOptions = [];
-          this.variantLabelById.clear();
-        },
-      });
-  }
-
-  private mapVariantOptions(products: Product[], variants: ProductVariant[]): SelectOption[] {
-    const productMap = new Map(products.map((product) => [product.id, product.name]));
-    const options = variants.map((variant) => {
-      const productName = productMap.get(variant.productId) ?? 'Producto';
-      const label = `${productName} - ${variant.name || variant.sku || variant.id}`;
-      return { label, value: variant.id };
+  private preloadProducts(): void {
+    this.lookupService.searchVariants('').subscribe({
+      next: () => undefined,
+      error: () => undefined,
     });
-    this.variantLabelById = new Map(options.map((option) => [option.value, option.label]));
-    return options;
   }
 
   private rebuildOverridesIndex(): void {
@@ -373,7 +333,7 @@ export class SupplierCatalogPageComponent implements OnInit {
   private showError(detail: string): void {
     this.messageService.add({
       severity: 'error',
-      summary: 'Cat\u00e1logo proveedor-producto',
+      summary: 'Catalogo proveedor-producto',
       detail,
     });
   }

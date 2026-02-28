@@ -25,7 +25,7 @@ export class ProductsApiService {
     page?: number;
     limit?: number;
     includeInactive?: boolean;
-  }): Observable<ApiResponse<PaginatedResponse<Product>>> {
+  }): Observable<ApiResponse<PaginatedResponse<Product> | Product[]>> {
     let httpParams = new HttpParams();
     if (params?.enterpriseId) httpParams = httpParams.set('enterpriseId', params.enterpriseId);
     if (params?.search) httpParams = httpParams.set('search', params.search);
@@ -36,7 +36,7 @@ export class ProductsApiService {
       httpParams = httpParams.set('includeInactive', params.includeInactive ? 'true' : 'false');
     }
 
-    return this.http.get<ApiResponse<PaginatedResponse<Product>>>(this.baseUrl, { params: httpParams });
+    return this.http.get<ApiResponse<PaginatedResponse<Product> | Product[]>>(this.baseUrl, { params: httpParams });
   }
 
   getProductById(id: string): Observable<ApiResponse<Product>> {

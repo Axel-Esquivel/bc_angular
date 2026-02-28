@@ -19,6 +19,7 @@ import { SupplierCatalogFormComponent } from './components/supplier-catalog-form
 import { PurchaseOrderLinesComponent } from './components/purchase-order-lines/purchase-order-lines.component';
 import { SupplierCatalogPageComponent } from './pages/supplier-catalog-page/supplier-catalog-page.component';
 import { PurchaseOrderCreatePageComponent } from './pages/purchase-order-create-page/purchase-order-create-page.component';
+import { PurchaseOrdersListPageComponent } from './pages/purchase-orders-list-page/purchase-orders-list-page.component';
 import { purchasesRoutes } from './purchases.routes';
 
 @NgModule({
@@ -28,6 +29,7 @@ import { purchasesRoutes } from './purchases.routes';
     PurchaseOrderCreatePageComponent,
     PurchaseOrderLinesComponent,
     AddOrderProductDialogComponent,
+    PurchaseOrdersListPageComponent,
   ],
   imports: [
     CommonModule,

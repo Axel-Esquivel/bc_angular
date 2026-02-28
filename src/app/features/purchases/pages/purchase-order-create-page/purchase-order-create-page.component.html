@@ -40,11 +40,18 @@
     severity="info"
     text="Selecciona un proveedor para ver sus productos."
   ></p-message>
-  <p-message
-    *ngIf="!contextMissing && selectedProviderId && !loadingProducts && lineItems.length === 0"
-    severity="info"
-    text="Este proveedor no tiene productos asignados."
-  ></p-message>
+  <div class="empty-catalog" *ngIf="!contextMissing && selectedProviderId && !loadingProducts && lineItems.length === 0">
+    <p-message
+      severity="info"
+      text="Este proveedor no tiene productos asignados."
+    ></p-message>
+    <p-button
+      label="Asignar productos"
+      icon="pi pi-list"
+      severity="secondary"
+      (onClick)="assignProducts()"
+    ></p-button>
+  </div>
 </div>
 
 <div class="order-lines">

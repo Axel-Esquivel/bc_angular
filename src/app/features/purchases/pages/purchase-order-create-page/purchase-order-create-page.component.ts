@@ -1,23 +1,20 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { MessageService } from 'primeng/api';
-import { forkJoin, of, switchMap } from 'rxjs';
 import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 
 import { ActiveContextStateService } from '../../../../core/context/active-context-state.service';
 import { ProvidersService } from '../../../providers/services/providers.service';
 import { PurchasesService } from '../../services/purchases.service';
-import { ProductsApiService } from '../../../../core/api/products-api.service';
-import { VariantsApiService } from '../../../../core/api/variants-api.service';
-import { Product } from '../../../../shared/models/product.model';
-import { ProductVariant } from '../../../../shared/models/product-variant.model';
 import { Provider } from '../../../../shared/models/provider.model';
-import { SupplierProductVariantItem } from '../../../../shared/models/supplier-catalog.model';
+import { SupplierCatalogItem } from '../../../../shared/models/supplier-catalog.model';
 import {
   LineFormGroup,
   PurchaseOrderLineDraft,
   PurchaseOrderLineView,
 } from '../../components/purchase-order-lines/purchase-order-lines.component';
 import { AddOrderProductResult } from '../../components/add-order-product-dialog/add-order-product-dialog.component';
+import { PurchasesProductsLookupService } from '../../services/purchases-products-lookup.service';
 
 interface SelectOption {
   label: string;
@@ -34,11 +31,11 @@ interface SelectOption {
 export class PurchaseOrderCreatePageComponent implements OnInit {
   private readonly providersService = inject(ProvidersService);
   private readonly purchasesService = inject(PurchasesService);
-  private readonly productsApi = inject(ProductsApiService);
-  private readonly variantsApi = inject(VariantsApiService);
   private readonly activeContextState = inject(ActiveContextStateService);
   private readonly messageService = inject(MessageService);
   private readonly fb = inject(FormBuilder);
+  private readonly lookupService = inject(PurchasesProductsLookupService);
+  private readonly router = inject(Router);
 
   providers: Provider[] = [];
   providerOptions: SelectOption[] = [];
@@ -55,10 +52,8 @@ export class PurchaseOrderCreatePageComponent implements OnInit {
   contextMissing = false;
   addDialogVisible = false;
 
-  private variantLabelById = new Map<string, string>();
-
   ngOnInit(): void {
-    this.loadVariants();
+    this.preloadVariants();
     this.loadProviders();
   }
 
@@ -88,6 +83,16 @@ export class PurchaseOrderCreatePageComponent implements OnInit {
 
   closeAddProduct(): void {
     this.addDialogVisible = false;
+  }
+
+  assignProducts(): void {
+    if (!this.selectedProviderId) {
+      this.showError('Selecciona un proveedor.');
+      return;
+    }
+    void this.router.navigate(['/app/purchases/supplier-catalog'], {
+      queryParams: { supplierId: this.selectedProviderId },
+    });
   }
 
   onProductAdded(payload: AddOrderProductResult): void {
@@ -235,11 +240,11 @@ export class PurchaseOrderCreatePageComponent implements OnInit {
 
     this.loadingProducts = true;
     this.purchasesService
-      .getSupplierProducts({ OrganizationId, companyId, supplierId })
+      .listSupplierCatalog({ OrganizationId, companyId, supplierId })
       .subscribe({
         next: ({ result }) => {
           const items = Array.isArray(result) ? result : [];
-          this.setLinesFromSuggestions(items);
+          this.setLinesFromCatalog(items);
           this.loadingProducts = false;
         },
         error: () => {
@@ -250,12 +255,13 @@ export class PurchaseOrderCreatePageComponent implements OnInit {
       });
   }
 
-  private setLinesFromSuggestions(items: SupplierProductVariantItem[]): void {
-    this.lineItems = items.map((item) => ({
+  private setLinesFromCatalog(items: SupplierCatalogItem[]): void {
+    const activeItems = items.filter((item) => item.status !== 'inactive');
+    this.lineItems = activeItems.map((item) => ({
       variantId: item.variantId,
-      variantLabel: this.variantLabelById.get(item.variantId) ?? item.variantId,
-      lastCost: item.lastCost,
-      lastCurrency: item.lastCurrency,
+      variantLabel: this.lookupService.getVariantById(item.variantId)?.name ?? item.variantId,
+      lastCost: item.unitCost,
+      lastCurrency: item.currency ?? null,
     }));
 
     this.linesFormArray.clear();
@@ -275,49 +281,11 @@ export class PurchaseOrderCreatePageComponent implements OnInit {
     this.linesFormArray.clear();
   }
 
-  private loadVariants(): void {
-    const context = this.activeContextState.getActiveContext();
-    const enterpriseId = context.enterpriseId ?? undefined;
-    if (!enterpriseId) {
-      this.variantLabelById.clear();
-      return;
-    }
-
-    this.productsApi
-      .getProducts({ enterpriseId, includeInactive: true })
-      .pipe(
-        switchMap((response) => {
-          const products = response.result?.items ?? [];
-          if (products.length === 0) {
-            return of({ products, variants: [] as ProductVariant[] });
-          }
-          const variantRequests = products.map((product) => this.variantsApi.getByProduct(product.id));
-          return forkJoin(variantRequests).pipe(
-            switchMap((variantResponses) => {
-              const variants = variantResponses.flatMap((variantResponse) => variantResponse.result ?? []);
-              return of({ products, variants });
-            }),
-          );
-        }),
-      )
-      .subscribe({
-        next: ({ products, variants }) => {
-          this.variantLabelById = this.mapVariantLabels(products, variants);
-        },
-        error: () => {
-          this.variantLabelById.clear();
-        },
-      });
-  }
-
-  private mapVariantLabels(products: Product[], variants: ProductVariant[]): Map<string, string> {
-    const productMap = new Map(products.map((product) => [product.id, product.name]));
-    const labels = variants.map((variant) => {
-      const productName = productMap.get(variant.productId) ?? 'Producto';
-      const label = `${productName} - ${variant.name || variant.sku || variant.id}`;
-      return { label, value: variant.id };
+  private preloadVariants(): void {
+    this.lookupService.searchVariants('').subscribe({
+      next: () => undefined,
+      error: () => undefined,
     });
-    return new Map(labels.map((item) => [item.value, item.label]));
   }
 
   private showError(detail: string): void {

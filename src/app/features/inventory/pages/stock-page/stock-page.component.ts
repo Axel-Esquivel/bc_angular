@@ -128,7 +128,8 @@ export class StockPageComponent implements OnInit {
       .getProducts({ enterpriseId: this.context.enterpriseId, search: query, limit: 10 })
       .subscribe({
         next: (response) => {
-          this.productSuggestions = response?.result?.items ?? [];
+          const result = response?.result;
+          this.productSuggestions = Array.isArray(result) ? result : result?.items ?? [];
         },
         error: () => {
           this.productSuggestions = [];

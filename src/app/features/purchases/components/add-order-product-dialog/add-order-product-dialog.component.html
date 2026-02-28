@@ -5,11 +5,12 @@
       inputId="variant"
       formControlName="variant"
       [suggestions]="filteredVariants"
-      (completeMethod)="onSearch($event)"
-      (onSelect)="onVariantSelect($event.value)"
-      [dropdown]="true"
-      optionLabel="label"
+      [optionLabel]="'display'"
       placeholder="Buscar variante"
+      emptyMessage="No hay variantes"
+      (completeMethod)="onSearch($event)"
+      (onSelect)="onVariantSelect($event)"
+      [dropdown]="true"
     ></p-autoComplete>
   </div>
 
