@@ -138,6 +138,10 @@ export class PurchaseOrderCreatePageComponent implements OnInit {
       this.fb.group({
         qty: this.fb.control<number | null>(payload.qty, { validators: [Validators.min(0)] }),
         unitCost: this.fb.control<number | null>(payload.unitCost, { validators: [Validators.min(0)] }),
+        currency: this.fb.control<string | null>(payload.lastCurrency ?? null),
+        freightCost: this.fb.control<number | null>(null, { validators: [Validators.min(0)] }),
+        extraCosts: this.fb.control<number | null>(null, { validators: [Validators.min(0)] }),
+        notes: this.fb.control<string | null>(null),
       }) as LineFormGroup,
     );
 
@@ -281,12 +285,16 @@ export class PurchaseOrderCreatePageComponent implements OnInit {
 
     this.linesFormArray.clear();
     this.lineItems.forEach((item) => {
-      this.linesFormArray.push(
-        this.fb.group({
-          qty: this.fb.control<number | null>(0, { validators: [Validators.min(0)] }),
-          unitCost: this.fb.control<number | null>(item.lastCost ?? null, { validators: [Validators.min(0)] }),
-        }) as LineFormGroup,
-      );
+    this.linesFormArray.push(
+      this.fb.group({
+        qty: this.fb.control<number | null>(0, { validators: [Validators.min(0)] }),
+        unitCost: this.fb.control<number | null>(item.lastCost ?? null, { validators: [Validators.min(0)] }),
+        currency: this.fb.control<string | null>(item.lastCurrency ?? null),
+        freightCost: this.fb.control<number | null>(null, { validators: [Validators.min(0)] }),
+        extraCosts: this.fb.control<number | null>(null, { validators: [Validators.min(0)] }),
+        notes: this.fb.control<string | null>(null),
+      }) as LineFormGroup,
+    );
     });
   }
 

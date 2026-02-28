@@ -13,6 +13,7 @@ import { TableModule } from 'primeng/table';
 import { Toolbar } from 'primeng/toolbar';
 import { Message } from 'primeng/message';
 import { AutoComplete } from 'primeng/autocomplete';
+import { AccordionModule } from 'primeng/accordion';
 
 import { AddOrderProductDialogComponent } from './components/add-order-product-dialog/add-order-product-dialog.component';
 import { SupplierCatalogFormComponent } from './components/supplier-catalog-form/supplier-catalog-form.component';
@@ -49,6 +50,7 @@ import { purchasesRoutes } from './purchases.routes';
     Toolbar,
     Message,
     AutoComplete,
+    AccordionModule,
   ],
 })
 export class PurchasesModule {}

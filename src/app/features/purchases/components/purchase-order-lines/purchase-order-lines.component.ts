@@ -27,6 +27,10 @@ export interface PurchaseOrderLineDraft {
 export type LineFormGroup = FormGroup<{
   qty: FormControl<number | null>;
   unitCost: FormControl<number | null>;
+  currency: FormControl<string | null>;
+  freightCost: FormControl<number | null>;
+  extraCosts: FormControl<number | null>;
+  notes: FormControl<string | null>;
 }>;
 
 @Component({
@@ -84,6 +88,23 @@ export class PurchaseOrderLinesComponent implements OnChanges, OnDestroy {
 
   get formArray(): FormArray<LineFormGroup> {
     return this.form.controls.lines;
+  }
+
+  getLineVariantLabel(index: number): string {
+    return this.lines[index]?.variantLabel ?? '';
+  }
+
+  getLineQty(index: number): number {
+    const group = this.formArray.at(index);
+    const qty = group?.controls.qty.value;
+    return typeof qty === 'number' ? qty : 0;
+  }
+
+  getLineTotal(index: number): number {
+    const group = this.formArray.at(index);
+    const qty = group?.controls.qty.value ?? 0;
+    const unitCost = group?.controls.unitCost.value ?? 0;
+    return (qty || 0) * (unitCost || 0);
   }
 
   ngOnDestroy(): void {

@@ -1,4 +1,46 @@
-.lines-table {
+.lines-accordion {
   margin-top: 1rem;
+}
+
+.line-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   width: 100%;
+  gap: 1rem;
+}
+
+.line-title {
+  font-weight: 600;
+}
+
+.line-summary {
+  display: flex;
+  gap: 1rem;
+  opacity: 0.9;
+}
+
+.line-body {
+  display: grid;
+  gap: 1rem;
+}
+
+.line-fields {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+.field {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.field.full {
+  grid-column: 1 / -1;
+}
+
+.line-actions {
+  display: flex;
+  justify-content: flex-end;
 }
