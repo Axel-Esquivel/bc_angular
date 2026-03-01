@@ -164,6 +164,13 @@ export class PurchasesService {
     return this.http.post<ApiResponse<PurchaseOrder>>(`${this.baseUrl}/orders`, payload);
   }
 
+  updatePurchaseOrder(
+    orderId: string,
+    payload: CreatePurchaseOrderPayload,
+  ): Observable<ApiResponse<PurchaseOrder>> {
+    return this.http.patch<ApiResponse<PurchaseOrder>>(`${this.baseUrl}/orders/${orderId}`, payload);
+  }
+
   listPurchaseOrders(params: { OrganizationId: string; companyId: string }): Observable<ApiResponse<PurchaseOrder[]>> {
     const httpParams = new HttpParams()
       .set('OrganizationId', params.OrganizationId)

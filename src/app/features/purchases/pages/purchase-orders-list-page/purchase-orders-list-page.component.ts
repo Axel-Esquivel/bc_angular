@@ -29,9 +29,14 @@ export class PurchaseOrdersListPageComponent implements OnInit {
   private readonly messageService = inject(MessageService);
 
   rows: PurchaseOrderRow[] = [];
+  orders: PurchaseOrder[] = [];
   loading = false;
   contextMissing = false;
   newOrderDialogVisible = false;
+  viewDialogVisible = false;
+  selectedOrder: PurchaseOrder | null = null;
+  editDialogVisible = false;
+  selectedEditOrder: PurchaseOrder | null = null;
 
   private providerIndex = new Map<string, string>();
 
@@ -76,6 +81,54 @@ export class PurchaseOrdersListPageComponent implements OnInit {
     this.newOrderDialogVisible = false;
   }
 
+  openView(row: PurchaseOrderRow): void {
+    const order = this.orders.find((item) => item.id === row.id) ?? null;
+    if (!order) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Pedidos',
+        detail: 'No se pudo cargar el pedido seleccionado.',
+      });
+      return;
+    }
+    this.selectedOrder = order;
+    this.viewDialogVisible = true;
+  }
+
+  closeView(): void {
+    this.viewDialogVisible = false;
+    this.selectedOrder = null;
+  }
+
+  openEdit(row: PurchaseOrderRow): void {
+    const order = this.orders.find((item) => item.id === row.id) ?? null;
+    if (!order) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Pedidos',
+        detail: 'No se pudo cargar el pedido seleccionado.',
+      });
+      return;
+    }
+    this.selectedEditOrder = order;
+    this.editDialogVisible = true;
+  }
+
+  closeEdit(): void {
+    this.editDialogVisible = false;
+    this.selectedEditOrder = null;
+  }
+
+  onEditSaved(): void {
+    this.editDialogVisible = false;
+    this.selectedEditOrder = null;
+    const OrganizationId = this.organizationId ?? undefined;
+    const companyId = this.companyId ?? undefined;
+    if (OrganizationId && companyId) {
+      this.loadOrders(OrganizationId, companyId);
+    }
+  }
+
   private loadProviders(): void {
     const context = this.activeContextState.getActiveContext();
     const organizationId = context.organizationId ?? undefined;
@@ -108,13 +161,17 @@ export class PurchaseOrdersListPageComponent implements OnInit {
     this.purchasesService.listPurchaseOrders({ OrganizationId, companyId }).subscribe({
       next: ({ result }) => {
         const list = Array.isArray(result) ? result : [];
-        this.rows = list
+        this.orders = list.filter(
+          (order) => order.OrganizationId === OrganizationId && order.companyId === companyId,
+        );
+        this.rows = this.orders
           .filter((order) => order.OrganizationId === OrganizationId && order.companyId === companyId)
           .map((order) => this.mapRow(order));
         this.loading = false;
       },
       error: () => {
         this.rows = [];
+        this.orders = [];
         this.loading = false;
         this.messageService.add({
           severity: 'error',

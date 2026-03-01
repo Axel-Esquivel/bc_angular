@@ -36,7 +36,22 @@
         <td>{{ row.status }}</td>
         <td>{{ row.total !== undefined ? (row.total | number:'1.2-2') : '-' }}</td>
         <td>
-          <p-button label="Ver" icon="pi pi-eye" size="small" severity="secondary"></p-button>
+          <p-button
+            *ngIf="row.status === 'DRAFT'"
+            label="Editar"
+            icon="pi pi-pencil"
+            size="small"
+            severity="secondary"
+            (onClick)="openEdit(row)"
+          ></p-button>
+          <p-button
+            *ngIf="row.status !== 'DRAFT'"
+            label="Ver"
+            icon="pi pi-eye"
+            size="small"
+            severity="secondary"
+            (onClick)="openView(row)"
+          ></p-button>
         </td>
       </tr>
     </ng-template>
@@ -60,5 +75,38 @@
     [embedded]="true"
     (saved)="onOrderSaved()"
     (cancel)="onOrderCancel()"
+  ></app-purchase-order-create-page>
+</p-dialog>
+
+<p-dialog
+  header="Detalle pedido"
+  [(visible)]="viewDialogVisible"
+  [modal]="true"
+  [dismissableMask]="true"
+  [style]="{ width: '90%', height: '90%' }"
+  (onHide)="closeView()"
+>
+  <app-purchase-order-create-page
+    [embedded]="true"
+    [mode]="'view'"
+    [order]="selectedOrder ?? undefined"
+    (cancel)="closeView()"
+  ></app-purchase-order-create-page>
+</p-dialog>
+
+<p-dialog
+  header="Editar pedido"
+  [(visible)]="editDialogVisible"
+  [modal]="true"
+  [dismissableMask]="true"
+  [style]="{ width: '90%', height: '90%' }"
+  (onHide)="closeEdit()"
+>
+  <app-purchase-order-create-page
+    [embedded]="true"
+    [mode]="'edit'"
+    [order]="selectedEditOrder ?? undefined"
+    (saved)="onEditSaved()"
+    (cancel)="closeEdit()"
   ></app-purchase-order-create-page>
 </p-dialog>

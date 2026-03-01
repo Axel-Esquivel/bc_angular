@@ -8,16 +8,18 @@
         optionValue="value"
         [(ngModel)]="selectedProviderId"
         (onChange)="onProviderChange()"
-        [disabled]="providerOptions.length === 0"
+        [disabled]="providerOptions.length === 0 || isViewMode"
         placeholder="Proveedor"
       ></p-select>
       <p-button
+        *ngIf="!isViewMode"
         label="Agregar producto"
         icon="pi pi-plus"
         (onClick)="openAddProduct()"
         [disabled]="!selectedProviderId"
       ></p-button>
       <p-button
+        *ngIf="!isViewMode"
         label="Asignar productos"
         icon="pi pi-list"
         severity="secondary"
@@ -34,6 +36,7 @@
       (onClick)="onCancel()"
     ></p-button>
     <p-button
+      *ngIf="!isViewMode"
       label="Guardar"
       icon="pi pi-save"
       (onClick)="saveOrder()"

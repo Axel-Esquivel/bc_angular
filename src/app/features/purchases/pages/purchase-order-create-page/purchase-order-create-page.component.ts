@@ -1,4 +1,4 @@
-import { Component, DestroyRef, EventEmitter, Input, OnInit, Output, inject } from '@angular/core';
+import { Component, DestroyRef, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, inject } from '@angular/core';
 import { MessageService } from 'primeng/api';
 import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { forkJoin } from 'rxjs';
@@ -8,7 +8,7 @@ import { ActiveContextStateService } from '../../../../core/context/active-conte
 import { CompaniesApiService } from '../../../../core/api/companies-api.service';
 import { OrganizationCoreApiService } from '../../../../core/api/organization-core-api.service';
 import { ProvidersService } from '../../../providers/services/providers.service';
-import { PurchasesService } from '../../services/purchases.service';
+import { PurchasesService, PurchaseOrder } from '../../services/purchases.service';
 import { Provider } from '../../../../shared/models/provider.model';
 import { SupplierCatalogItem } from '../../../../shared/models/supplier-catalog.model';
 import { Company, CompanyEnterprise } from '../../../../shared/models/company.model';
@@ -51,7 +51,7 @@ type OrderHeaderForm = FormGroup<{
   styleUrl: './purchase-order-create-page.component.scss',
   providers: [MessageService],
 })
-export class PurchaseOrderCreatePageComponent implements OnInit {
+export class PurchaseOrderCreatePageComponent implements OnInit, OnChanges {
   private readonly providersService = inject(ProvidersService);
   private readonly purchasesService = inject(PurchasesService);
   private readonly activeContextState = inject(ActiveContextStateService);
@@ -63,6 +63,8 @@ export class PurchaseOrderCreatePageComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
 
   @Input() embedded = false;
+  @Input() mode: 'create' | 'edit' | 'view' = 'create';
+  @Input() order?: PurchaseOrder | null;
   @Output() saved = new EventEmitter<void>();
   @Output() cancel = new EventEmitter<void>();
 
@@ -111,6 +113,19 @@ export class PurchaseOrderCreatePageComponent implements OnInit {
     this.bindHeaderChanges();
   }
 
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['order'] || changes['mode']) {
+      if (this.order && (this.isViewMode || this.isEditMode)) {
+        this.applyOrder(this.order);
+        if (this.isViewMode) {
+          this.disableFormsForView();
+        } else {
+          this.enableFormsForEdit();
+        }
+      }
+    }
+  }
+
   get organizationId(): string | null {
     return this.activeContextState.getActiveContext().organizationId ?? null;
   }
@@ -119,7 +134,18 @@ export class PurchaseOrderCreatePageComponent implements OnInit {
     return this.activeContextState.getActiveContext().companyId ?? null;
   }
 
+  get isViewMode(): boolean {
+    return this.mode === 'view';
+  }
+
+  get isEditMode(): boolean {
+    return this.mode === 'edit';
+  }
+
   onProviderChange(): void {
+    if (this.isViewMode) {
+      return;
+    }
     this.loadSupplierProducts();
   }
 
@@ -129,6 +155,9 @@ export class PurchaseOrderCreatePageComponent implements OnInit {
   }
 
   openAddProduct(): void {
+    if (this.isViewMode) {
+      return;
+    }
     if (!this.selectedProviderId) {
       this.showError('Selecciona un proveedor.');
       return;
@@ -141,6 +170,9 @@ export class PurchaseOrderCreatePageComponent implements OnInit {
   }
 
   openAssignDialog(): void {
+    if (this.isViewMode) {
+      return;
+    }
     if (!this.selectedProviderId) {
       this.showError('Selecciona un proveedor.');
       return;
@@ -211,6 +243,9 @@ export class PurchaseOrderCreatePageComponent implements OnInit {
   }
 
   saveOrder(): void {
+    if (this.isViewMode) {
+      return;
+    }
     const OrganizationId = this.organizationId ?? undefined;
     const companyId = this.companyId ?? undefined;
     const supplierId = this.selectedProviderId ?? undefined;
@@ -267,23 +302,25 @@ export class PurchaseOrderCreatePageComponent implements OnInit {
       notes: header.notes?.trim() || undefined,
     };
 
-    this.purchasesService
-      .createPurchaseOrder(payload)
-      .subscribe({
-        next: () => {
-          this.saving = false;
-          this.messageService.add({
-            severity: 'success',
-            summary: 'Pedidos',
-            detail: 'Pedido creado correctamente.',
-          });
-          this.saved.emit();
-        },
-        error: () => {
-          this.saving = false;
-          this.showError('No se pudo crear el pedido.');
-        },
-      });
+    const request$ = this.isEditMode && this.order?.id
+      ? this.purchasesService.updatePurchaseOrder(this.order.id, payload)
+      : this.purchasesService.createPurchaseOrder(payload);
+
+    request$.subscribe({
+      next: () => {
+        this.saving = false;
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Pedidos',
+          detail: this.isEditMode ? 'Pedido actualizado correctamente.' : 'Pedido creado correctamente.',
+        });
+        this.saved.emit();
+      },
+      error: () => {
+        this.saving = false;
+        this.showError(this.isEditMode ? 'No se pudo actualizar el pedido.' : 'No se pudo crear el pedido.');
+      },
+    });
   }
 
   private loadProviders(): void {
@@ -310,6 +347,12 @@ export class PurchaseOrderCreatePageComponent implements OnInit {
           label: provider.name,
           value: provider.id,
         }));
+        if (this.isViewMode && this.order?.supplierId) {
+          this.selectedProviderId = this.order.supplierId;
+          this.applyOrder(this.order);
+          this.disableFormsForView();
+          return;
+        }
         if (!this.selectedProviderId && this.providerOptions.length > 0) {
           this.selectedProviderId = this.providerOptions[0].value;
         }
@@ -324,6 +367,9 @@ export class PurchaseOrderCreatePageComponent implements OnInit {
   }
 
   private loadSupplierProducts(): void {
+    if (this.isViewMode) {
+      return;
+    }
     const OrganizationId = this.organizationId ?? undefined;
     const companyId = this.companyId ?? undefined;
     const supplierId = this.selectedProviderId ?? undefined;
@@ -461,6 +507,57 @@ export class PurchaseOrderCreatePageComponent implements OnInit {
     const defaultCurrency = this.defaultCurrencyId;
     if (!current && defaultCurrency) {
       this.headerForm.controls.currencyId.setValue(defaultCurrency);
+    }
+  }
+
+  private disableFormsForView(): void {
+    this.headerForm.disable({ emitEvent: false });
+    this.orderForm.disable({ emitEvent: false });
+  }
+
+  private enableFormsForEdit(): void {
+    this.headerForm.enable({ emitEvent: false });
+    this.orderForm.enable({ emitEvent: false });
+  }
+
+  private applyOrder(order: PurchaseOrder): void {
+    this.selectedProviderId = order.supplierId ?? this.selectedProviderId;
+    this.headerForm.reset({
+      orderDate: order.createdAt ? new Date(order.createdAt) : new Date(),
+      expectedDeliveryDate: order.expectedDeliveryDate ? new Date(order.expectedDeliveryDate) : null,
+      receivedAt: order.receivedAt ? new Date(order.receivedAt) : null,
+      status: (order.status as PurchaseOrderStatus) ?? 'DRAFT',
+      currencyId: order.currencyId ?? this.defaultCurrencyId ?? null,
+      globalFreight: order.globalFreight ?? null,
+      globalExtraCosts: order.globalExtraCosts ?? null,
+      notes: order.notes ?? null,
+    });
+
+    this.lineItems = (order.lines ?? []).map((line) => ({
+      variantId: line.variantId,
+      variantLabel: this.lookupService.getVariantById(line.variantId)?.name ?? line.variantId,
+      lastCost: line.unitCost ?? null,
+      lastCurrency: line.currency ?? null,
+    }));
+
+    this.linesFormArray.clear();
+    this.lineItems.forEach((item, index) => {
+      const line = order.lines?.[index];
+      this.linesFormArray.push(
+        this.fb.group({
+          qty: this.fb.control<number | null>(line?.quantity ?? 0, { validators: [Validators.min(0)] }),
+          unitCost: this.fb.control<number | null>(line?.unitCost ?? null, { validators: [Validators.min(0)] }),
+          currency: this.fb.control<string | null>(line?.currency ?? this.defaultCurrencyId ?? null),
+          freightCost: this.fb.control<number | null>(line?.freightCost ?? null, { validators: [Validators.min(0)] }),
+          extraCosts: this.fb.control<number | null>(line?.extraCosts ?? null, { validators: [Validators.min(0)] }),
+          notes: this.fb.control<string | null>(line?.notes ?? null),
+        }) as LineFormGroup,
+      );
+    });
+
+    this.orderTotal = typeof order.total === 'number' ? order.total : this.orderTotal;
+    if (this.orderTotal === 0) {
+      this.recalculateTotal();
     }
   }
 
