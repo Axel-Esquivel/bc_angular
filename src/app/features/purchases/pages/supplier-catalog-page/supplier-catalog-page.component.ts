@@ -4,10 +4,13 @@ import { forkJoin } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { ActiveContextStateService } from '../../../../core/context/active-context-state.service';
+import { CompaniesApiService } from '../../../../core/api/companies-api.service';
+import { OrganizationCoreApiService } from '../../../../core/api/organization-core-api.service';
 import { ProvidersService } from '../../../providers/services/providers.service';
 import { PurchasesService } from '../../services/purchases.service';
 import { PurchasesProductsLookupService } from '../../services/purchases-products-lookup.service';
 import { Provider } from '../../../../shared/models/provider.model';
+import { Company, CompanyEnterprise } from '../../../../shared/models/company.model';
 import {
   CreateSupplierCatalogDto,
   SupplierCatalogBonusType,
@@ -15,6 +18,7 @@ import {
   SupplierCatalogStatus,
   SupplierProductVariantItem,
 } from '../../../../shared/models/supplier-catalog.model';
+import { CoreCurrency } from '../../../../shared/models/organization-core.model';
 
 interface SelectOption {
   label: string;
@@ -51,11 +55,16 @@ export class SupplierCatalogPageComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly lookupService = inject(PurchasesProductsLookupService);
   private readonly route = inject(ActivatedRoute);
+  private readonly companiesApi = inject(CompaniesApiService);
+  private readonly organizationCoreApi = inject(OrganizationCoreApiService);
 
   providers: Provider[] = [];
   providerOptions: SelectOption[] = [];
   selectedProviderId: string | null = null;
   private requestedSupplierId: string | null = null;
+
+  currencyOptions: SelectOption[] = [];
+  defaultCurrencyId: string | null = null;
 
   supplierProducts: SupplierProductVariantItem[] = [];
   catalogOverrides: SupplierCatalogItem[] = [];
@@ -72,6 +81,7 @@ export class SupplierCatalogPageComponent implements OnInit {
 
   ngOnInit(): void {
     this.preloadProducts();
+    this.loadCurrencies();
     this.requestedSupplierId = this.route.snapshot.queryParamMap.get('supplierId');
     this.loadProviders();
   }
@@ -178,6 +188,8 @@ export class SupplierCatalogPageComponent implements OnInit {
     if (!organizationId || !companyId) {
       this.providers = [];
       this.providerOptions = [];
+      this.currencyOptions = [];
+      this.defaultCurrencyId = context.currencyId ?? null;
       this.contextMissing = true;
       return;
     }
@@ -264,6 +276,42 @@ export class SupplierCatalogPageComponent implements OnInit {
     });
   }
 
+  private loadCurrencies(): void {
+    const context = this.activeContextState.getActiveContext();
+    const organizationId = context.organizationId ?? null;
+    const companyId = context.companyId ?? null;
+    const enterpriseId = context.enterpriseId ?? null;
+
+    if (!organizationId || !companyId) {
+      this.currencyOptions = [];
+      this.defaultCurrencyId = context.currencyId ?? null;
+      return;
+    }
+
+    forkJoin({
+      company: this.companiesApi.getById(companyId),
+      core: this.organizationCoreApi.getCoreSettings(organizationId),
+    }).subscribe({
+      next: ({ company, core }) => {
+        const companyData = company.result ?? null;
+        const coreCurrencies = core.result?.currencies ?? [];
+        const allowed = this.resolveAllowedCurrencyIds(companyData, enterpriseId, coreCurrencies);
+        this.currencyOptions = this.buildCurrencyOptions(allowed, coreCurrencies);
+        this.defaultCurrencyId = this.resolveDefaultCurrencyId(
+          context.currencyId ?? null,
+          allowed,
+          companyData,
+          enterpriseId,
+          coreCurrencies,
+        );
+      },
+      error: () => {
+        this.currencyOptions = [];
+        this.defaultCurrencyId = context.currencyId ?? null;
+      },
+    });
+  }
+
   private rebuildOverridesIndex(): void {
     this.overridesByVariant = new Map(
       this.catalogOverrides.map((item) => [item.variantId, item]),
@@ -336,5 +384,114 @@ export class SupplierCatalogPageComponent implements OnInit {
       summary: 'Catalogo proveedor-producto',
       detail,
     });
+  }
+
+  private resolveAllowedCurrencyIds(
+    company: Company | null,
+    enterpriseId: string | null,
+    coreCurrencies: CoreCurrency[],
+  ): string[] {
+    const normalizedEnterpriseId = this.normalizeId(enterpriseId);
+    const enterprise = normalizedEnterpriseId
+      ? this.findEnterprise(company, normalizedEnterpriseId)
+      : null;
+    const ids =
+      enterprise?.currencyIds?.length
+        ? enterprise.currencyIds
+        : company?.currencies?.length
+          ? company.currencies
+          : coreCurrencies.map((currency) => currency.id);
+    return this.normalizeCurrencyList(ids, coreCurrencies);
+  }
+
+  private resolveDefaultCurrencyId(
+    contextCurrencyId: string | null,
+    allowedIds: string[],
+    company: Company | null,
+    enterpriseId: string | null,
+    coreCurrencies: CoreCurrency[],
+  ): string | null {
+    const normalizedAllowed = this.normalizeCurrencyList(allowedIds, coreCurrencies);
+    const normalizedContext = this.normalizeCurrencyId(contextCurrencyId, coreCurrencies);
+    if (normalizedContext && normalizedAllowed.includes(normalizedContext)) {
+      return normalizedContext;
+    }
+
+    const enterprise = enterpriseId ? this.findEnterprise(company, enterpriseId) : null;
+    const enterpriseDefault = this.normalizeCurrencyId(enterprise?.defaultCurrencyId ?? null, coreCurrencies);
+    if (enterpriseDefault && normalizedAllowed.includes(enterpriseDefault)) {
+      return enterpriseDefault;
+    }
+
+    const companyDefault = this.normalizeCurrencyId(
+      company?.defaultCurrencyId ?? company?.baseCurrencyId ?? null,
+      coreCurrencies,
+    );
+    if (companyDefault && normalizedAllowed.includes(companyDefault)) {
+      return companyDefault;
+    }
+
+    return normalizedAllowed[0] ?? null;
+  }
+
+  private buildCurrencyOptions(allowedIds: string[], coreCurrencies: CoreCurrency[]): SelectOption[] {
+    const normalizedAllowed = this.normalizeCurrencyList(allowedIds, coreCurrencies);
+    if (coreCurrencies.length === 0) {
+      return normalizedAllowed.map((id) => ({ value: id, label: id }));
+    }
+    return normalizedAllowed.map((id) => ({
+      value: id,
+      label: this.resolveCurrencyLabel(id, coreCurrencies),
+    }));
+  }
+
+  private resolveCurrencyLabel(id: string, coreCurrencies: CoreCurrency[]): string {
+    const currency = coreCurrencies.find((item) => item.id === id || item.code?.toUpperCase() === id.toUpperCase());
+    if (!currency) {
+      return id;
+    }
+    return currency.symbol
+      ? `${currency.name.toUpperCase()} (${currency.symbol})`
+      : `${currency.name.toUpperCase()} (${currency.code})`;
+  }
+
+  private normalizeCurrencyList(values: string[] | undefined, coreCurrencies: CoreCurrency[]): string[] {
+    const normalized = (values ?? [])
+      .map((value) => this.normalizeCurrencyId(value, coreCurrencies))
+      .filter((value): value is string => Boolean(value));
+    return Array.from(new Set(normalized));
+  }
+
+  private normalizeCurrencyId(value: string | null | undefined, coreCurrencies: CoreCurrency[]): string | null {
+    const trimmed = typeof value === 'string' ? value.trim() : '';
+    if (!trimmed) {
+      return null;
+    }
+    const directMatch = coreCurrencies.find((currency) => currency.id === trimmed);
+    if (directMatch) {
+      return directMatch.id;
+    }
+    const upper = trimmed.toUpperCase();
+    const codeMatch = coreCurrencies.find((currency) => currency.code?.toUpperCase() === upper);
+    if (codeMatch) {
+      return codeMatch.id;
+    }
+    return trimmed;
+  }
+
+  private normalizeId(value: string | null | undefined): string | null {
+    const trimmed = typeof value === 'string' ? value.trim() : '';
+    return trimmed.length > 0 ? trimmed : null;
+  }
+
+  private findEnterprise(company: Company | null, enterpriseId: string): CompanyEnterprise | null {
+    if (!company?.enterprises?.length) {
+      return null;
+    }
+    return (
+      company.enterprises.find((enterprise) => this.normalizeId(enterprise.id) === enterpriseId) ??
+      company.enterprises.find((enterprise) => this.normalizeId(enterprise._id ?? null) === enterpriseId) ??
+      null
+    );
   }
 }

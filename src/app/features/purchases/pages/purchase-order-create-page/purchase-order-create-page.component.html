@@ -61,10 +61,88 @@
   </div>
 </div>
 
+<div class="order-header" [formGroup]="headerForm">
+  <div class="header-grid">
+    <div class="field">
+      <label for="orderDate">Fecha pedido</label>
+      <p-datepicker inputId="orderDate" formControlName="orderDate" [showIcon]="true" dateFormat="yy-mm-dd"></p-datepicker>
+    </div>
+    <div class="field">
+      <label for="expectedDeliveryDate">Fecha entrega estimada</label>
+      <p-datepicker
+        inputId="expectedDeliveryDate"
+        formControlName="expectedDeliveryDate"
+        [showIcon]="true"
+        dateFormat="yy-mm-dd"
+      ></p-datepicker>
+    </div>
+    <div class="field">
+      <label for="receivedAt">Fecha recepci&oacute;n</label>
+      <p-datepicker
+        inputId="receivedAt"
+        formControlName="receivedAt"
+        [showIcon]="true"
+        dateFormat="yy-mm-dd"
+      ></p-datepicker>
+    </div>
+    <div class="field">
+      <label for="status">Estado</label>
+      <p-select
+        inputId="status"
+        formControlName="status"
+        [options]="statusOptions"
+        optionLabel="label"
+        optionValue="value"
+      ></p-select>
+    </div>
+    <div class="field">
+      <label for="currencyId">Moneda default</label>
+      <p-select
+        inputId="currencyId"
+        formControlName="currencyId"
+        [options]="currencyOptions"
+        optionLabel="label"
+        optionValue="value"
+      ></p-select>
+    </div>
+    <div class="field">
+      <label for="globalFreight">Flete global</label>
+      <p-inputNumber
+        inputId="globalFreight"
+        formControlName="globalFreight"
+        [locale]="numberLocale"
+        [min]="0"
+        [minFractionDigits]="2"
+        [maxFractionDigits]="2"
+      ></p-inputNumber>
+    </div>
+    <div class="field">
+      <label for="globalExtraCosts">Gastos globales</label>
+      <p-inputNumber
+        inputId="globalExtraCosts"
+        formControlName="globalExtraCosts"
+        [locale]="numberLocale"
+        [min]="0"
+        [minFractionDigits]="2"
+        [maxFractionDigits]="2"
+      ></p-inputNumber>
+    </div>
+    <div class="field full">
+      <label for="orderNotes">Observaci&oacute;n</label>
+      <textarea pTextarea id="orderNotes" rows="2" formControlName="notes"></textarea>
+    </div>
+  </div>
+  <div class="header-total">
+    <span>Total:</span>
+    <strong>{{ orderTotal | number:'1.2-2' }}</strong>
+  </div>
+</div>
+
 <div class="order-lines">
   <app-purchase-order-lines
     [form]="orderForm"
     [lines]="lineItems"
+    [currencyOptions]="currencyOptions"
     (change)="onLinesChange($event)"
     (remove)="removeLine($event)"
   ></app-purchase-order-lines>
@@ -103,3 +181,4 @@
     (cancel)="closeAssignDialog()"
   ></app-supplier-catalog-assign>
 </p-dialog>
+

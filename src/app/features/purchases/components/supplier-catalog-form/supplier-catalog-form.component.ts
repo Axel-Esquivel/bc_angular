@@ -30,6 +30,11 @@ interface StatusOption {
   value: SupplierCatalogStatus;
 }
 
+interface CurrencyOption {
+  label: string;
+  value: string;
+}
+
 type SupplierCatalogFormGroup = FormGroup<{
   variantId: FormControl<string>;
   variantOption: FormControl<ProductOptionDisplay | null>;
@@ -56,8 +61,12 @@ export class SupplierCatalogFormComponent implements OnChanges {
   private readonly lookupService = inject(PurchasesProductsLookupService);
 
   @Input() item?: SupplierCatalogItem;
+  @Input() currencyOptions: CurrencyOption[] = [];
+  @Input() defaultCurrencyId: string | null = null;
   @Output() save = new EventEmitter<CreateSupplierCatalogDto>();
   @Output() cancel = new EventEmitter<void>();
+
+  readonly numberLocale = 'en-US';
 
   readonly bonusOptions: BonusOption[] = [
     { label: 'Sin bono', value: 'none' },
@@ -95,6 +104,11 @@ export class SupplierCatalogFormComponent implements OnChanges {
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['item']) {
       this.applyItem(this.item);
+      return;
+    }
+    if (!this.item && (changes['currencyOptions'] || changes['defaultCurrencyId'])) {
+      this.syncCurrencyControlState();
+      this.applyDefaultCurrency();
     }
   }
 
@@ -165,7 +179,7 @@ export class SupplierCatalogFormComponent implements OnChanges {
         variantId: '',
         variantOption: null,
         unitCost: null,
-        currency: null,
+        currency: this.resolveDefaultCurrencyId(),
         freightCost: null,
         bonusType: 'none',
         bonusValue: null,
@@ -175,6 +189,7 @@ export class SupplierCatalogFormComponent implements OnChanges {
         validTo: null,
         status: 'active',
       });
+      this.syncCurrencyControlState();
       return;
     }
 
@@ -189,7 +204,7 @@ export class SupplierCatalogFormComponent implements OnChanges {
       variantId: item.variantId ?? '',
       variantOption: option,
       unitCost: item.unitCost ?? null,
-      currency: item.currency ?? null,
+      currency: item.currency ?? this.resolveDefaultCurrencyId(),
       freightCost: item.freightCost ?? null,
       bonusType: item.bonusType ?? 'none',
       bonusValue: item.bonusValue ?? null,
@@ -199,6 +214,7 @@ export class SupplierCatalogFormComponent implements OnChanges {
       validTo: item.validTo ? new Date(item.validTo) : null,
       status: item.status ?? 'active',
     });
+    this.syncCurrencyControlState();
   }
 
   private bonusValidator(group: SupplierCatalogFormGroup): { bonusValueRequired?: true } | null {
@@ -221,6 +237,35 @@ export class SupplierCatalogFormComponent implements OnChanges {
 
   private formatOption(option: VariantOption): string {
     return option.sku ? `${option.name} (${option.sku})` : option.name;
+  }
+
+  private resolveDefaultCurrencyId(): string | null {
+    const defaultValue = this.defaultCurrencyId ?? null;
+    if (!defaultValue) {
+      return null;
+    }
+    const exists = this.currencyOptions.some((option) => option.value === defaultValue);
+    return exists ? defaultValue : this.currencyOptions[0]?.value ?? null;
+  }
+
+  private applyDefaultCurrency(): void {
+    const current = this.form.controls.currency.value;
+    if (current) {
+      return;
+    }
+    const resolved = this.resolveDefaultCurrencyId();
+    if (resolved) {
+      this.form.controls.currency.setValue(resolved);
+    }
+  }
+
+  private syncCurrencyControlState(): void {
+    if (this.currencyOptions.length > 0) {
+      this.form.controls.currency.enable({ emitEvent: false });
+      return;
+    }
+    this.form.controls.currency.disable({ emitEvent: false });
+    this.form.controls.currency.setValue(null, { emitEvent: false });
   }
 }
 

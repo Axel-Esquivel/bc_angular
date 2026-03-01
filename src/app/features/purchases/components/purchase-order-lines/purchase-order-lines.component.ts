@@ -17,6 +17,11 @@ export interface PurchaseOrderLineView {
   lastCurrency: string | null;
 }
 
+export interface CurrencyOption {
+  label: string;
+  value: string;
+}
+
 export interface PurchaseOrderLineDraft {
   variantId: string;
   qty: number;
@@ -44,8 +49,11 @@ export class PurchaseOrderLinesComponent implements OnChanges, OnDestroy {
 
   @Input() lines: PurchaseOrderLineView[] = [];
   @Input() form!: FormGroup<{ lines: FormArray<LineFormGroup> }>;
+  @Input() currencyOptions: CurrencyOption[] = [];
   @Output() change = new EventEmitter<PurchaseOrderLineDraft[]>();
   @Output() remove = new EventEmitter<number>();
+
+  readonly numberLocale = 'en-US';
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['form']) {
@@ -53,6 +61,9 @@ export class PurchaseOrderLinesComponent implements OnChanges, OnDestroy {
     }
     if (changes['lines']) {
       this.emitDrafts();
+    }
+    if (changes['currencyOptions']) {
+      this.syncCurrencyControls();
     }
   }
 
@@ -67,7 +78,7 @@ export class PurchaseOrderLinesComponent implements OnChanges, OnDestroy {
         variantId: line.variantId,
         qty: value?.qty ?? 0,
         unitCost: value?.unitCost ?? line.lastCost ?? 0,
-        currency: line.lastCurrency ?? undefined,
+        currency: value?.currency ?? line.lastCurrency ?? undefined,
       };
     });
     this.change.emit(drafts);
@@ -84,6 +95,7 @@ export class PurchaseOrderLinesComponent implements OnChanges, OnDestroy {
     }
     this.formChangesSub = this.formArray.valueChanges.subscribe(() => this.emitDrafts());
     this.emitDrafts();
+    this.syncCurrencyControls();
   }
 
   get formArray(): FormArray<LineFormGroup> {
@@ -105,6 +117,20 @@ export class PurchaseOrderLinesComponent implements OnChanges, OnDestroy {
     const qty = group?.controls.qty.value ?? 0;
     const unitCost = group?.controls.unitCost.value ?? 0;
     return (qty || 0) * (unitCost || 0);
+  }
+
+  private syncCurrencyControls(): void {
+    if (!this.form) {
+      return;
+    }
+    const enable = this.currencyOptions.length > 0;
+    this.formArray.controls.forEach((group) => {
+      if (enable) {
+        group.controls.currency.enable({ emitEvent: false });
+      } else {
+        group.controls.currency.disable({ emitEvent: false });
+      }
+    });
   }
 
   ngOnDestroy(): void {

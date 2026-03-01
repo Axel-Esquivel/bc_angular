@@ -24,6 +24,7 @@
         <th>Proveedor</th>
         <th>Fecha entrega estimada</th>
         <th>Estado</th>
+        <th>Total</th>
         <th>Acciones</th>
       </tr>
     </ng-template>
@@ -33,6 +34,7 @@
         <td>{{ row.supplierName }}</td>
         <td>{{ row.expectedDeliveryDate ? (row.expectedDeliveryDate | date: 'shortDate') : '-' }}</td>
         <td>{{ row.status }}</td>
+        <td>{{ row.total !== undefined ? (row.total | number:'1.2-2') : '-' }}</td>
         <td>
           <p-button label="Ver" icon="pi pi-eye" size="small" severity="secondary"></p-button>
         </td>
@@ -40,7 +42,7 @@
     </ng-template>
     <ng-template pTemplate="emptymessage">
       <tr>
-        <td colspan="5">Sin pedidos.</td>
+        <td colspan="6">Sin pedidos.</td>
       </tr>
     </ng-template>
   </p-table>

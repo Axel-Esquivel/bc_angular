@@ -20,9 +20,10 @@
       <p-inputNumber
         inputId="qty"
         formControlName="qty"
+        [locale]="numberLocale"
         [min]="0"
         [minFractionDigits]="0"
-        [maxFractionDigits]="2"
+        [maxFractionDigits]="0"
       ></p-inputNumber>
     </div>
     <div class="field">
@@ -30,6 +31,7 @@
       <p-inputNumber
         inputId="unitCost"
         formControlName="unitCost"
+        [locale]="numberLocale"
         [min]="0"
         [minFractionDigits]="2"
         [maxFractionDigits]="2"

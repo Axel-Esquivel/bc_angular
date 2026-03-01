@@ -50,6 +50,8 @@ export const appConfig: ApplicationConfig = {
         // PrimeNG dark mode toggles when .bc-dark exists on <html>.
         options: { darkModeSelector: '.bc-dark' },
       },
+      translation: {
+      },
     }),
     { provide: APP_CONFIG_TOKEN, useValue: APP_CONFIG },
     { provide: APP_INITIALIZER, useFactory: authInitializer, deps: [AuthService, Router], multi: true },

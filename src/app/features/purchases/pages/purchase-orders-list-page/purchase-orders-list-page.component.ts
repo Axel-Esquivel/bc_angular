@@ -12,6 +12,7 @@ interface PurchaseOrderRow {
   expectedDeliveryDate?: string | Date;
   supplierName: string;
   status: string;
+  total?: number;
 }
 
 @Component({
@@ -131,6 +132,7 @@ export class PurchaseOrdersListPageComponent implements OnInit {
       expectedDeliveryDate: order.expectedDeliveryDate,
       supplierName: this.providerIndex.get(order.supplierId) ?? order.supplierId,
       status: order.status,
+      total: order.total ?? undefined,
     };
   }
 }

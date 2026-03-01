@@ -8,6 +8,7 @@ import { Dialog } from 'primeng/dialog';
 import { FloatLabel } from 'primeng/floatlabel';
 import { InputNumber } from 'primeng/inputnumber';
 import { InputText } from 'primeng/inputtext';
+import { Textarea } from 'primeng/textarea';
 import { Select } from 'primeng/select';
 import { TableModule } from 'primeng/table';
 import { Toolbar } from 'primeng/toolbar';
@@ -45,6 +46,7 @@ import { purchasesRoutes } from './purchases.routes';
     FloatLabel,
     InputNumber,
     InputText,
+    Textarea,
     Select,
     TableModule,
     Toolbar,

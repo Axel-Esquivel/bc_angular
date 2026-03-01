@@ -1,8 +1,8 @@
 <div class="lines-accordion" [formGroup]="form">
   <div formArrayName="lines">
-    <p-accordion [multiple]="true" [activeIndex]="[0]">
-      <p-accordionTab *ngFor="let group of formArray.controls; let i = index">
-        <ng-template pTemplate="header">
+    <p-accordion [multiple]="true">
+      <p-accordion-panel *ngFor="let group of formArray.controls; let i = index" [value]="i">
+        <p-accordion-header>
           <div class="line-header">
             <div class="line-title">
               {{ getLineVariantLabel(i) }}
@@ -12,69 +12,80 @@
               <span>Total: {{ getLineTotal(i) | number:'1.2-2' }}</span>
             </div>
           </div>
-        </ng-template>
-
-        <div class="line-body" [formGroupName]="i">
-          <div class="line-fields">
-            <div class="field">
-              <label for="qty-{{ i }}">Cantidad</label>
-              <p-inputNumber
-                inputId="qty-{{ i }}"
-                formControlName="qty"
-                [min]="0"
-                [minFractionDigits]="0"
-                [maxFractionDigits]="2"
-              ></p-inputNumber>
+        </p-accordion-header>
+        <p-accordion-content>
+          <div class="line-body" [formGroupName]="i">
+            <div class="line-fields">
+              <div class="field">
+                <label for="qty-{{ i }}">Cantidad</label>
+                <p-inputNumber
+                  inputId="qty-{{ i }}"
+                  formControlName="qty"
+                  [locale]="numberLocale"
+                  [min]="0"
+                  [minFractionDigits]="0"
+                  [maxFractionDigits]="0"
+                ></p-inputNumber>
+              </div>
+              <div class="field">
+                <label for="unitCost-{{ i }}">Precio / costo</label>
+                <p-inputNumber
+                  inputId="unitCost-{{ i }}"
+                  formControlName="unitCost"
+                  [locale]="numberLocale"
+                  [min]="0"
+                  [minFractionDigits]="2"
+                  [maxFractionDigits]="2"
+                ></p-inputNumber>
+              </div>
+              <div class="field">
+                <label for="currency-{{ i }}">Moneda</label>
+                <p-select
+                  inputId="currency-{{ i }}"
+                  formControlName="currency"
+                  [options]="currencyOptions"
+                  optionLabel="label"
+                  optionValue="value"
+                ></p-select>
+              </div>
+              <div class="field">
+                <label for="freight-{{ i }}">Flete</label>
+                <p-inputNumber
+                  inputId="freight-{{ i }}"
+                  formControlName="freightCost"
+                  [locale]="numberLocale"
+                  [min]="0"
+                  [minFractionDigits]="2"
+                  [maxFractionDigits]="2"
+                ></p-inputNumber>
+              </div>
+              <div class="field">
+                <label for="extra-{{ i }}">Gastos extra</label>
+                <p-inputNumber
+                  inputId="extra-{{ i }}"
+                  formControlName="extraCosts"
+                  [locale]="numberLocale"
+                  [min]="0"
+                  [minFractionDigits]="2"
+                  [maxFractionDigits]="2"
+                ></p-inputNumber>
+              </div>
+              <div class="field full">
+                <label for="notes-{{ i }}">Observaci&oacute;n</label>
+                <input pInputText [id]="'notes-' + i" formControlName="notes" />
+              </div>
             </div>
-            <div class="field">
-              <label for="unitCost-{{ i }}">Precio / costo</label>
-              <p-inputNumber
-                inputId="unitCost-{{ i }}"
-                formControlName="unitCost"
-                [min]="0"
-                [minFractionDigits]="2"
-                [maxFractionDigits]="2"
-              ></p-inputNumber>
-            </div>
-            <div class="field">
-              <label for="currency-{{ i }}">Moneda</label>
-              <input pInputText [id]="'currency-' + i" formControlName="currency" />
-            </div>
-            <div class="field">
-              <label for="freight-{{ i }}">Flete</label>
-              <p-inputNumber
-                inputId="freight-{{ i }}"
-                formControlName="freightCost"
-                [min]="0"
-                [minFractionDigits]="2"
-                [maxFractionDigits]="2"
-              ></p-inputNumber>
-            </div>
-            <div class="field">
-              <label for="extra-{{ i }}">Gastos extra</label>
-              <p-inputNumber
-                inputId="extra-{{ i }}"
-                formControlName="extraCosts"
-                [min]="0"
-                [minFractionDigits]="2"
-                [maxFractionDigits]="2"
-              ></p-inputNumber>
-            </div>
-            <div class="field full">
-              <label for="notes-{{ i }}">Observaci&oacute;n</label>
-              <input pInputText [id]="'notes-' + i" formControlName="notes" />
+            <div class="line-actions">
+              <p-button
+                label="Quitar"
+                icon="pi pi-trash"
+                severity="danger"
+                (onClick)="onRemove(i)"
+              ></p-button>
             </div>
           </div>
-          <div class="line-actions">
-            <p-button
-              label="Quitar"
-              icon="pi pi-trash"
-              severity="danger"
-              (onClick)="onRemove(i)"
-            ></p-button>
-          </div>
-        </div>
-      </p-accordionTab>
+        </p-accordion-content>
+      </p-accordion-panel>
     </p-accordion>
   </div>
 </div>

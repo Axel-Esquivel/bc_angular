@@ -27,6 +27,9 @@ export interface PurchaseOrderLinePayload {
   qty: number;
   unitCost: number;
   currency?: string;
+  freightCost?: number;
+  extraCosts?: number;
+  notes?: string;
 }
 
 export interface CreatePurchaseOrderPayload {
@@ -35,6 +38,14 @@ export interface CreatePurchaseOrderPayload {
   supplierId: string;
   lines: PurchaseOrderLinePayload[];
   warehouseId?: string;
+  orderDate?: string;
+  expectedDeliveryDate?: string;
+  receivedAt?: string;
+  status?: string;
+  currencyId?: string;
+  globalFreight?: number;
+  globalExtraCosts?: number;
+  notes?: string;
 }
 
 export interface SupplierLastCostResult {
@@ -50,6 +61,9 @@ export interface PurchaseOrderLine {
   receivedQuantity: number;
   unitCost: number;
   currency?: string;
+  freightCost?: number;
+  extraCosts?: number;
+  notes?: string;
   status: string;
 }
 
@@ -63,6 +77,12 @@ export interface PurchaseOrder {
   lines: PurchaseOrderLine[];
   createdAt?: string | Date;
   expectedDeliveryDate?: string | Date;
+  receivedAt?: string | Date;
+  currencyId?: string;
+  globalFreight?: number;
+  globalExtraCosts?: number;
+  notes?: string;
+  total?: number;
 }
 
 @Injectable({ providedIn: 'root' })

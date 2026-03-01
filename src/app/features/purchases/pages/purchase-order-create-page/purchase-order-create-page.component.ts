@@ -1,12 +1,18 @@
-import { Component, EventEmitter, Input, OnInit, Output, inject } from '@angular/core';
+import { Component, DestroyRef, EventEmitter, Input, OnInit, Output, inject } from '@angular/core';
 import { MessageService } from 'primeng/api';
-import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { forkJoin } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { ActiveContextStateService } from '../../../../core/context/active-context-state.service';
+import { CompaniesApiService } from '../../../../core/api/companies-api.service';
+import { OrganizationCoreApiService } from '../../../../core/api/organization-core-api.service';
 import { ProvidersService } from '../../../providers/services/providers.service';
 import { PurchasesService } from '../../services/purchases.service';
 import { Provider } from '../../../../shared/models/provider.model';
 import { SupplierCatalogItem } from '../../../../shared/models/supplier-catalog.model';
+import { Company, CompanyEnterprise } from '../../../../shared/models/company.model';
+import { CoreCurrency } from '../../../../shared/models/organization-core.model';
 import {
   LineFormGroup,
   PurchaseOrderLineDraft,
@@ -19,6 +25,24 @@ interface SelectOption {
   label: string;
   value: string;
 }
+
+interface OrderStatusOption {
+  label: string;
+  value: PurchaseOrderStatus;
+}
+
+type PurchaseOrderStatus = 'DRAFT' | 'CONFIRMED' | 'RECEIVED' | 'CANCELLED';
+
+type OrderHeaderForm = FormGroup<{
+  orderDate: FormControl<Date | null>;
+  expectedDeliveryDate: FormControl<Date | null>;
+  receivedAt: FormControl<Date | null>;
+  status: FormControl<PurchaseOrderStatus>;
+  currencyId: FormControl<string | null>;
+  globalFreight: FormControl<number | null>;
+  globalExtraCosts: FormControl<number | null>;
+  notes: FormControl<string | null>;
+}>;
 
 @Component({
   selector: 'app-purchase-order-create-page',
@@ -34,6 +58,9 @@ export class PurchaseOrderCreatePageComponent implements OnInit {
   private readonly messageService = inject(MessageService);
   private readonly fb = inject(FormBuilder);
   private readonly lookupService = inject(PurchasesProductsLookupService);
+  private readonly companiesApi = inject(CompaniesApiService);
+  private readonly organizationCoreApi = inject(OrganizationCoreApiService);
+  private readonly destroyRef = inject(DestroyRef);
 
   @Input() embedded = false;
   @Output() saved = new EventEmitter<void>();
@@ -43,8 +70,30 @@ export class PurchaseOrderCreatePageComponent implements OnInit {
   providerOptions: SelectOption[] = [];
   selectedProviderId: string | null = null;
 
+  currencyOptions: SelectOption[] = [];
+  defaultCurrencyId: string | null = null;
+  orderTotal = 0;
+  readonly numberLocale = 'en-US';
+
+  readonly statusOptions: OrderStatusOption[] = [
+    { label: 'Borrador', value: 'DRAFT' },
+    { label: 'Confirmado', value: 'CONFIRMED' },
+    { label: 'Recibido', value: 'RECEIVED' },
+    { label: 'Cancelado', value: 'CANCELLED' },
+  ];
+
   lineItems: PurchaseOrderLineView[] = [];
   drafts: PurchaseOrderLineDraft[] = [];
+  headerForm: OrderHeaderForm = this.fb.group({
+    orderDate: this.fb.control<Date | null>(new Date(), { validators: [Validators.required] }),
+    expectedDeliveryDate: this.fb.control<Date | null>(null),
+    receivedAt: this.fb.control<Date | null>({ value: null, disabled: true }),
+    status: this.fb.nonNullable.control<PurchaseOrderStatus>('DRAFT'),
+    currencyId: this.fb.control<string | null>(null),
+    globalFreight: this.fb.control<number | null>(null, { validators: [Validators.min(0)] }),
+    globalExtraCosts: this.fb.control<number | null>(null, { validators: [Validators.min(0)] }),
+    notes: this.fb.control<string | null>(null),
+  });
   orderForm: FormGroup<{ lines: FormArray<LineFormGroup> }> = this.fb.group({
     lines: this.fb.array<LineFormGroup>([]),
   });
@@ -57,7 +106,9 @@ export class PurchaseOrderCreatePageComponent implements OnInit {
 
   ngOnInit(): void {
     this.preloadVariants();
+    this.loadCurrencies();
     this.loadProviders();
+    this.bindHeaderChanges();
   }
 
   get organizationId(): string | null {
@@ -74,6 +125,7 @@ export class PurchaseOrderCreatePageComponent implements OnInit {
 
   onLinesChange(drafts: PurchaseOrderLineDraft[]): void {
     this.drafts = drafts;
+    this.recalculateTotal();
   }
 
   openAddProduct(): void {
@@ -130,7 +182,7 @@ export class PurchaseOrderCreatePageComponent implements OnInit {
         variantId: payload.variantId,
         variantLabel: payload.variantLabel,
         lastCost: payload.lastCost,
-        lastCurrency: payload.lastCurrency,
+        lastCurrency: payload.lastCurrency ?? this.defaultCurrencyId ?? null,
       },
     ];
 
@@ -138,7 +190,7 @@ export class PurchaseOrderCreatePageComponent implements OnInit {
       this.fb.group({
         qty: this.fb.control<number | null>(payload.qty, { validators: [Validators.min(0)] }),
         unitCost: this.fb.control<number | null>(payload.unitCost, { validators: [Validators.min(0)] }),
-        currency: this.fb.control<string | null>(payload.lastCurrency ?? null),
+        currency: this.fb.control<string | null>(payload.lastCurrency ?? this.defaultCurrencyId ?? null),
         freightCost: this.fb.control<number | null>(null, { validators: [Validators.min(0)] }),
         extraCosts: this.fb.control<number | null>(null, { validators: [Validators.min(0)] }),
         notes: this.fb.control<string | null>(null),
@@ -146,6 +198,7 @@ export class PurchaseOrderCreatePageComponent implements OnInit {
     );
 
     this.addDialogVisible = false;
+    this.recalculateTotal();
   }
 
   removeLine(index: number): void {
@@ -154,6 +207,7 @@ export class PurchaseOrderCreatePageComponent implements OnInit {
     }
     this.lineItems = this.lineItems.filter((_, idx) => idx !== index);
     this.linesFormArray.removeAt(index);
+    this.recalculateTotal();
   }
 
   saveOrder(): void {
@@ -170,14 +224,26 @@ export class PurchaseOrderCreatePageComponent implements OnInit {
       return;
     }
 
-    const lines = this.drafts
-      .filter((line) => line.qty > 0)
-      .map((line) => ({
-        variantId: line.variantId,
-        qty: line.qty,
-        unitCost: line.unitCost,
-        currency: line.currency,
-      }));
+    if (this.headerForm.invalid) {
+      this.headerForm.markAllAsTouched();
+      this.showError('Completa la cabecera del pedido.');
+      return;
+    }
+
+    const lines = this.linesFormArray.controls
+      .map((group, index) => {
+        const raw = group.getRawValue();
+        return {
+          variantId: this.lineItems[index]?.variantId ?? '',
+          qty: raw.qty ?? 0,
+          unitCost: raw.unitCost ?? 0,
+          currency: raw.currency ?? undefined,
+          freightCost: raw.freightCost ?? undefined,
+          extraCosts: raw.extraCosts ?? undefined,
+          notes: raw.notes ?? undefined,
+        };
+      })
+      .filter((line) => line.qty > 0 && line.variantId);
 
     if (lines.length === 0) {
       this.showError('Agrega al menos un producto.');
@@ -185,13 +251,24 @@ export class PurchaseOrderCreatePageComponent implements OnInit {
     }
 
     this.saving = true;
+    const header = this.headerForm.getRawValue();
+    const payload = {
+      OrganizationId,
+      companyId,
+      supplierId,
+      lines,
+      orderDate: header.orderDate ? header.orderDate.toISOString() : undefined,
+      expectedDeliveryDate: header.expectedDeliveryDate ? header.expectedDeliveryDate.toISOString() : undefined,
+      receivedAt: header.receivedAt ? header.receivedAt.toISOString() : undefined,
+      status: header.status,
+      currencyId: header.currencyId ?? undefined,
+      globalFreight: header.globalFreight ?? undefined,
+      globalExtraCosts: header.globalExtraCosts ?? undefined,
+      notes: header.notes?.trim() || undefined,
+    };
+
     this.purchasesService
-      .createPurchaseOrder({
-        OrganizationId,
-        companyId,
-        supplierId,
-        lines,
-      })
+      .createPurchaseOrder(payload)
       .subscribe({
         next: () => {
           this.saving = false;
@@ -280,7 +357,7 @@ export class PurchaseOrderCreatePageComponent implements OnInit {
       variantId: item.variantId,
       variantLabel: this.lookupService.getVariantById(item.variantId)?.name ?? item.variantId,
       lastCost: item.unitCost,
-      lastCurrency: item.currency ?? null,
+      lastCurrency: item.currency ?? this.defaultCurrencyId ?? null,
     }));
 
     this.linesFormArray.clear();
@@ -289,25 +366,68 @@ export class PurchaseOrderCreatePageComponent implements OnInit {
       this.fb.group({
         qty: this.fb.control<number | null>(0, { validators: [Validators.min(0)] }),
         unitCost: this.fb.control<number | null>(item.lastCost ?? null, { validators: [Validators.min(0)] }),
-        currency: this.fb.control<string | null>(item.lastCurrency ?? null),
+        currency: this.fb.control<string | null>(item.lastCurrency ?? this.defaultCurrencyId ?? null),
         freightCost: this.fb.control<number | null>(null, { validators: [Validators.min(0)] }),
         extraCosts: this.fb.control<number | null>(null, { validators: [Validators.min(0)] }),
         notes: this.fb.control<string | null>(null),
       }) as LineFormGroup,
     );
     });
+    this.recalculateTotal();
   }
 
   private resetLines(): void {
     this.lineItems = [];
     this.drafts = [];
     this.linesFormArray.clear();
+    this.orderTotal = 0;
   }
 
   private preloadVariants(): void {
     this.lookupService.searchVariants('').subscribe({
       next: () => undefined,
       error: () => undefined,
+    });
+  }
+
+  private loadCurrencies(): void {
+    const context = this.activeContextState.getActiveContext();
+    const organizationId = context.organizationId ?? null;
+    const companyId = context.companyId ?? null;
+    const enterpriseId = context.enterpriseId ?? null;
+
+    if (!organizationId || !companyId) {
+      this.currencyOptions = [];
+      this.defaultCurrencyId = context.currencyId ?? null;
+      this.setHeaderCurrencyControlState(false);
+      return;
+    }
+
+    forkJoin({
+      company: this.companiesApi.getById(companyId),
+      core: this.organizationCoreApi.getCoreSettings(organizationId),
+    }).subscribe({
+      next: ({ company, core }) => {
+        const companyData = company.result ?? null;
+        const coreCurrencies = core.result?.currencies ?? [];
+        const allowed = this.resolveAllowedCurrencyIds(companyData, enterpriseId, coreCurrencies);
+        this.currencyOptions = this.buildCurrencyOptions(allowed, coreCurrencies);
+        this.defaultCurrencyId = this.resolveDefaultCurrencyId(
+          context.currencyId ?? null,
+          allowed,
+          companyData,
+          enterpriseId,
+          coreCurrencies,
+        );
+        this.setHeaderCurrencyControlState(this.currencyOptions.length > 0);
+        this.applyDefaultCurrencyToHeader();
+        this.applyDefaultCurrencyToLines();
+      },
+      error: () => {
+        this.currencyOptions = [];
+        this.defaultCurrencyId = context.currencyId ?? null;
+        this.setHeaderCurrencyControlState(false);
+      },
     });
   }
 
@@ -321,5 +441,182 @@ export class PurchaseOrderCreatePageComponent implements OnInit {
 
   private get linesFormArray(): FormArray<LineFormGroup> {
     return this.orderForm.controls.lines;
+  }
+
+  private applyDefaultCurrencyToLines(): void {
+    const defaultCurrency = this.defaultCurrencyId;
+    if (!defaultCurrency) {
+      return;
+    }
+    this.linesFormArray.controls.forEach((group) => {
+      const current = group.controls.currency.value;
+      if (!current) {
+        group.controls.currency.setValue(defaultCurrency);
+      }
+    });
+  }
+
+  private applyDefaultCurrencyToHeader(): void {
+    const current = this.headerForm.controls.currencyId.value;
+    const defaultCurrency = this.defaultCurrencyId;
+    if (!current && defaultCurrency) {
+      this.headerForm.controls.currencyId.setValue(defaultCurrency);
+    }
+  }
+
+  private setHeaderCurrencyControlState(enabled: boolean): void {
+    if (enabled) {
+      this.headerForm.controls.currencyId.enable({ emitEvent: false });
+      return;
+    }
+    this.headerForm.controls.currencyId.disable({ emitEvent: false });
+    this.headerForm.controls.currencyId.setValue(null, { emitEvent: false });
+  }
+
+  private bindHeaderChanges(): void {
+    this.headerForm.controls.status.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((status) => {
+        if (status === 'RECEIVED') {
+          this.headerForm.controls.receivedAt.enable({ emitEvent: false });
+          if (!this.headerForm.controls.receivedAt.value) {
+            this.headerForm.controls.receivedAt.setValue(new Date());
+          }
+        } else {
+          this.headerForm.controls.receivedAt.disable({ emitEvent: false });
+          this.headerForm.controls.receivedAt.setValue(null, { emitEvent: false });
+        }
+      });
+
+    this.headerForm.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        this.recalculateTotal();
+      });
+  }
+
+  private recalculateTotal(): void {
+    const linesTotal = this.linesFormArray.controls.reduce((acc, group) => {
+      const raw = group.getRawValue();
+      const qty = raw.qty ?? 0;
+      const unitCost = raw.unitCost ?? 0;
+      const freight = raw.freightCost ?? 0;
+      const extras = raw.extraCosts ?? 0;
+      return acc + qty * unitCost + freight + extras;
+    }, 0);
+
+    const header = this.headerForm.getRawValue();
+    const globalFreight = header.globalFreight ?? 0;
+    const globalExtras = header.globalExtraCosts ?? 0;
+    this.orderTotal = linesTotal + globalFreight + globalExtras;
+  }
+
+  private resolveAllowedCurrencyIds(
+    company: Company | null,
+    enterpriseId: string | null,
+    coreCurrencies: CoreCurrency[],
+  ): string[] {
+    const normalizedEnterpriseId = this.normalizeId(enterpriseId);
+    const enterprise = normalizedEnterpriseId
+      ? this.findEnterprise(company, normalizedEnterpriseId)
+      : null;
+    const ids =
+      enterprise?.currencyIds?.length
+        ? enterprise.currencyIds
+        : company?.currencies?.length
+          ? company.currencies
+          : coreCurrencies.map((currency) => currency.id);
+    return this.normalizeCurrencyList(ids, coreCurrencies);
+  }
+
+  private resolveDefaultCurrencyId(
+    contextCurrencyId: string | null,
+    allowedIds: string[],
+    company: Company | null,
+    enterpriseId: string | null,
+    coreCurrencies: CoreCurrency[],
+  ): string | null {
+    const normalizedAllowed = this.normalizeCurrencyList(allowedIds, coreCurrencies);
+    const normalizedContext = this.normalizeCurrencyId(contextCurrencyId, coreCurrencies);
+    if (normalizedContext && normalizedAllowed.includes(normalizedContext)) {
+      return normalizedContext;
+    }
+
+    const enterprise = enterpriseId ? this.findEnterprise(company, enterpriseId) : null;
+    const enterpriseDefault = this.normalizeCurrencyId(enterprise?.defaultCurrencyId ?? null, coreCurrencies);
+    if (enterpriseDefault && normalizedAllowed.includes(enterpriseDefault)) {
+      return enterpriseDefault;
+    }
+
+    const companyDefault = this.normalizeCurrencyId(
+      company?.defaultCurrencyId ?? company?.baseCurrencyId ?? null,
+      coreCurrencies,
+    );
+    if (companyDefault && normalizedAllowed.includes(companyDefault)) {
+      return companyDefault;
+    }
+
+    return normalizedAllowed[0] ?? null;
+  }
+
+  private buildCurrencyOptions(allowedIds: string[], coreCurrencies: CoreCurrency[]): SelectOption[] {
+    const normalizedAllowed = this.normalizeCurrencyList(allowedIds, coreCurrencies);
+    if (coreCurrencies.length === 0) {
+      return normalizedAllowed.map((id) => ({ value: id, label: id }));
+    }
+    return normalizedAllowed.map((id) => ({
+      value: id,
+      label: this.resolveCurrencyLabel(id, coreCurrencies),
+    }));
+  }
+
+  private resolveCurrencyLabel(id: string, coreCurrencies: CoreCurrency[]): string {
+    const currency = coreCurrencies.find((item) => item.id === id || item.code?.toUpperCase() === id.toUpperCase());
+    if (!currency) {
+      return id;
+    }
+    return currency.symbol
+      ? `${currency.name.toUpperCase()} (${currency.symbol})`
+      : `${currency.name.toUpperCase()} (${currency.code})`;
+  }
+
+  private normalizeCurrencyList(values: string[] | undefined, coreCurrencies: CoreCurrency[]): string[] {
+    const normalized = (values ?? [])
+      .map((value) => this.normalizeCurrencyId(value, coreCurrencies))
+      .filter((value): value is string => Boolean(value));
+    return Array.from(new Set(normalized));
+  }
+
+  private normalizeCurrencyId(value: string | null | undefined, coreCurrencies: CoreCurrency[]): string | null {
+    const trimmed = typeof value === 'string' ? value.trim() : '';
+    if (!trimmed) {
+      return null;
+    }
+    const directMatch = coreCurrencies.find((currency) => currency.id === trimmed);
+    if (directMatch) {
+      return directMatch.id;
+    }
+    const upper = trimmed.toUpperCase();
+    const codeMatch = coreCurrencies.find((currency) => currency.code?.toUpperCase() === upper);
+    if (codeMatch) {
+      return codeMatch.id;
+    }
+    return trimmed;
+  }
+
+  private normalizeId(value: string | null | undefined): string | null {
+    const trimmed = typeof value === 'string' ? value.trim() : '';
+    return trimmed.length > 0 ? trimmed : null;
+  }
+
+  private findEnterprise(company: Company | null, enterpriseId: string): CompanyEnterprise | null {
+    if (!company?.enterprises?.length) {
+      return null;
+    }
+    return (
+      company.enterprises.find((enterprise) => this.normalizeId(enterprise.id) === enterpriseId) ??
+      company.enterprises.find((enterprise) => this.normalizeId(enterprise._id ?? null) === enterpriseId) ??
+      null
+    );
   }
 }

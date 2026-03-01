@@ -43,6 +43,8 @@ export class AddOrderProductDialogComponent {
   @Output() save = new EventEmitter<AddOrderProductResult>();
   @Output() cancel = new EventEmitter<void>();
 
+  readonly numberLocale = 'en-US';
+
   form: AddProductForm = this.fb.group({
     variant: this.fb.control<ProductOptionDisplay | null>(null, { validators: [Validators.required] }),
     qty: this.fb.control<number | null>(1, { validators: [Validators.required, Validators.min(0.01)] }),

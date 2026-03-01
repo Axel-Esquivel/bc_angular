@@ -21,6 +21,7 @@
       <p-inputNumber
         inputId="unitCost"
         formControlName="unitCost"
+        [locale]="numberLocale"
         [min]="0"
         [minFractionDigits]="2"
         [maxFractionDigits]="2"
@@ -29,7 +30,13 @@
     </p-floatLabel>
 
     <p-floatLabel class="field">
-      <input pInputText id="currency" type="text" formControlName="currency" />
+      <p-select
+        inputId="currency"
+        formControlName="currency"
+        [options]="currencyOptions"
+        optionLabel="label"
+        optionValue="value"
+      ></p-select>
       <label for="currency">Moneda</label>
     </p-floatLabel>
 
@@ -37,6 +44,7 @@
       <p-inputNumber
         inputId="freightCost"
         formControlName="freightCost"
+        [locale]="numberLocale"
         [min]="0"
         [minFractionDigits]="2"
         [maxFractionDigits]="2"
@@ -59,6 +67,7 @@
       <p-inputNumber
         inputId="bonusValue"
         formControlName="bonusValue"
+        [locale]="numberLocale"
         [min]="0"
         [minFractionDigits]="2"
         [maxFractionDigits]="2"
@@ -73,6 +82,7 @@
       <p-inputNumber
         inputId="minQty"
         formControlName="minQty"
+        [locale]="numberLocale"
         [min]="0"
         [minFractionDigits]="0"
         [maxFractionDigits]="0"
@@ -84,6 +94,7 @@
       <p-inputNumber
         inputId="leadTimeDays"
         formControlName="leadTimeDays"
+        [locale]="numberLocale"
         [min]="0"
         [minFractionDigits]="0"
         [maxFractionDigits]="0"
