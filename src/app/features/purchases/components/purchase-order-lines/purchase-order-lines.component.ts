@@ -13,6 +13,7 @@ import { Subscription } from 'rxjs';
 export interface PurchaseOrderLineView {
   variantId: string;
   variantLabel: string;
+  uomLabel?: string;
   lastCost: number | null;
   lastCurrency: string | null;
 }
@@ -103,7 +104,12 @@ export class PurchaseOrderLinesComponent implements OnChanges, OnDestroy {
   }
 
   getLineVariantLabel(index: number): string {
-    return this.lines[index]?.variantLabel ?? '';
+    const line = this.lines[index];
+    if (!line) {
+      return '';
+    }
+    const uom = line.uomLabel?.trim();
+    return uom ? `${line.variantLabel} - ${uom}` : line.variantLabel;
   }
 
   getLineQty(index: number): number {
@@ -116,7 +122,9 @@ export class PurchaseOrderLinesComponent implements OnChanges, OnDestroy {
     const group = this.formArray.at(index);
     const qty = group?.controls.qty.value ?? 0;
     const unitCost = group?.controls.unitCost.value ?? 0;
-    return (qty || 0) * (unitCost || 0);
+    const freight = group?.controls.freightCost.value ?? 0;
+    const extras = group?.controls.extraCosts.value ?? 0;
+    return (qty || 0) * (unitCost || 0) + (freight || 0) + (extras || 0);
   }
 
   private syncCurrencyControls(): void {

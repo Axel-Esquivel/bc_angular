@@ -2,18 +2,18 @@ import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { Button } from 'primeng/button';
-import { DatePicker } from 'primeng/datepicker';
-import { Dialog } from 'primeng/dialog';
-import { FloatLabel } from 'primeng/floatlabel';
-import { InputNumber } from 'primeng/inputnumber';
-import { InputText } from 'primeng/inputtext';
-import { Textarea } from 'primeng/textarea';
-import { Select } from 'primeng/select';
+import { ButtonModule } from 'primeng/button';
+import { DatePickerModule } from 'primeng/datepicker';
+import { DialogModule } from 'primeng/dialog';
+import { FloatLabelModule } from 'primeng/floatlabel';
+import { InputNumberModule } from 'primeng/inputnumber';
+import { InputTextModule } from 'primeng/inputtext';
+import { TextareaModule } from 'primeng/textarea';
+import { SelectModule } from 'primeng/select';
 import { TableModule } from 'primeng/table';
-import { Toolbar } from 'primeng/toolbar';
-import { Message } from 'primeng/message';
-import { AutoComplete } from 'primeng/autocomplete';
+import { ToolbarModule } from 'primeng/toolbar';
+import { MessageModule } from 'primeng/message';
+import { AutoCompleteModule } from 'primeng/autocomplete';
 import { AccordionModule } from 'primeng/accordion';
 
 import { AddOrderProductDialogComponent } from './components/add-order-product-dialog/add-order-product-dialog.component';
@@ -40,18 +40,18 @@ import { purchasesRoutes } from './purchases.routes';
     FormsModule,
     ReactiveFormsModule,
     RouterModule.forChild(purchasesRoutes),
-    Button,
-    DatePicker,
-    Dialog,
-    FloatLabel,
-    InputNumber,
-    InputText,
-    Textarea,
-    Select,
+    ButtonModule,
+    DatePickerModule,
+    DialogModule,
+    FloatLabelModule,
+    InputNumberModule,
+    InputTextModule,
+    TextareaModule,
+    SelectModule,
     TableModule,
-    Toolbar,
-    Message,
-    AutoComplete,
+    ToolbarModule,
+    MessageModule,
+    AutoCompleteModule,
     AccordionModule,
   ],
 })

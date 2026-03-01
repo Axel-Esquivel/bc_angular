@@ -456,11 +456,11 @@ export class PurchaseOrderCreatePageComponent implements OnInit, OnChanges {
       next: ({ company, core }) => {
         const companyData = company.result ?? null;
         const coreCurrencies = core.result?.currencies ?? [];
-        const allowed = this.resolveAllowedCurrencyIds(companyData, enterpriseId, coreCurrencies);
-        this.currencyOptions = this.buildCurrencyOptions(allowed, coreCurrencies);
+        const allIds = coreCurrencies.map((currency) => currency.id);
+        this.currencyOptions = this.buildCurrencyOptions(allIds, coreCurrencies);
         this.defaultCurrencyId = this.resolveDefaultCurrencyId(
           context.currencyId ?? null,
-          allowed,
+          allIds,
           companyData,
           enterpriseId,
           coreCurrencies,
