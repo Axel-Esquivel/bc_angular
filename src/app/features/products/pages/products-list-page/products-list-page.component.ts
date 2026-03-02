@@ -318,7 +318,8 @@ export class ProductsListPageComponent implements OnInit {
           .filter((row) => row.id)
           .map((row) =>
             this.packagingApi.update(row.id as string, {
-              name: row.name,
+              packagingNameId: row.packagingNameId,
+              multiplierSnapshot: row.multiplierSnapshot,
               unitsPerPack: row.unitsPerPack,
               price: row.price,
               barcode: row.barcode,
@@ -331,6 +332,8 @@ export class ProductsListPageComponent implements OnInit {
           .map((row) =>
             this.packagingApi.create(defaultVariant.id, {
               ...row,
+              packagingNameId: row.packagingNameId,
+              multiplierSnapshot: row.multiplierSnapshot,
               OrganizationId: organizationId,
               companyId,
               enterpriseId,

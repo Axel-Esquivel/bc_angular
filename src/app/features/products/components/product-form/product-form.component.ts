@@ -53,8 +53,9 @@ export interface ProductFormVariantPayload {
 
 export interface PackagingPayload {
   id?: string;
-  name: string;
+  packagingNameId: string;
   unitsPerPack: number;
+  multiplierSnapshot: number;
   price: number;
   barcode?: string;
   internalBarcode?: string;
@@ -88,7 +89,7 @@ type VariantFormGroup = FormGroup<{
 
 type PackagingFormGroup = FormGroup<{
   id: FormControl<string>;
-  name: FormControl<string>;
+  packagingNameId: FormControl<string>;
   unitsPerPack: FormControl<number>;
   price: FormControl<number>;
   barcode: FormControl<string>;
@@ -105,6 +106,9 @@ type SkuControlHolder = {
 interface OptionItem {
   label: string;
   value: string;
+}
+interface PackagingNameOption extends OptionItem {
+  multiplier: number;
 }
 
 type ProductFormGroup = FormGroup<{
@@ -166,7 +170,8 @@ export class ProductFormComponent implements OnInit, OnChanges, OnDestroy {
   uomOptionsByCategory = new Map<string, OptionItem[]>();
   uomUnitById = new Map<string, UomUnit>();
   uomUnits: UomUnit[] = [];
-  packagingNameOptions: OptionItem[] = [];
+  packagingNameOptions: PackagingNameOption[] = [];
+  private packagingNameById = new Map<string, PackagingNameOption>();
 
   readonly productForm: ProductFormGroup = this.fb.group({
     name: this.fb.nonNullable.control('', [Validators.required]),
@@ -292,12 +297,13 @@ export class ProductFormComponent implements OnInit, OnChanges, OnDestroy {
       };
     });
 
-    const packaging = this.packagingFormArray.controls.map((group) => {
+  const packaging = this.packagingFormArray.controls.map((group) => {
       const value = group.getRawValue();
       return {
         id: value.id?.trim() || undefined,
-        name: value.name?.trim() ?? '',
+        packagingNameId: value.packagingNameId,
         unitsPerPack: value.unitsPerPack,
+        multiplierSnapshot: value.unitsPerPack,
         price: value.price,
         barcode: value.barcode?.trim() || undefined,
         internalBarcode: value.internalBarcode?.trim() || undefined,
@@ -569,12 +575,12 @@ export class ProductFormComponent implements OnInit, OnChanges, OnDestroy {
 
   addPackagingRow(name?: string, unitsPerPack?: number): void {
     const group = this.createPackagingGroup();
-    if (name) {
-      group.controls.name.setValue(name);
+    const defaultPackaging = this.packagingNameOptions[0];
+    if (defaultPackaging) {
+      group.controls.packagingNameId.setValue(defaultPackaging.value);
+      group.controls.unitsPerPack.setValue(defaultPackaging.multiplier);
     }
-    if (unitsPerPack) {
-      group.controls.unitsPerPack.setValue(unitsPerPack);
-    }
+    group.controls.unitsPerPack.disable({ emitEvent: false });
     this.packagingFormArray.push(group);
   }
 
@@ -598,7 +604,7 @@ export class ProductFormComponent implements OnInit, OnChanges, OnDestroy {
       });
       return;
     }
-    const request = { organizationId, name: payload.name.trim() };
+    const request = { organizationId, name: payload.name.trim(), multiplier: payload.multiplier };
     this.savingPackagingName = true;
     this.packagingNamesApi
       .create(request)
@@ -612,7 +618,7 @@ export class ProductFormComponent implements OnInit, OnChanges, OnDestroy {
           const created = response.result;
           this.loadPackagingNames();
           if (created?.id) {
-            this.setPackagingName(created.name);
+            this.setPackagingName(created.id, created.multiplier ?? payload.multiplier);
           }
           this.packagingNameCreateVisible = false;
           this.messageService.add({
@@ -647,6 +653,10 @@ export class ProductFormComponent implements OnInit, OnChanges, OnDestroy {
     event.stopPropagation();
     select.hide();
     queueMicrotask(() => this.openCreatePackagingName(index));
+  }
+
+  onPackagingNameChange(group: PackagingFormGroup): void {
+    this.syncPackagingUnitsPerPack(group);
   }
 
   generatePackagingInternalBarcode(index: number): void {
@@ -923,19 +933,20 @@ export class ProductFormComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   private createPackagingGroup(): PackagingFormGroup {
-    return this.fb.nonNullable.group({
+    const group = this.fb.nonNullable.group({
       id: [''],
-      name: ['', [Validators.required]],
-      unitsPerPack: [0, [Validators.required, Validators.min(1)]],
+      packagingNameId: ['', [Validators.required]],
+      unitsPerPack: [1, [Validators.required, Validators.min(1)]],
       price: [0, [Validators.required, Validators.min(0)]],
       barcode: [''],
       internalBarcode: [''],
       isActive: [true],
     });
+    group.controls.unitsPerPack.disable({ emitEvent: false });
+    return group;
   }
   private isPackagingPayloadValid(payload: PackagingPayload): boolean {
-    const name = payload.name?.trim();
-    if (!name) {
+    if (!payload.packagingNameId) {
       return false;
     }
     if (!payload.unitsPerPack || payload.unitsPerPack <= 0) {
@@ -1008,31 +1019,42 @@ export class ProductFormComponent implements OnInit, OnChanges, OnDestroy {
     const organizationId = this.getOrganizationId();
     if (!organizationId) {
       this.packagingNameOptions = [];
+      this.packagingNameById.clear();
       return;
     }
     this.packagingNamesApi.list(organizationId).subscribe({
       next: (response) => {
         const names = response.result ?? [];
-        this.packagingNameOptions = names
+        const options = names
           .filter((item) => item.isActive)
-          .map((item) => ({ label: item.name, value: item.name }));
+          .map((item) => ({
+            label: item.name,
+            value: item.id,
+            multiplier: item.multiplier ?? 1,
+          }));
+        this.packagingNameOptions = options;
+        this.packagingNameById = new Map(options.map((option) => [option.value, option]));
       },
       error: () => {
         this.packagingNameOptions = [];
+        this.packagingNameById.clear();
       },
     });
   }
 
-  private setPackagingName(name: string): void {
+  private setPackagingName(packagingNameId: string, multiplier: number): void {
     if (this.selectedPackagingIndex === null || this.selectedPackagingIndex === undefined) {
       if (this.packagingFormArray.length > 0) {
-        this.packagingFormArray.at(0).controls.name.setValue(name);
+        const group = this.packagingFormArray.at(0);
+        group.controls.packagingNameId.setValue(packagingNameId);
+        group.controls.unitsPerPack.setValue(multiplier);
       }
       return;
     }
     const group = this.packagingFormArray.at(this.selectedPackagingIndex);
     if (group) {
-      group.controls.name.setValue(name);
+      group.controls.packagingNameId.setValue(packagingNameId);
+      group.controls.unitsPerPack.setValue(multiplier);
     }
   }
 
@@ -1069,17 +1091,29 @@ export class ProductFormComponent implements OnInit, OnChanges, OnDestroy {
     }
     list.forEach((item) => {
       const group = this.createPackagingGroup();
+      const packagingNameId = item.packagingNameId ?? '';
+      const option = packagingNameId ? this.packagingNameById.get(packagingNameId) : null;
+      const unitsPerPack = item.unitsPerPack ?? option?.multiplier ?? 1;
       group.patchValue({
         id: item.id ?? '',
-        name: item.name,
-        unitsPerPack: item.unitsPerPack,
+        packagingNameId,
+        unitsPerPack,
         price: item.price,
         barcode: item.barcode ?? '',
         internalBarcode: item.internalBarcode ?? '',
         isActive: item.isActive,
       });
+      this.syncPackagingUnitsPerPack(group);
       this.packagingFormArray.push(group);
     });
+  }
+
+  private syncPackagingUnitsPerPack(group: PackagingFormGroup): void {
+    const packagingNameId = group.controls.packagingNameId.value;
+    const option = this.packagingNameById.get(packagingNameId);
+    if (option) {
+      group.controls.unitsPerPack.setValue(option.multiplier, { emitEvent: false });
+    }
   }
 
   private getOrganizationId(): string | null {

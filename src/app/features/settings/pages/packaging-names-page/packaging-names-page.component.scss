@@ -1,0 +1,38 @@
+.page-title {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.page-content {
+  margin-top: 1rem;
+  display: grid;
+  gap: 1rem;
+}
+
+.empty-message {
+  padding: 1rem;
+  border: 1px dashed var(--surface-border);
+  border-radius: 8px;
+  color: var(--text-color-secondary);
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.packaging-form {
+  display: grid;
+  gap: 1rem;
+}
+
+.field {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}

@@ -3,10 +3,12 @@ import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms'
 
 type PackagingNameCreateFormGroup = FormGroup<{
   name: FormControl<string>;
+  multiplier: FormControl<number | null>;
 }>;
 
 export interface PackagingNameCreateFormPayload {
   name: string;
+  multiplier: number;
 }
 
 @Component({
@@ -25,10 +27,11 @@ export class PackagingNameCreateFormComponent {
 
   readonly form: PackagingNameCreateFormGroup = this.fb.group({
     name: this.fb.nonNullable.control('', [Validators.required]),
+    multiplier: this.fb.control<number | null>(1, [Validators.required, Validators.min(1)]),
   });
 
   reset(): void {
-    this.form.reset({ name: '' });
+    this.form.reset({ name: '', multiplier: 1 });
   }
 
   onCancel(): void {
@@ -41,6 +44,6 @@ export class PackagingNameCreateFormComponent {
       return;
     }
     const raw = this.form.getRawValue();
-    this.save.emit({ name: raw.name.trim() });
+    this.save.emit({ name: raw.name.trim(), multiplier: raw.multiplier ?? 1 });
   }
 }

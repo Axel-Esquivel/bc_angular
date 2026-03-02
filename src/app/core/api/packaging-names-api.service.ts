@@ -9,13 +9,29 @@ export interface PackagingName {
   id: string;
   organizationId: string;
   name: string;
+  multiplier: number;
   isActive: boolean;
+  isSystem?: boolean;
+  variableMultiplier?: boolean;
   sortOrder?: number;
 }
 
 export interface CreatePackagingNamePayload {
   organizationId: string;
   name: string;
+  multiplier: number;
+  isActive?: boolean;
+  isSystem?: boolean;
+  variableMultiplier?: boolean;
+}
+
+export interface UpdatePackagingNamePayload {
+  name?: string;
+  multiplier?: number;
+  isActive?: boolean;
+  isSystem?: boolean;
+  variableMultiplier?: boolean;
+  sortOrder?: number;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -33,5 +49,14 @@ export class PackagingNamesApiService {
 
   create(payload: CreatePackagingNamePayload): Observable<ApiResponse<PackagingName>> {
     return this.http.post<ApiResponse<PackagingName>>(this.baseUrl, payload);
+  }
+
+  update(
+    id: string,
+    organizationId: string,
+    payload: UpdatePackagingNamePayload,
+  ): Observable<ApiResponse<PackagingName>> {
+    const params = new HttpParams().set('organizationId', organizationId);
+    return this.http.patch<ApiResponse<PackagingName>>(`${this.baseUrl}/${id}`, payload, { params });
   }
 }

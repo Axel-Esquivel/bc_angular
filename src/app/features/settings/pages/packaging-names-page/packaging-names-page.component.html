@@ -1,0 +1,97 @@
+<p-toolbar>
+  <ng-template pTemplate="start">
+    <h2 class="page-title">Empaques</h2>
+  </ng-template>
+  <ng-template pTemplate="end">
+    <p-button label="Agregar" icon="pi pi-plus" (onClick)="openCreate()" [disabled]="!organizationId"></p-button>
+  </ng-template>
+</p-toolbar>
+
+<div class="page-content">
+  <div class="empty-message" *ngIf="!organizationId">
+    Selecciona una organización para administrar empaques.
+  </div>
+
+  <p-table
+    *ngIf="organizationId"
+    [value]="packagingNames"
+    [loading]="loading"
+    dataKey="id"
+  >
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Nombre</th>
+        <th>Multiplicador</th>
+        <th>Variable</th>
+        <th>Estado</th>
+        <th>Acciones</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-row>
+      <tr>
+        <td>{{ row.name }}</td>
+        <td>{{ row.multiplier }}</td>
+        <td>
+          <p-checkbox [binary]="true" [ngModel]="row.variableMultiplier" [disabled]="true"></p-checkbox>
+        </td>
+        <td>{{ row.isActive ? 'Activo' : 'Inactivo' }}</td>
+        <td class="actions">
+          <p-button icon="pi pi-pencil" text (onClick)="openEdit(row)"></p-button>
+          <p-button
+            *ngIf="row.isActive"
+            icon="pi pi-ban"
+            severity="danger"
+            text
+            (onClick)="deactivate(row)"
+          ></p-button>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<p-dialog
+  header="{{ editing ? 'Editar empaque' : 'Nuevo empaque' }}"
+  [(visible)]="dialogVisible"
+  [modal]="true"
+  [closable]="true"
+  [draggable]="false"
+  [style]="{ width: '420px' }"
+  (onHide)="closeDialog()"
+>
+  <form class="packaging-form" [formGroup]="form">
+    <div class="field">
+      <label for="packagingName">Nombre</label>
+      <input pInputText id="packagingName" formControlName="name" />
+    </div>
+    <div class="field">
+      <label for="packagingMultiplier">Multiplicador</label>
+      <p-inputNumber
+        inputId="packagingMultiplier"
+        formControlName="multiplier"
+        [locale]="'en-US'"
+        [min]="1"
+        [minFractionDigits]="0"
+        [maxFractionDigits]="0"
+      ></p-inputNumber>
+    </div>
+    <div class="field">
+      <label for="packagingActive">Activo</label>
+      <p-checkbox inputId="packagingActive" formControlName="isActive" [binary]="true"></p-checkbox>
+    </div>
+    <div class="field">
+      <label for="packagingVariable">Multiplicador variable</label>
+      <p-checkbox
+        inputId="packagingVariable"
+        formControlName="variableMultiplier"
+        [binary]="true"
+      ></p-checkbox>
+    </div>
+  </form>
+  <ng-template #footer>
+    <div class="dialog-actions">
+      <p-button label="Cancelar" severity="secondary" (onClick)="closeDialog()"></p-button>
+      <p-button label="Guardar" icon="pi pi-check" (onClick)="save()" [disabled]="saving"></p-button>
+    </div>
+  </ng-template>
+</p-dialog>

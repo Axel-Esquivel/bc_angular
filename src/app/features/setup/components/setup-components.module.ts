@@ -4,6 +4,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { Button } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
 import { FloatLabel } from 'primeng/floatlabel';
+import { InputNumber } from 'primeng/inputnumber';
 import { InputText } from 'primeng/inputtext';
 import { Select } from 'primeng/select';
 
@@ -23,7 +24,7 @@ import { SetupStepOrganizationFormComponent } from './setup-step-organization-fo
     SetupStepCompaniesByCountryComponent,
     SetupStepBranchesByCompanyComponent,
   ],
-  imports: [CommonModule, ReactiveFormsModule, Button, Dialog, FloatLabel, InputText, Select],
+  imports: [CommonModule, ReactiveFormsModule, Button, Dialog, FloatLabel, InputText, InputNumber, Select],
   exports: [
     CreateCountryFormComponent,
     CreateCurrencyFormComponent,

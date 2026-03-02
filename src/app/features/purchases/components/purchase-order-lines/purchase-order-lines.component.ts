@@ -16,6 +16,7 @@ export interface PurchaseOrderLineView {
   uomLabel?: string;
   lastCost: number | null;
   lastCurrency: string | null;
+  packagingId: string;
 }
 
 export interface CurrencyOption {
@@ -23,14 +24,25 @@ export interface CurrencyOption {
   value: string;
 }
 
+export interface PackagingOption {
+  label: string;
+  value: string;
+  multiplier: number;
+  variableMultiplier: boolean;
+}
+
 export interface PurchaseOrderLineDraft {
   variantId: string;
+  packagingId: string;
+  packagingMultiplier: number;
   qty: number;
   unitCost: number;
   currency?: string;
 }
 
 export type LineFormGroup = FormGroup<{
+  packagingId: FormControl<string | null>;
+  packagingMultiplier: FormControl<number | null>;
   qty: FormControl<number | null>;
   unitCost: FormControl<number | null>;
   currency: FormControl<string | null>;
@@ -51,6 +63,7 @@ export class PurchaseOrderLinesComponent implements OnChanges, OnDestroy {
   @Input() lines: PurchaseOrderLineView[] = [];
   @Input() form!: FormGroup<{ lines: FormArray<LineFormGroup> }>;
   @Input() currencyOptions: CurrencyOption[] = [];
+  @Input() packagingOptions: PackagingOption[] = [];
   @Output() change = new EventEmitter<PurchaseOrderLineDraft[]>();
   @Output() remove = new EventEmitter<number>();
 
@@ -66,6 +79,9 @@ export class PurchaseOrderLinesComponent implements OnChanges, OnDestroy {
     if (changes['currencyOptions']) {
       this.syncCurrencyControls();
     }
+    if (changes['packagingOptions']) {
+      this.syncPackagingControls();
+    }
   }
 
   private emitDrafts(): void {
@@ -75,8 +91,13 @@ export class PurchaseOrderLinesComponent implements OnChanges, OnDestroy {
     const drafts: PurchaseOrderLineDraft[] = this.lines.map((line, index) => {
       const group = this.formArray.at(index);
       const value = group?.getRawValue();
+      const packagingMultiplier =
+        value?.packagingMultiplier ??
+        this.resolvePackagingMultiplier(value?.packagingId ?? line.packagingId);
       return {
         variantId: line.variantId,
+        packagingId: value?.packagingId ?? line.packagingId,
+        packagingMultiplier,
         qty: value?.qty ?? 0,
         unitCost: value?.unitCost ?? line.lastCost ?? 0,
         currency: value?.currency ?? line.lastCurrency ?? undefined,
@@ -97,6 +118,7 @@ export class PurchaseOrderLinesComponent implements OnChanges, OnDestroy {
     this.formChangesSub = this.formArray.valueChanges.subscribe(() => this.emitDrafts());
     this.emitDrafts();
     this.syncCurrencyControls();
+    this.syncPackagingControls();
   }
 
   get formArray(): FormArray<LineFormGroup> {
@@ -127,6 +149,43 @@ export class PurchaseOrderLinesComponent implements OnChanges, OnDestroy {
     return (qty || 0) * (unitCost || 0) + (freight || 0) + (extras || 0);
   }
 
+  getLinePackagingLabel(index: number): string {
+    const group = this.formArray.at(index);
+    const packagingId = group?.controls.packagingId.value ?? '';
+    const option = this.packagingOptions.find((item) => item.value === packagingId);
+    return option?.label ?? '';
+  }
+
+  getLinePackagingMultiplier(index: number): number {
+    const group = this.formArray.at(index);
+    const value = group?.controls.packagingMultiplier.value;
+    if (typeof value === 'number' && value > 0) {
+      return value;
+    }
+    const packagingId = group?.controls.packagingId.value ?? '';
+    return this.resolvePackagingMultiplier(packagingId);
+  }
+
+  getLineBaseQty(index: number): number {
+    const qty = this.getLineQty(index);
+    const multiplier = this.getLinePackagingMultiplier(index);
+    return qty * multiplier;
+  }
+
+  onPackagingChange(index: number): void {
+    const group = this.formArray.at(index);
+    const packagingId = group?.controls.packagingId.value ?? '';
+    const option = this.packagingOptions.find((item) => item.value === packagingId);
+    if (option) {
+      group?.controls.packagingMultiplier.setValue(option.multiplier);
+      if (option.variableMultiplier) {
+        group?.controls.packagingMultiplier.enable({ emitEvent: false });
+      } else {
+        group?.controls.packagingMultiplier.disable({ emitEvent: false });
+      }
+    }
+  }
+
   private syncCurrencyControls(): void {
     if (!this.form) {
       return;
@@ -139,6 +198,38 @@ export class PurchaseOrderLinesComponent implements OnChanges, OnDestroy {
         group.controls.currency.disable({ emitEvent: false });
       }
     });
+  }
+
+  private syncPackagingControls(): void {
+    if (!this.form) {
+      return;
+    }
+    const enable = this.packagingOptions.length > 0;
+    this.formArray.controls.forEach((group) => {
+      if (enable) {
+        group.controls.packagingId.enable({ emitEvent: false });
+      } else {
+        group.controls.packagingId.disable({ emitEvent: false });
+      }
+      const packagingId = group.controls.packagingId.value ?? '';
+      const option = this.packagingOptions.find((item) => item.value === packagingId);
+      if (!group.controls.packagingMultiplier.value) {
+        const multiplier = this.resolvePackagingMultiplier(packagingId);
+        if (multiplier > 0) {
+          group.controls.packagingMultiplier.setValue(multiplier, { emitEvent: false });
+        }
+      }
+      if (option && !option.variableMultiplier) {
+        group.controls.packagingMultiplier.disable({ emitEvent: false });
+      } else {
+        group.controls.packagingMultiplier.enable({ emitEvent: false });
+      }
+    });
+  }
+
+  private resolvePackagingMultiplier(packagingId: string): number {
+    const option = this.packagingOptions.find((item) => item.value === packagingId);
+    return option?.multiplier ?? 1;
   }
 
   ngOnDestroy(): void {

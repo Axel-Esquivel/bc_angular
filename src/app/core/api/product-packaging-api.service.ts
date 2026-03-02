@@ -8,7 +8,8 @@ import { ApiResponse } from '../../shared/models/api-response.model';
 export interface ProductPackaging {
   id: string;
   variantId: string;
-  name: string;
+  packagingNameId: string;
+  multiplierSnapshot: number;
   unitsPerPack: number;
   barcode?: string;
   internalBarcode?: string;
@@ -24,7 +25,8 @@ export interface CreateProductPackagingRequest {
   OrganizationId: string;
   companyId: string;
   enterpriseId: string;
-  name: string;
+  packagingNameId: string;
+  multiplierSnapshot: number;
   unitsPerPack: number;
   price: number;
   barcode?: string;
@@ -33,7 +35,8 @@ export interface CreateProductPackagingRequest {
 }
 
 export interface UpdatePackagingPayload {
-  name?: string;
+  packagingNameId?: string;
+  multiplierSnapshot?: number;
   unitsPerPack?: number;
   barcode?: string;
   internalBarcode?: string;

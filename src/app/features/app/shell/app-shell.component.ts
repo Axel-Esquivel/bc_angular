@@ -51,6 +51,11 @@ export class AppShellComponent {
                 routerLink: '/app/settings/modules',
               },
               {
+                label: 'Empaques',
+                icon: 'pi pi-box',
+                routerLink: '/app/settings/packaging',
+              },
+              {
                 label: 'Tienda de módulos',
                 icon: 'pi pi-shopping-bag',
                 routerLink: '/app/modules/store',
@@ -63,4 +68,5 @@ export class AppShellComponent {
     },
   ];
 }
+
 

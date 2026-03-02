@@ -214,8 +214,9 @@
                     [options]="packagingNameOptions"
                     optionLabel="label"
                     optionValue="value"
-                    formControlName="name"
+                    formControlName="packagingNameId"
                     appendTo="body"
+                    (onChange)="onPackagingNameChange(pack)"
                   >
                     <ng-template #footer>
                       <div class="p-3">
@@ -231,7 +232,7 @@
                       </div>
                     </ng-template>
                   </p-select>
-                  <label>Nombre</label>
+                  <label>Empaque</label>
                 </p-floatLabel>
                 <p-floatLabel class="field">
                   <p-inputNumber

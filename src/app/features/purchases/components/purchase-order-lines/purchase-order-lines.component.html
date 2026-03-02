@@ -17,6 +17,18 @@
           <div class="line-body" [formGroupName]="i">
             <div class="line-fields">
               <div class="field">
+                <label for="packaging-{{ i }}">Empaque</label>
+                <p-select
+                  inputId="packaging-{{ i }}"
+                  formControlName="packagingId"
+                  [options]="packagingOptions"
+                  optionLabel="label"
+                  optionValue="value"
+                  (onChange)="onPackagingChange(i)"
+                ></p-select>
+                <small class="field-hint">Multiplicador guardado en el pedido (snapshot).</small>
+              </div>
+              <div class="field">
                 <label for="qty-{{ i }}">Cantidad</label>
                 <p-inputNumber
                   inputId="qty-{{ i }}"
@@ -26,6 +38,21 @@
                   [minFractionDigits]="0"
                   [maxFractionDigits]="0"
                 ></p-inputNumber>
+              </div>
+              <div class="field">
+                <label for="multiplier-{{ i }}">Multiplicador</label>
+                <p-inputNumber
+                  inputId="multiplier-{{ i }}"
+                  formControlName="packagingMultiplier"
+                  [locale]="numberLocale"
+                  [min]="1"
+                  [minFractionDigits]="0"
+                  [maxFractionDigits]="0"
+                ></p-inputNumber>
+              </div>
+              <div class="field">
+                <label>Base (unidades)</label>
+                <div class="field-static">{{ getLineBaseQty(i) }}</div>
               </div>
               <div class="field">
                 <label for="unitCost-{{ i }}">Precio / costo</label>

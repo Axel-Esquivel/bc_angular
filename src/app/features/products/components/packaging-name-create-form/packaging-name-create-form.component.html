@@ -3,4 +3,15 @@
     <input id="packagingName" type="text" pInputText formControlName="name" class="w-full" />
     <label for="packagingName">Nombre</label>
   </p-floatLabel>
+  <p-floatLabel>
+    <p-inputNumber
+      inputId="packagingMultiplier"
+      formControlName="multiplier"
+      [min]="1"
+      [minFractionDigits]="0"
+      [maxFractionDigits]="0"
+      locale="en-US"
+    ></p-inputNumber>
+    <label for="packagingMultiplier">Multiplicador</label>
+  </p-floatLabel>
 </form>

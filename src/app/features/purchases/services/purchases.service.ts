@@ -24,6 +24,8 @@ export interface CreateSupplierCatalogPayload extends CreateSupplierCatalogDto {
 
 export interface PurchaseOrderLinePayload {
   variantId: string;
+  packagingId: string;
+  packagingMultiplier: number;
   qty: number;
   unitCost: number;
   currency?: string;
@@ -57,6 +59,10 @@ export interface SupplierLastCostResult {
 export interface PurchaseOrderLine {
   id: string;
   variantId: string;
+  packagingId: string;
+  packagingMultiplier: number;
+  packagingNameId?: string;
+  packagingMultiplierSnapshot?: number;
   quantity: number;
   receivedQuantity: number;
   unitCost: number;

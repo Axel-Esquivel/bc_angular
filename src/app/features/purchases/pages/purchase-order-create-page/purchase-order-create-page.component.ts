@@ -7,6 +7,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActiveContextStateService } from '../../../../core/context/active-context-state.service';
 import { CompaniesApiService } from '../../../../core/api/companies-api.service';
 import { OrganizationCoreApiService } from '../../../../core/api/organization-core-api.service';
+import { PackagingName, PackagingNamesApiService } from '../../../../core/api/packaging-names-api.service';
 import { ProvidersService } from '../../../providers/services/providers.service';
 import { PurchasesService, PurchaseOrder } from '../../services/purchases.service';
 import { Provider } from '../../../../shared/models/provider.model';
@@ -15,6 +16,7 @@ import { Company, CompanyEnterprise } from '../../../../shared/models/company.mo
 import { CoreCurrency } from '../../../../shared/models/organization-core.model';
 import {
   LineFormGroup,
+  PackagingOption,
   PurchaseOrderLineDraft,
   PurchaseOrderLineView,
 } from '../../components/purchase-order-lines/purchase-order-lines.component';
@@ -60,6 +62,7 @@ export class PurchaseOrderCreatePageComponent implements OnInit, OnChanges {
   private readonly lookupService = inject(PurchasesProductsLookupService);
   private readonly companiesApi = inject(CompaniesApiService);
   private readonly organizationCoreApi = inject(OrganizationCoreApiService);
+  private readonly packagingNamesApi = inject(PackagingNamesApiService);
   private readonly destroyRef = inject(DestroyRef);
 
   @Input() embedded = false;
@@ -74,6 +77,9 @@ export class PurchaseOrderCreatePageComponent implements OnInit, OnChanges {
 
   currencyOptions: SelectOption[] = [];
   defaultCurrencyId: string | null = null;
+  packagingOptions: PackagingOption[] = [];
+  private packagingById = new Map<string, PackagingOption>();
+  private defaultPackagingId: string | null = null;
   orderTotal = 0;
   readonly numberLocale = 'en-US';
 
@@ -110,6 +116,7 @@ export class PurchaseOrderCreatePageComponent implements OnInit, OnChanges {
     this.preloadVariants();
     this.loadCurrencies();
     this.loadProviders();
+    this.loadPackagingNames();
     this.bindHeaderChanges();
   }
 
@@ -215,11 +222,19 @@ export class PurchaseOrderCreatePageComponent implements OnInit, OnChanges {
         variantLabel: payload.variantLabel,
         lastCost: payload.lastCost,
         lastCurrency: payload.lastCurrency ?? this.defaultCurrencyId ?? null,
+        packagingId: this.defaultPackagingId ?? '',
       },
     ];
 
     this.linesFormArray.push(
       this.fb.group({
+        packagingId: this.fb.control<string | null>(this.defaultPackagingId, {
+          validators: [Validators.required],
+        }),
+        packagingMultiplier: this.fb.control<number | null>(
+          this.resolvePackagingMultiplier(this.defaultPackagingId),
+          { validators: [Validators.min(1)] },
+        ),
         qty: this.fb.control<number | null>(payload.qty, { validators: [Validators.min(0)] }),
         unitCost: this.fb.control<number | null>(payload.unitCost, { validators: [Validators.min(0)] }),
         currency: this.fb.control<string | null>(payload.lastCurrency ?? this.defaultCurrencyId ?? null),
@@ -268,8 +283,13 @@ export class PurchaseOrderCreatePageComponent implements OnInit, OnChanges {
     const lines = this.linesFormArray.controls
       .map((group, index) => {
         const raw = group.getRawValue();
+        const packagingId = raw.packagingId ?? this.lineItems[index]?.packagingId ?? '';
+        const packagingMultiplier =
+          raw.packagingMultiplier ?? this.resolvePackagingMultiplier(packagingId);
         return {
           variantId: this.lineItems[index]?.variantId ?? '',
+          packagingId,
+          packagingMultiplier,
           qty: raw.qty ?? 0,
           unitCost: raw.unitCost ?? 0,
           currency: raw.currency ?? undefined,
@@ -404,12 +424,20 @@ export class PurchaseOrderCreatePageComponent implements OnInit, OnChanges {
       variantLabel: this.lookupService.getVariantById(item.variantId)?.name ?? item.variantId,
       lastCost: item.unitCost,
       lastCurrency: item.currency ?? this.defaultCurrencyId ?? null,
+      packagingId: this.defaultPackagingId ?? '',
     }));
 
     this.linesFormArray.clear();
     this.lineItems.forEach((item) => {
     this.linesFormArray.push(
       this.fb.group({
+        packagingId: this.fb.control<string | null>(this.defaultPackagingId, {
+          validators: [Validators.required],
+        }),
+        packagingMultiplier: this.fb.control<number | null>(
+          this.resolvePackagingMultiplier(this.defaultPackagingId),
+          { validators: [Validators.min(1)] },
+        ),
         qty: this.fb.control<number | null>(0, { validators: [Validators.min(0)] }),
         unitCost: this.fb.control<number | null>(item.lastCost ?? null, { validators: [Validators.min(0)] }),
         currency: this.fb.control<string | null>(item.lastCurrency ?? this.defaultCurrencyId ?? null),
@@ -477,6 +505,35 @@ export class PurchaseOrderCreatePageComponent implements OnInit, OnChanges {
     });
   }
 
+  private loadPackagingNames(): void {
+    const organizationId = this.organizationId ?? undefined;
+    if (!organizationId) {
+      this.packagingOptions = [];
+      this.packagingById.clear();
+      this.defaultPackagingId = null;
+      return;
+    }
+    this.packagingNamesApi.list(organizationId).subscribe({
+      next: ({ result }) => {
+        const list = Array.isArray(result) ? result : [];
+        this.packagingOptions = list.map((item) => ({
+          value: item.id,
+          label: this.formatPackagingLabel(item),
+          multiplier: item.multiplier ?? 1,
+          variableMultiplier: item.variableMultiplier ?? false,
+        }));
+        this.packagingById = new Map(this.packagingOptions.map((item) => [item.value, item]));
+        this.defaultPackagingId = this.resolveDefaultPackagingId(list);
+        this.ensureLinePackagingDefaults();
+      },
+      error: () => {
+        this.packagingOptions = [];
+        this.packagingById.clear();
+        this.defaultPackagingId = null;
+      },
+    });
+  }
+
   private showError(detail: string): void {
     this.messageService.add({
       severity: 'error',
@@ -538,6 +595,7 @@ export class PurchaseOrderCreatePageComponent implements OnInit, OnChanges {
       variantLabel: this.lookupService.getVariantById(line.variantId)?.name ?? line.variantId,
       lastCost: line.unitCost ?? null,
       lastCurrency: line.currency ?? null,
+      packagingId: line.packagingId ?? line.packagingNameId ?? this.defaultPackagingId ?? '',
     }));
 
     this.linesFormArray.clear();
@@ -545,6 +603,16 @@ export class PurchaseOrderCreatePageComponent implements OnInit, OnChanges {
       const line = order.lines?.[index];
       this.linesFormArray.push(
         this.fb.group({
+          packagingId: this.fb.control<string | null>(
+            line?.packagingId ?? line?.packagingNameId ?? this.defaultPackagingId,
+            { validators: [Validators.required] },
+          ),
+          packagingMultiplier: this.fb.control<number | null>(
+            line?.packagingMultiplier ??
+              line?.packagingMultiplierSnapshot ??
+              this.resolvePackagingMultiplier(line?.packagingId ?? line?.packagingNameId),
+            { validators: [Validators.min(1)] },
+          ),
           qty: this.fb.control<number | null>(line?.quantity ?? 0, { validators: [Validators.min(0)] }),
           unitCost: this.fb.control<number | null>(line?.unitCost ?? null, { validators: [Validators.min(0)] }),
           currency: this.fb.control<string | null>(line?.currency ?? this.defaultCurrencyId ?? null),
@@ -715,5 +783,42 @@ export class PurchaseOrderCreatePageComponent implements OnInit, OnChanges {
       company.enterprises.find((enterprise) => this.normalizeId(enterprise._id ?? null) === enterpriseId) ??
       null
     );
+  }
+
+  private formatPackagingLabel(item: PackagingName): string {
+    const multiplier = item.multiplier ?? 1;
+    return `${item.name} (x${multiplier})`;
+  }
+
+  private resolveDefaultPackagingId(list: PackagingName[]): string | null {
+    const unit = list.find((item) => item.name.toLowerCase() === 'unidad' || item.multiplier === 1);
+    return unit?.id ?? list[0]?.id ?? null;
+  }
+
+  private resolvePackagingMultiplier(packagingId: string | null | undefined): number {
+    if (!packagingId) {
+      return 1;
+    }
+    const option = this.packagingById.get(packagingId);
+    return option?.multiplier ?? 1;
+  }
+
+  private ensureLinePackagingDefaults(): void {
+    if (!this.defaultPackagingId) {
+      return;
+    }
+    this.lineItems = this.lineItems.map((line) => ({
+      ...line,
+      packagingId: line.packagingId || this.defaultPackagingId || '',
+    }));
+    this.linesFormArray.controls.forEach((group) => {
+      if (!group.controls.packagingId.value) {
+        group.controls.packagingId.setValue(this.defaultPackagingId, { emitEvent: false });
+        group.controls.packagingMultiplier.setValue(
+          this.resolvePackagingMultiplier(this.defaultPackagingId),
+          { emitEvent: false },
+        );
+      }
+    });
   }
 }
