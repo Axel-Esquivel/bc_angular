@@ -47,9 +47,19 @@
 }
 
 .header-total {
-  display: flex;
-  justify-content: flex-end;
-  align-items: baseline;
-  gap: 0.5rem;
+  display: grid;
+  justify-content: end;
+  gap: 0.25rem;
   font-weight: 600;
+}
+
+.total-row {
+  display: flex;
+  justify-content: space-between;
+  min-width: 220px;
+  gap: 1rem;
+}
+
+.total-row.total {
+  font-size: 1.05rem;
 }

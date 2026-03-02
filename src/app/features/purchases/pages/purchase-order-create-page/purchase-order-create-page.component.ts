@@ -82,6 +82,8 @@ export class PurchaseOrderCreatePageComponent implements OnInit, OnChanges {
   private packagingById = new Map<string, PackagingOption>();
   private defaultPackagingId: string | null = null;
   orderTotal = 0;
+  orderSubtotal = 0;
+  orderDiscountTotal = 0;
   readonly numberLocale = 'en-US';
 
   readonly statusOptions: OrderStatusOption[] = [
@@ -125,14 +127,14 @@ export class PurchaseOrderCreatePageComponent implements OnInit, OnChanges {
     if (changes['order'] || changes['mode']) {
       if (this.order && (this.isViewMode || this.isEditMode)) {
         this.applyOrder(this.order);
-      if (this.isViewMode) {
-        this.disableFormsForView();
-      } else {
-        this.enableFormsForEdit();
+        if (this.isViewMode) {
+          this.disableFormsForView();
+        } else {
+          this.enableFormsForEdit();
+        }
+        this.rehydrateLinesMultiplierState();
       }
-      this.rehydrateLinesMultiplierState();
     }
-  }
   }
 
   get organizationId(): string | null {
@@ -221,6 +223,7 @@ export class PurchaseOrderCreatePageComponent implements OnInit, OnChanges {
       ...this.lineItems,
       {
         variantId: payload.variantId,
+        productId: payload.productId,
         variantLabel: payload.variantLabel,
         lastCost: payload.lastCost,
         lastCurrency: payload.lastCurrency ?? this.defaultCurrencyId ?? null,
@@ -243,6 +246,9 @@ export class PurchaseOrderCreatePageComponent implements OnInit, OnChanges {
         freightCost: this.fb.control<number | null>(null, { validators: [Validators.min(0)] }),
         extraCosts: this.fb.control<number | null>(null, { validators: [Validators.min(0)] }),
         notes: this.fb.control<string | null>(null),
+        bonusQty: this.fb.control<number | null>(null, { validators: [Validators.min(0)] }),
+        discountType: this.fb.control<'PERCENT' | 'AMOUNT' | null>(null),
+        discountValue: this.fb.control<number | null>(null, { validators: [Validators.min(0)] }),
       }) as LineFormGroup,
     );
     const lastGroup = this.linesFormArray.at(this.linesFormArray.length - 1);
@@ -303,6 +309,9 @@ export class PurchaseOrderCreatePageComponent implements OnInit, OnChanges {
           freightCost: raw.freightCost ?? undefined,
           extraCosts: raw.extraCosts ?? undefined,
           notes: raw.notes ?? undefined,
+          bonusQty: raw.bonusQty ?? undefined,
+          discountType: raw.discountType ?? undefined,
+          discountValue: raw.discountValue ?? undefined,
         };
       })
       .filter((line) => line.qty > 0 && line.variantId);
@@ -428,6 +437,7 @@ export class PurchaseOrderCreatePageComponent implements OnInit, OnChanges {
     const activeItems = items.filter((item) => item.status !== 'inactive');
     this.lineItems = activeItems.map((item) => ({
       variantId: item.variantId,
+      productId: this.lookupService.getVariantById(item.variantId)?.productId ?? undefined,
       variantLabel: this.lookupService.getVariantById(item.variantId)?.name ?? item.variantId,
       lastCost: item.unitCost,
       lastCurrency: item.currency ?? this.defaultCurrencyId ?? null,
@@ -451,6 +461,9 @@ export class PurchaseOrderCreatePageComponent implements OnInit, OnChanges {
           freightCost: this.fb.control<number | null>(null, { validators: [Validators.min(0)] }),
           extraCosts: this.fb.control<number | null>(null, { validators: [Validators.min(0)] }),
           notes: this.fb.control<string | null>(null),
+          bonusQty: this.fb.control<number | null>(null, { validators: [Validators.min(0)] }),
+          discountType: this.fb.control<'PERCENT' | 'AMOUNT' | null>(null),
+          discountValue: this.fb.control<number | null>(null, { validators: [Validators.min(0)] }),
         }) as LineFormGroup,
       );
       const lastGroup = this.linesFormArray.at(this.linesFormArray.length - 1);
@@ -467,6 +480,8 @@ export class PurchaseOrderCreatePageComponent implements OnInit, OnChanges {
     this.drafts = [];
     this.linesFormArray.clear();
     this.orderTotal = 0;
+    this.orderSubtotal = 0;
+    this.orderDiscountTotal = 0;
   }
 
   private preloadVariants(): void {
@@ -606,6 +621,7 @@ export class PurchaseOrderCreatePageComponent implements OnInit, OnChanges {
 
     this.lineItems = (order.lines ?? []).map((line) => ({
       variantId: line.variantId,
+      productId: this.lookupService.getVariantById(line.variantId)?.productId ?? undefined,
       variantLabel: this.lookupService.getVariantById(line.variantId)?.name ?? line.variantId,
       lastCost: line.unitCost ?? null,
       lastCurrency: line.currency ?? null,
@@ -637,6 +653,9 @@ export class PurchaseOrderCreatePageComponent implements OnInit, OnChanges {
           freightCost: this.fb.control<number | null>(line?.freightCost ?? null, { validators: [Validators.min(0)] }),
           extraCosts: this.fb.control<number | null>(line?.extraCosts ?? null, { validators: [Validators.min(0)] }),
           notes: this.fb.control<string | null>(line?.notes ?? null),
+          bonusQty: this.fb.control<number | null>(line?.bonusQty ?? null, { validators: [Validators.min(0)] }),
+          discountType: this.fb.control<'PERCENT' | 'AMOUNT' | null>(line?.discountType ?? null),
+          discountValue: this.fb.control<number | null>(line?.discountValue ?? null, { validators: [Validators.min(0)] }),
         }) as LineFormGroup,
       );
       const lastGroup = this.linesFormArray.at(this.linesFormArray.length - 1);
@@ -684,19 +703,41 @@ export class PurchaseOrderCreatePageComponent implements OnInit, OnChanges {
   }
 
   private recalculateTotal(): void {
+    let subtotal = 0;
+    let discountTotal = 0;
     const linesTotal = this.linesFormArray.controls.reduce((acc, group) => {
       const raw = group.getRawValue();
       const qty = raw.qty ?? 0;
       const unitCost = raw.unitCost ?? 0;
       const freight = raw.freightCost ?? 0;
       const extras = raw.extraCosts ?? 0;
-      return acc + qty * unitCost + freight + extras;
+      const base = qty * unitCost + freight + extras;
+      const discount = this.resolveLineDiscount(raw.discountType ?? null, raw.discountValue ?? null, base);
+      subtotal += base;
+      discountTotal += discount;
+      return acc + base - discount;
     }, 0);
 
     const header = this.headerForm.getRawValue();
     const globalFreight = header.globalFreight ?? 0;
     const globalExtras = header.globalExtraCosts ?? 0;
+    this.orderSubtotal = subtotal;
+    this.orderDiscountTotal = discountTotal;
     this.orderTotal = linesTotal + globalFreight + globalExtras;
+  }
+
+  private resolveLineDiscount(
+    discountType: 'PERCENT' | 'AMOUNT' | null,
+    discountValue: number | null,
+    base: number,
+  ): number {
+    if (!discountType || discountValue === null || discountValue === undefined || discountValue <= 0) {
+      return 0;
+    }
+    if (discountType === 'PERCENT') {
+      return (base * discountValue) / 100;
+    }
+    return discountValue;
   }
 
   private resolveAllowedCurrencyIds(

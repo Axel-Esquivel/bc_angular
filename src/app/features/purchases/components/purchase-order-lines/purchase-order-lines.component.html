@@ -10,6 +10,14 @@
             <div class="line-summary">
               <span>Qty: {{ getLineQty(i) }}</span>
               <span>Total: {{ getLineTotal(i) | number:'1.2-2' }}</span>
+              <p-button
+                *ngIf="lines[i]?.productId"
+                icon="pi pi-search"
+                text
+                size="small"
+                severity="secondary"
+                (onClick)="openBestPrice(i)"
+              ></p-button>
             </div>
           </div>
         </p-accordion-header>
@@ -26,7 +34,7 @@
                   optionValue="value"
                   (onChange)="onPackagingChange(i)"
                 ></p-select>
-                <small class="field-hint">Multiplicador guardado en el pedido (snapshot).</small>
+                <!-- <small class="field-hint">Multiplicador guardado en el pedido (snapshot).</small> -->
               </div>
               <div class="field">
                 <label for="qty-{{ i }}">Cantidad</label>
@@ -97,6 +105,42 @@
                   [maxFractionDigits]="2"
                 ></p-inputNumber>
               </div>
+              <div class="field">
+                <label for="bonusQty-{{ i }}">Bonificaci&oacute;n (qty)</label>
+                <p-inputNumber
+                  inputId="bonusQty-{{ i }}"
+                  formControlName="bonusQty"
+                  [locale]="numberLocale"
+                  [min]="0"
+                  [minFractionDigits]="0"
+                  [maxFractionDigits]="0"
+                ></p-inputNumber>
+                <!-- <small class="field-hint">Base bonificada: {{ getLineBonusUnits(i) }}</small> -->
+              </div>
+              <div class="field">
+                <label for="discountType-{{ i }}">Descuento</label>
+                <p-select
+                  inputId="discountType-{{ i }}"
+                  formControlName="discountType"
+                  [options]="[
+                    { label: '%', value: 'PERCENT' },
+                    { label: 'Monto', value: 'AMOUNT' }
+                  ]"
+                  optionLabel="label"
+                  optionValue="value"
+                ></p-select>
+              </div>
+              <div class="field">
+                <label for="discountValue-{{ i }}">Valor descuento</label>
+                <p-inputNumber
+                  inputId="discountValue-{{ i }}"
+                  formControlName="discountValue"
+                  [locale]="numberLocale"
+                  [min]="0"
+                  [minFractionDigits]="2"
+                  [maxFractionDigits]="2"
+                ></p-inputNumber>
+              </div>
               <div class="field full">
                 <label for="notes-{{ i }}">Observaci&oacute;n</label>
                 <input pInputText [id]="'notes-' + i" formControlName="notes" />
@@ -116,3 +160,49 @@
     </p-accordion>
   </div>
 </div>
+
+<p-dialog
+  header="Mejor precio"
+  [(visible)]="bestPriceVisible"
+  [modal]="true"
+  [closable]="true"
+  [draggable]="false"
+  [style]="{ width: '720px' }"
+  (onHide)="closeBestPrice()"
+>
+  <p-message
+    *ngIf="bestPriceFxNote"
+    severity="info"
+    [text]="bestPriceFxNote"
+  ></p-message>
+  <p-table [value]="bestPriceItems" [loading]="bestPriceLoading" dataKey="orderId">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Proveedor</th>
+        <th>Empaque</th>
+        <th>Moneda</th>
+        <th>Precio</th>
+        <th>Fecha</th>
+        <th>Origen</th>
+        <th>Mejor</th>
+        <th>Acciones</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-row>
+      <tr>
+        <td>{{ row.providerName }}</td>
+        <td>{{ row.packagingId || '-' }}</td>
+        <td>{{ row.currency }}</td>
+        <td>{{ row.unitCost | number:'1.2-2' }}</td>
+        <td>{{ row.date | date:'yyyy-MM-dd' }}</td>
+        <td>{{ row.source }}</td>
+        <td>
+          <span *ngIf="row.bestInCurrency" class="best-flag">MEJOR</span>
+        </td>
+        <td>
+          <p-button label="Aplicar" size="small" (onClick)="applyBestPrice(row)"></p-button>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</p-dialog>

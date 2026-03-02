@@ -136,8 +136,18 @@
     </div>
   </div>
   <div class="header-total">
-    <span>Total:</span>
-    <strong>{{ orderTotal | number:'1.2-2' }}</strong>
+    <div class="total-row">
+      <span>Subtotal:</span>
+      <strong>{{ orderSubtotal | number:'1.2-2' }}</strong>
+    </div>
+    <div class="total-row">
+      <span>Descuentos:</span>
+      <strong>-{{ orderDiscountTotal | number:'1.2-2' }}</strong>
+    </div>
+    <div class="total-row total">
+      <span>Total:</span>
+      <strong>{{ orderTotal | number:'1.2-2' }}</strong>
+    </div>
   </div>
 </div>
 
@@ -147,6 +157,7 @@
     [lines]="lineItems"
     [currencyOptions]="currencyOptions"
     [packagingOptions]="packagingOptions"
+    [organizationId]="organizationId"
     (change)="onLinesChange($event)"
     (remove)="removeLine($event)"
   ></app-purchase-order-lines>

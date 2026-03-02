@@ -18,6 +18,7 @@
   display: flex;
   gap: 1rem;
   opacity: 0.9;
+  align-items: center;
 }
 
 .line-body {
@@ -57,4 +58,9 @@
 .line-actions {
   display: flex;
   justify-content: flex-end;
+}
+
+.best-flag {
+  font-weight: 600;
+  color: var(--green-600);
 }

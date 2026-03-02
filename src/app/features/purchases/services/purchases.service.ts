@@ -32,6 +32,9 @@ export interface PurchaseOrderLinePayload {
   freightCost?: number;
   extraCosts?: number;
   notes?: string;
+  bonusQty?: number;
+  discountType?: 'PERCENT' | 'AMOUNT';
+  discountValue?: number;
 }
 
 export interface CreatePurchaseOrderPayload {
@@ -70,6 +73,9 @@ export interface PurchaseOrderLine {
   freightCost?: number;
   extraCosts?: number;
   notes?: string;
+  bonusQty?: number;
+  discountType?: 'PERCENT' | 'AMOUNT';
+  discountValue?: number;
   status: string;
 }
 
@@ -89,6 +95,24 @@ export interface PurchaseOrder {
   globalExtraCosts?: number;
   notes?: string;
   total?: number;
+}
+
+export interface BestPriceItem {
+  providerId: string;
+  providerName: string;
+  currency: string;
+  unitCost: number;
+  packagingId?: string;
+  multiplierSnapshot?: number;
+  date: string;
+  source: 'purchase_order' | 'price_list';
+  orderId?: string;
+  bestInCurrency?: boolean;
+}
+
+export interface BestPriceResponse {
+  items: BestPriceItem[];
+  fxNote?: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -182,5 +206,29 @@ export class PurchasesService {
       .set('OrganizationId', params.OrganizationId)
       .set('companyId', params.companyId);
     return this.http.get<ApiResponse<PurchaseOrder[]>>(`${this.baseUrl}/orders`, { params: httpParams });
+  }
+
+  getBestPrices(params: {
+    organizationId: string;
+    productId: string;
+    variantId?: string;
+    packagingId?: string;
+    limit?: number;
+  }): Observable<ApiResponse<BestPriceResponse>> {
+    let httpParams = new HttpParams()
+      .set('organizationId', params.organizationId)
+      .set('productId', params.productId);
+    if (params.variantId) {
+      httpParams = httpParams.set('variantId', params.variantId);
+    }
+    if (params.packagingId) {
+      httpParams = httpParams.set('packagingId', params.packagingId);
+    }
+    if (typeof params.limit === 'number') {
+      httpParams = httpParams.set('limit', String(params.limit));
+    }
+    return this.http.get<ApiResponse<BestPriceResponse>>(`${this.baseUrl}/orders/best-price`, {
+      params: httpParams,
+    });
   }
 }

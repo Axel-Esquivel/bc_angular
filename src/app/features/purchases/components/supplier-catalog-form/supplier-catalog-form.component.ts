@@ -194,7 +194,11 @@ export class SupplierCatalogFormComponent implements OnChanges {
     }
 
     const cached = this.lookupService.getVariantById(item.variantId);
-    const baseOption: VariantOption = cached ?? { id: item.variantId, name: item.variantId };
+    const baseOption: VariantOption = cached ?? {
+      id: item.variantId,
+      productId: '',
+      name: item.variantId,
+    };
     const option: ProductOptionDisplay = {
       ...baseOption,
       display: this.formatOption(baseOption),

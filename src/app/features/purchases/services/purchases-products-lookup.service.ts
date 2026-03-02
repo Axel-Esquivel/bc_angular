@@ -7,6 +7,7 @@ import { ProductVariant } from '../../../shared/models/product-variant.model';
 
 export interface VariantOption {
   id: string;
+  productId: string;
   name: string;
   sku?: string;
 }
@@ -60,6 +61,7 @@ export class PurchasesProductsLookupService {
   private mapVariantOption(variant: ProductVariant): VariantOption {
     return {
       id: variant.id,
+      productId: variant.productId,
       name: variant.name,
       sku: variant.sku ?? undefined,
     };

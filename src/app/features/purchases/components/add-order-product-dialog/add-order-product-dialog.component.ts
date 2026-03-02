@@ -9,6 +9,7 @@ import {
 } from '../../services/purchases-products-lookup.service';
 
 export interface AddOrderProductResult {
+  productId: string;
   variantId: string;
   variantLabel: string;
   qty: number;
@@ -120,6 +121,7 @@ export class AddOrderProductDialogComponent {
     }
 
     this.save.emit({
+      productId: variant.productId,
       variantId: variant.id,
       variantLabel: variant.name,
       qty,
