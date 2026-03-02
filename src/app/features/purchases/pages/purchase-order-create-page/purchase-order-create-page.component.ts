@@ -22,6 +22,7 @@ import {
 } from '../../components/purchase-order-lines/purchase-order-lines.component';
 import { AddOrderProductResult } from '../../components/add-order-product-dialog/add-order-product-dialog.component';
 import { PurchasesProductsLookupService } from '../../services/purchases-products-lookup.service';
+import { applyMultiplierState } from '../../utils/packaging-multiplier.util';
 
 interface SelectOption {
   label: string;
@@ -124,13 +125,14 @@ export class PurchaseOrderCreatePageComponent implements OnInit, OnChanges {
     if (changes['order'] || changes['mode']) {
       if (this.order && (this.isViewMode || this.isEditMode)) {
         this.applyOrder(this.order);
-        if (this.isViewMode) {
-          this.disableFormsForView();
-        } else {
-          this.enableFormsForEdit();
-        }
+      if (this.isViewMode) {
+        this.disableFormsForView();
+      } else {
+        this.enableFormsForEdit();
       }
+      this.rehydrateLinesMultiplierState();
     }
+  }
   }
 
   get organizationId(): string | null {
@@ -232,7 +234,7 @@ export class PurchaseOrderCreatePageComponent implements OnInit, OnChanges {
           validators: [Validators.required],
         }),
         packagingMultiplier: this.fb.control<number | null>(
-          this.resolvePackagingMultiplier(this.defaultPackagingId),
+          { value: this.resolvePackagingMultiplier(this.defaultPackagingId), disabled: true },
           { validators: [Validators.min(1)] },
         ),
         qty: this.fb.control<number | null>(payload.qty, { validators: [Validators.min(0)] }),
@@ -243,6 +245,11 @@ export class PurchaseOrderCreatePageComponent implements OnInit, OnChanges {
         notes: this.fb.control<string | null>(null),
       }) as LineFormGroup,
     );
+    const lastGroup = this.linesFormArray.at(this.linesFormArray.length - 1);
+    const packagingOption = this.packagingOptions.find(
+      (item) => item.value === (this.defaultPackagingId ?? ''),
+    ) ?? null;
+    applyMultiplierState(lastGroup, packagingOption);
 
     this.addDialogVisible = false;
     this.recalculateTotal();
@@ -429,23 +436,28 @@ export class PurchaseOrderCreatePageComponent implements OnInit, OnChanges {
 
     this.linesFormArray.clear();
     this.lineItems.forEach((item) => {
-    this.linesFormArray.push(
-      this.fb.group({
-        packagingId: this.fb.control<string | null>(this.defaultPackagingId, {
-          validators: [Validators.required],
-        }),
-        packagingMultiplier: this.fb.control<number | null>(
-          this.resolvePackagingMultiplier(this.defaultPackagingId),
-          { validators: [Validators.min(1)] },
-        ),
-        qty: this.fb.control<number | null>(0, { validators: [Validators.min(0)] }),
-        unitCost: this.fb.control<number | null>(item.lastCost ?? null, { validators: [Validators.min(0)] }),
-        currency: this.fb.control<string | null>(item.lastCurrency ?? this.defaultCurrencyId ?? null),
-        freightCost: this.fb.control<number | null>(null, { validators: [Validators.min(0)] }),
-        extraCosts: this.fb.control<number | null>(null, { validators: [Validators.min(0)] }),
-        notes: this.fb.control<string | null>(null),
-      }) as LineFormGroup,
-    );
+      this.linesFormArray.push(
+        this.fb.group({
+          packagingId: this.fb.control<string | null>(this.defaultPackagingId, {
+            validators: [Validators.required],
+          }),
+          packagingMultiplier: this.fb.control<number | null>(
+            { value: this.resolvePackagingMultiplier(this.defaultPackagingId), disabled: true },
+            { validators: [Validators.min(1)] },
+          ),
+          qty: this.fb.control<number | null>(0, { validators: [Validators.min(0)] }),
+          unitCost: this.fb.control<number | null>(item.lastCost ?? null, { validators: [Validators.min(0)] }),
+          currency: this.fb.control<string | null>(item.lastCurrency ?? this.defaultCurrencyId ?? null),
+          freightCost: this.fb.control<number | null>(null, { validators: [Validators.min(0)] }),
+          extraCosts: this.fb.control<number | null>(null, { validators: [Validators.min(0)] }),
+          notes: this.fb.control<string | null>(null),
+        }) as LineFormGroup,
+      );
+      const lastGroup = this.linesFormArray.at(this.linesFormArray.length - 1);
+      const packagingOption = this.packagingOptions.find(
+        (option) => option.value === (this.defaultPackagingId ?? ''),
+      ) ?? null;
+      applyMultiplierState(lastGroup, packagingOption);
     });
     this.recalculateTotal();
   }
@@ -520,11 +532,12 @@ export class PurchaseOrderCreatePageComponent implements OnInit, OnChanges {
           value: item.id,
           label: this.formatPackagingLabel(item),
           multiplier: item.multiplier ?? 1,
-          variableMultiplier: item.variableMultiplier ?? false,
+          allowCustomMultiplier: item.variableMultiplier ?? false,
         }));
         this.packagingById = new Map(this.packagingOptions.map((item) => [item.value, item]));
         this.defaultPackagingId = this.resolveDefaultPackagingId(list);
         this.ensureLinePackagingDefaults();
+        this.rehydrateLinesMultiplierState();
       },
       error: () => {
         this.packagingOptions = [];
@@ -575,6 +588,7 @@ export class PurchaseOrderCreatePageComponent implements OnInit, OnChanges {
   private enableFormsForEdit(): void {
     this.headerForm.enable({ emitEvent: false });
     this.orderForm.enable({ emitEvent: false });
+    this.rehydrateLinesMultiplierState();
   }
 
   private applyOrder(order: PurchaseOrder): void {
@@ -608,9 +622,13 @@ export class PurchaseOrderCreatePageComponent implements OnInit, OnChanges {
             { validators: [Validators.required] },
           ),
           packagingMultiplier: this.fb.control<number | null>(
-            line?.packagingMultiplier ??
-              line?.packagingMultiplierSnapshot ??
-              this.resolvePackagingMultiplier(line?.packagingId ?? line?.packagingNameId),
+            {
+              value:
+                line?.packagingMultiplier ??
+                line?.packagingMultiplierSnapshot ??
+                this.resolvePackagingMultiplier(line?.packagingId ?? line?.packagingNameId),
+              disabled: true,
+            },
             { validators: [Validators.min(1)] },
           ),
           qty: this.fb.control<number | null>(line?.quantity ?? 0, { validators: [Validators.min(0)] }),
@@ -621,12 +639,17 @@ export class PurchaseOrderCreatePageComponent implements OnInit, OnChanges {
           notes: this.fb.control<string | null>(line?.notes ?? null),
         }) as LineFormGroup,
       );
+      const lastGroup = this.linesFormArray.at(this.linesFormArray.length - 1);
+      const packagingId = line?.packagingId ?? line?.packagingNameId ?? this.defaultPackagingId ?? '';
+      const packagingOption = this.packagingOptions.find((option) => option.value === packagingId) ?? null;
+      applyMultiplierState(lastGroup, packagingOption);
     });
 
     this.orderTotal = typeof order.total === 'number' ? order.total : this.orderTotal;
     if (this.orderTotal === 0) {
       this.recalculateTotal();
     }
+    this.rehydrateLinesMultiplierState();
   }
 
   private setHeaderCurrencyControlState(enabled: boolean): void {
@@ -814,11 +837,23 @@ export class PurchaseOrderCreatePageComponent implements OnInit, OnChanges {
     this.linesFormArray.controls.forEach((group) => {
       if (!group.controls.packagingId.value) {
         group.controls.packagingId.setValue(this.defaultPackagingId, { emitEvent: false });
-        group.controls.packagingMultiplier.setValue(
-          this.resolvePackagingMultiplier(this.defaultPackagingId),
-          { emitEvent: false },
-        );
+        const packagingOption = this.packagingOptions.find(
+          (option) => option.value === (this.defaultPackagingId ?? ''),
+        ) ?? null;
+        applyMultiplierState(group, packagingOption);
       }
+    });
+  }
+
+  private rehydrateLinesMultiplierState(): void {
+    if (this.linesFormArray.length === 0) {
+      return;
+    }
+    this.linesFormArray.controls.forEach((group) => {
+      const packagingId = group.controls.packagingId.value ?? '';
+      const packagingOption =
+        this.packagingOptions.find((option) => option.value === packagingId) ?? null;
+      applyMultiplierState(group, packagingOption);
     });
   }
 }

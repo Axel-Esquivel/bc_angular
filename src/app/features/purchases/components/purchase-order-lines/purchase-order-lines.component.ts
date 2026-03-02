@@ -9,6 +9,7 @@ import {
 } from '@angular/core';
 import { FormArray, FormControl, FormGroup } from '@angular/forms';
 import { Subscription } from 'rxjs';
+import { applyMultiplierState } from '../../utils/packaging-multiplier.util';
 
 export interface PurchaseOrderLineView {
   variantId: string;
@@ -28,7 +29,7 @@ export interface PackagingOption {
   label: string;
   value: string;
   multiplier: number;
-  variableMultiplier: boolean;
+  allowCustomMultiplier: boolean;
 }
 
 export interface PurchaseOrderLineDraft {
@@ -175,14 +176,9 @@ export class PurchaseOrderLinesComponent implements OnChanges, OnDestroy {
   onPackagingChange(index: number): void {
     const group = this.formArray.at(index);
     const packagingId = group?.controls.packagingId.value ?? '';
-    const option = this.packagingOptions.find((item) => item.value === packagingId);
-    if (option) {
-      group?.controls.packagingMultiplier.setValue(option.multiplier);
-      if (option.variableMultiplier) {
-        group?.controls.packagingMultiplier.enable({ emitEvent: false });
-      } else {
-        group?.controls.packagingMultiplier.disable({ emitEvent: false });
-      }
+    const option = this.packagingOptions.find((item) => item.value === packagingId) ?? null;
+    if (group) {
+      applyMultiplierState(group, option);
     }
   }
 
@@ -212,18 +208,8 @@ export class PurchaseOrderLinesComponent implements OnChanges, OnDestroy {
         group.controls.packagingId.disable({ emitEvent: false });
       }
       const packagingId = group.controls.packagingId.value ?? '';
-      const option = this.packagingOptions.find((item) => item.value === packagingId);
-      if (!group.controls.packagingMultiplier.value) {
-        const multiplier = this.resolvePackagingMultiplier(packagingId);
-        if (multiplier > 0) {
-          group.controls.packagingMultiplier.setValue(multiplier, { emitEvent: false });
-        }
-      }
-      if (option && !option.variableMultiplier) {
-        group.controls.packagingMultiplier.disable({ emitEvent: false });
-      } else {
-        group.controls.packagingMultiplier.enable({ emitEvent: false });
-      }
+      const option = this.packagingOptions.find((item) => item.value === packagingId) ?? null;
+      applyMultiplierState(group, option);
     });
   }
 
@@ -231,6 +217,8 @@ export class PurchaseOrderLinesComponent implements OnChanges, OnDestroy {
     const option = this.packagingOptions.find((item) => item.value === packagingId);
     return option?.multiplier ?? 1;
   }
+
+  
 
   ngOnDestroy(): void {
     this.formChangesSub?.unsubscribe();
