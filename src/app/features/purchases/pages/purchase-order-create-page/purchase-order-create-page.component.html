@@ -1,19 +1,19 @@
 <p-toolbar>
   <ng-template pTemplate="start">
     <div class="order-toolbar">
-      <div class="toolbar-left">
-        <div class="toolbar-provider">
-          <p-select
-            inputId="supplierId"
-            [options]="providerOptions"
-            optionLabel="label"
-            optionValue="value"
-            [(ngModel)]="selectedProviderId"
-            (onChange)="onProviderChange()"
-            [disabled]="providerOptions.length === 0 || isViewMode"
-            placeholder="Proveedor"
-          ></p-select>
-        </div>
+      <div class="toolbar-provider">
+        <p-select
+          inputId="supplierId"
+          [options]="providerOptions"
+          optionLabel="label"
+          optionValue="value"
+          [(ngModel)]="selectedProviderId"
+          (onChange)="onProviderChange()"
+          [disabled]="providerOptions.length === 0 || isViewMode"
+          placeholder="Proveedor"
+        ></p-select>
+      </div>
+      <div class="toolbar-actions">
         <p-button
           *ngIf="!isViewMode"
           label="Agregar producto"
@@ -29,8 +29,6 @@
           (onClick)="openAssignDialog()"
           [disabled]="!selectedProviderId"
         ></p-button>
-      </div>
-      <div class="toolbar-right">
         <p-button
           *ngIf="embedded"
           label="Cancelar"

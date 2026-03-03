@@ -25,8 +25,8 @@
           <div class="line-body" [formGroupName]="i">
             <div class="line-fields">
               <p-fieldset legend="Productos" class="line-fieldset">
-                <div class="bc-row">
-                  <div class="bc-col bc-col-lg">
+                <div class="po-row">
+                  <div class="po-col po-col-lg">
                     <div class="bc-field">
                       <label class="bc-label" for="packaging-{{ i }}">Empaque</label>
                       <p-select
@@ -39,7 +39,7 @@
                       ></p-select>
                     </div>
                   </div>
-                  <div class="bc-col bc-col-sm">
+                  <div class="po-col po-col-xs">
                     <div class="bc-field">
                       <label class="bc-label" for="qty-{{ i }}">Cantidad</label>
                       <p-inputNumber
@@ -52,7 +52,7 @@
                       ></p-inputNumber>
                     </div>
                   </div>
-                  <div class="bc-col bc-col-sm">
+                  <div class="po-col po-col-xs">
                     <div class="bc-field">
                       <label class="bc-label" for="multiplier-{{ i }}">Multiplicador</label>
                       <p-inputNumber
@@ -65,7 +65,7 @@
                       ></p-inputNumber>
                     </div>
                   </div>
-                  <div class="bc-col bc-col-sm">
+                  <div class="po-col po-col-xs">
                     <div class="bc-field">
                       <label class="bc-label" for="baseQty-{{ i }}">Base (unidades)</label>
                       <input
@@ -78,8 +78,8 @@
                     </div>
                   </div>
                 </div>
-                <div class="bc-row">
-                  <div class="bc-col bc-col-md">
+                <div class="po-row">
+                  <div class="po-col po-col-md">
                     <div class="bc-field">
                       <label class="bc-label" for="unitCost-{{ i }}">Precio / costo</label>
                       <p-inputNumber
@@ -92,7 +92,7 @@
                       ></p-inputNumber>
                     </div>
                   </div>
-                  <div class="bc-col bc-col-md">
+                  <div class="po-col po-col-md">
                     <div class="bc-field">
                       <label class="bc-label" for="currency-{{ i }}">Moneda</label>
                       <p-select
@@ -108,8 +108,8 @@
               </p-fieldset>
 
               <p-fieldset legend="Gastos" class="line-fieldset">
-                <div class="bc-row">
-                  <div class="bc-col bc-col-md">
+                <div class="po-row">
+                  <div class="po-col po-col-md">
                     <div class="bc-field">
                       <label class="bc-label" for="freight-{{ i }}">Flete</label>
                       <p-inputNumber
@@ -122,7 +122,7 @@
                       ></p-inputNumber>
                     </div>
                   </div>
-                  <div class="bc-col bc-col-md">
+                  <div class="po-col po-col-md">
                     <div class="bc-field">
                       <label class="bc-label" for="extra-{{ i }}">Gastos extra</label>
                       <p-inputNumber
@@ -139,8 +139,8 @@
               </p-fieldset>
 
               <p-fieldset legend="Descuentos" class="line-fieldset">
-                <div class="bc-row">
-                  <div class="bc-col bc-col-md">
+                <div class="po-row">
+                  <div class="po-col po-col-md">
                     <div class="bc-field">
                       <label class="bc-label" for="bonusQty-{{ i }}">Bonificaci&oacute;n (qty)</label>
                       <p-inputNumber
@@ -154,7 +154,7 @@
                       <small class="field-hint">Base bonificada: {{ getLineBonusUnits(i) }}</small>
                     </div>
                   </div>
-                  <div class="bc-col bc-col-md">
+                  <div class="po-col po-col-md">
                     <div class="bc-field">
                       <label class="bc-label" for="discountType-{{ i }}">Descuento</label>
                       <p-select
@@ -169,7 +169,7 @@
                       ></p-select>
                     </div>
                   </div>
-                  <div class="bc-col bc-col-md">
+                  <div class="po-col po-col-md">
                     <div class="bc-field">
                       <label class="bc-label" for="discountValue-{{ i }}">Valor descuento</label>
                       <p-inputNumber
@@ -183,8 +183,8 @@
                     </div>
                   </div>
                 </div>
-                <div class="bc-row">
-                  <div class="bc-col bc-col-100">
+                <div class="po-row">
+                  <div class="po-col po-col-100">
                     <div class="bc-field">
                       <label class="bc-label" for="notes-{{ i }}">Observaci&oacute;n</label>
                       <textarea pTextarea [id]="'notes-' + i" rows="2" formControlName="notes"></textarea>
