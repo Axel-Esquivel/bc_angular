@@ -70,12 +70,14 @@
   flex-wrap: wrap;
   gap: 12px;
   width: 100%;
+  align-items: flex-end;
 }
 
 .bc-col {
   flex: 1 1 240px;
   min-width: 220px;
   max-width: 100%;
+  min-width: 0;
 }
 
 .bc-col-sm {
@@ -128,7 +130,13 @@
   width: 100%;
 }
 
-.field-static {
+.bc-field :global(.p-inputtext),
+.bc-field :global(.p-inputnumber-input),
+.bc-field :global(.p-select) {
+  min-height: 2.5rem;
+}
+
+.readonly-input {
   min-height: 2.5rem;
   padding: 0.5rem 0.75rem;
   border: 1px solid var(--surface-border);

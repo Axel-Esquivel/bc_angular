@@ -5,7 +5,7 @@
   overflow-x: hidden;
 }
 
-.toolbar-row {
+.order-toolbar {
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
@@ -13,25 +13,29 @@
   width: 100%;
 }
 
-.toolbar-row > * {
+.order-toolbar > * {
   min-width: 0;
+}
+
+.toolbar-left {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.toolbar-right {
+  display: flex;
+  gap: 0.5rem;
+  margin-left: auto;
+  flex: 0 0 auto;
 }
 
 .toolbar-provider {
   flex: 1 1 260px;
   min-width: 200px;
-}
-
-.toolbar-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  justify-content: flex-start;
-  flex: 1 1 320px;
-}
-
-.toolbar-actions--end {
-  justify-content: flex-end;
 }
 
 .toolbar-provider :global(.p-select) {
@@ -48,15 +52,24 @@
   gap: 0.5rem;
 }
 
-@media (max-width: 640px) {
-  .toolbar-provider,
-  .toolbar-actions {
+@media (max-width: 600px) {
+  .toolbar-left,
+  .toolbar-right {
     flex: 1 1 100%;
   }
 
-  .toolbar-actions > * {
+  .toolbar-right {
+    justify-content: flex-end;
+  }
+
+  .toolbar-left > *,
+  .toolbar-right > * {
     flex: 1 1 100%;
   }
+}
+
+:host ::ng-deep .p-button {
+  white-space: nowrap;
 }
 
 .messages {

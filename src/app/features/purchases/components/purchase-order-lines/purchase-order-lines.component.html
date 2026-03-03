@@ -67,8 +67,14 @@
                   </div>
                   <div class="bc-col bc-col-sm">
                     <div class="bc-field">
-                      <label class="bc-label">Base (unidades)</label>
-                      <div class="field-static">{{ getLineBaseQty(i) }}</div>
+                      <label class="bc-label" for="baseQty-{{ i }}">Base (unidades)</label>
+                      <input
+                        pInputText
+                        [id]="'baseQty-' + i"
+                        [value]="getLineBaseQty(i)"
+                        readonly
+                        class="readonly-input"
+                      />
                     </div>
                   </div>
                 </div>
