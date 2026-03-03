@@ -68,7 +68,8 @@
   [(visible)]="newOrderDialogVisible"
   [modal]="true"
   [dismissableMask]="true"
-  [style]="{ width: '90%', height: '90%' }"
+  [style]="{ width: 'min(1100px, 95vw)', height: '95vh' }"
+  [contentStyle]="{ overflowX: 'hidden' }"
   (onHide)="closeNewOrderDialog()"
 >
   <app-purchase-order-create-page
@@ -83,7 +84,8 @@
   [(visible)]="viewDialogVisible"
   [modal]="true"
   [dismissableMask]="true"
-  [style]="{ width: '90%', height: '90%' }"
+  [style]="{ width: 'min(1100px, 95vw)', height: '95vh' }"
+  [contentStyle]="{ overflowX: 'hidden' }"
   (onHide)="closeView()"
 >
   <app-purchase-order-create-page
@@ -99,7 +101,8 @@
   [(visible)]="editDialogVisible"
   [modal]="true"
   [dismissableMask]="true"
-  [style]="{ width: '90%', height: '90%' }"
+  [style]="{ width: 'min(1100px, 95vw)', height: '95vh' }"
+  [contentStyle]="{ overflowX: 'hidden' }"
   (onHide)="closeEdit()"
 >
   <app-purchase-order-create-page

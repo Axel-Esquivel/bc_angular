@@ -1,5 +1,7 @@
 .lines-accordion {
   margin-top: 1rem;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 :host {
@@ -126,6 +128,15 @@
   width: 100%;
 }
 
+.field-static {
+  min-height: 2.5rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--surface-border);
+  border-radius: 6px;
+  background: var(--surface-ground);
+  font-weight: 500;
+}
+
 :host ::ng-deep .p-dialog-content {
   overflow-x: hidden;
 }
@@ -137,6 +148,15 @@
   .bc-col-lg {
     flex: 1 1 100%;
     min-width: 100%;
+  }
+}
+
+@media (max-width: 520px) {
+  .bc-col,
+  .bc-col-sm,
+  .bc-col-md,
+  .bc-col-lg {
+    min-width: 0;
   }
 }
 

@@ -1,18 +1,41 @@
-.toolbar-actions {
+:host {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.toolbar-row {
   display: flex;
-  align-items: center;
-  gap: 0.75rem;
   flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
   width: 100%;
 }
 
-.toolbar-actions :global(.p-select) {
-  flex: 1 1 220px;
+.toolbar-row > * {
+  min-width: 0;
+}
+
+.toolbar-provider {
+  flex: 1 1 260px;
   min-width: 200px;
 }
 
-.toolbar-actions :global(.p-button) {
-  flex: 0 0 auto;
+.toolbar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: flex-start;
+  flex: 1 1 320px;
+}
+
+.toolbar-actions--end {
+  justify-content: flex-end;
+}
+
+.toolbar-provider :global(.p-select) {
+  width: 100%;
 }
 
 :host ::ng-deep .p-toolbar {
@@ -26,8 +49,13 @@
 }
 
 @media (max-width: 640px) {
-  .toolbar-actions :global(.p-button) {
-    width: 100%;
+  .toolbar-provider,
+  .toolbar-actions {
+    flex: 1 1 100%;
+  }
+
+  .toolbar-actions > * {
+    flex: 1 1 100%;
   }
 }
 

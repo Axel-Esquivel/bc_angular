@@ -1,47 +1,53 @@
 <p-toolbar>
   <ng-template pTemplate="start">
-    <div class="toolbar-actions">
-      <p-select
-        inputId="supplierId"
-        [options]="providerOptions"
-        optionLabel="label"
-        optionValue="value"
-        [(ngModel)]="selectedProviderId"
-        (onChange)="onProviderChange()"
-        [disabled]="providerOptions.length === 0 || isViewMode"
-        placeholder="Proveedor"
-      ></p-select>
-      <p-button
-        *ngIf="!isViewMode"
-        label="Agregar producto"
-        icon="pi pi-plus"
-        (onClick)="openAddProduct()"
-        [disabled]="!selectedProviderId"
-      ></p-button>
-      <p-button
-        *ngIf="!isViewMode"
-        label="Asignar productos"
-        icon="pi pi-list"
-        severity="secondary"
-        (onClick)="openAssignDialog()"
-        [disabled]="!selectedProviderId"
-      ></p-button>
+    <div class="toolbar-row">
+      <div class="toolbar-provider">
+        <p-select
+          inputId="supplierId"
+          [options]="providerOptions"
+          optionLabel="label"
+          optionValue="value"
+          [(ngModel)]="selectedProviderId"
+          (onChange)="onProviderChange()"
+          [disabled]="providerOptions.length === 0 || isViewMode"
+          placeholder="Proveedor"
+        ></p-select>
+      </div>
+      <div class="toolbar-actions">
+        <p-button
+          *ngIf="!isViewMode"
+          label="Agregar producto"
+          icon="pi pi-plus"
+          (onClick)="openAddProduct()"
+          [disabled]="!selectedProviderId"
+        ></p-button>
+        <p-button
+          *ngIf="!isViewMode"
+          label="Asignar productos"
+          icon="pi pi-list"
+          severity="secondary"
+          (onClick)="openAssignDialog()"
+          [disabled]="!selectedProviderId"
+        ></p-button>
+      </div>
     </div>
   </ng-template>
   <ng-template pTemplate="end">
-    <p-button
-      *ngIf="embedded"
-      label="Cancelar"
-      severity="secondary"
-      (onClick)="onCancel()"
-    ></p-button>
-    <p-button
-      *ngIf="!isViewMode"
-      label="Guardar"
-      icon="pi pi-save"
-      (onClick)="saveOrder()"
-      [disabled]="saving"
-    ></p-button>
+    <div class="toolbar-actions toolbar-actions--end">
+      <p-button
+        *ngIf="embedded"
+        label="Cancelar"
+        severity="secondary"
+        (onClick)="onCancel()"
+      ></p-button>
+      <p-button
+        *ngIf="!isViewMode"
+        label="Guardar"
+        icon="pi pi-save"
+        (onClick)="saveOrder()"
+        [disabled]="saving"
+      ></p-button>
+    </div>
   </ng-template>
 </p-toolbar>
 
