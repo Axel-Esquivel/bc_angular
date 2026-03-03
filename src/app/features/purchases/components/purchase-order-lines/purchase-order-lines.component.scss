@@ -2,12 +2,22 @@
   margin-top: 1rem;
 }
 
+:host {
+  display: block;
+  max-width: 100%;
+}
+
+.lines-accordion * {
+  box-sizing: border-box;
+}
+
 .line-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   width: 100%;
   gap: 1rem;
+  flex-wrap: wrap;
 }
 
 .line-title {
@@ -19,22 +29,115 @@
   gap: 1rem;
   opacity: 0.9;
   align-items: center;
+  flex-wrap: wrap;
 }
 
 .line-body {
   display: grid;
   gap: 1rem;
+  max-width: 100%;
 }
 
 .line-fields {
   display: grid;
   gap: 1rem;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  max-width: 100%;
 }
 
-.field {
-  display: grid;
-  gap: 0.35rem;
+.line-fieldset :global(.p-fieldset-content) {
+  padding-top: 0.75rem;
+  overflow-x: hidden;
+}
+
+.line-fieldset {
+  width: 100%;
+}
+
+.bc-lines-root {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.bc-row,
+.bc-col {
+  min-width: 0;
+}
+
+.bc-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  width: 100%;
+}
+
+.bc-col {
+  flex: 1 1 240px;
+  min-width: 220px;
+  max-width: 100%;
+}
+
+.bc-col-sm {
+  flex: 0 1 140px;
+  min-width: 140px;
+}
+
+.bc-col-md {
+  flex: 1 1 220px;
+  min-width: 200px;
+}
+
+.bc-col-lg {
+  flex: 2 1 320px;
+  min-width: 260px;
+}
+
+.bc-col-100 {
+  flex: 1 1 100%;
+  min-width: 100%;
+}
+
+.bc-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.bc-label {
+  font-size: 12px;
+  opacity: 0.85;
+  line-height: 1.2;
+}
+
+.bc-field :is(input, textarea) {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.bc-field :global(.p-select),
+.bc-field :global(.p-inputnumber),
+.bc-field :global(.p-inputtext),
+.bc-field textarea,
+.bc-field input {
+  width: 100%;
+  max-width: 100%;
+}
+
+.bc-field :global(.p-inputnumber-input) {
+  width: 100%;
+}
+
+:host ::ng-deep .p-dialog-content {
+  overflow-x: hidden;
+}
+
+@media (max-width: 640px) {
+  .bc-col,
+  .bc-col-sm,
+  .bc-col-md,
+  .bc-col-lg {
+    flex: 1 1 100%;
+    min-width: 100%;
+  }
 }
 
 .field-hint {
@@ -42,22 +145,16 @@
   color: var(--text-color-secondary);
 }
 
-.field-static {
-  min-height: 2.5rem;
-  padding: 0.5rem 0.75rem;
-  border: 1px solid var(--surface-border);
-  border-radius: 6px;
-  background: var(--surface-ground);
-  font-weight: 500;
-}
-
-.field.full {
-  grid-column: 1 / -1;
-}
-
 .line-actions {
   display: flex;
   justify-content: flex-end;
+  width: 100%;
+}
+
+@media (max-width: 640px) {
+  .line-actions :global(.p-button) {
+    width: 100%;
+  }
 }
 
 .best-flag {

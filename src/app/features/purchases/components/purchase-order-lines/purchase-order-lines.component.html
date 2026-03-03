@@ -1,4 +1,4 @@
-<div class="lines-accordion" [formGroup]="form">
+<div class="lines-accordion bc-lines-root" [formGroup]="form">
   <div formArrayName="lines">
     <p-accordion [multiple]="true">
       <p-accordion-panel *ngFor="let group of formArray.controls; let i = index" [value]="i">
@@ -24,127 +24,168 @@
         <p-accordion-content>
           <div class="line-body" [formGroupName]="i">
             <div class="line-fields">
-              <div class="field">
-                <label for="packaging-{{ i }}">Empaque</label>
-                <p-select
-                  inputId="packaging-{{ i }}"
-                  formControlName="packagingId"
-                  [options]="packagingOptions"
-                  optionLabel="label"
-                  optionValue="value"
-                  (onChange)="onPackagingChange(i)"
-                ></p-select>
-                <!-- <small class="field-hint">Multiplicador guardado en el pedido (snapshot).</small> -->
-              </div>
-              <div class="field">
-                <label for="qty-{{ i }}">Cantidad</label>
-                <p-inputNumber
-                  inputId="qty-{{ i }}"
-                  formControlName="qty"
-                  [locale]="numberLocale"
-                  [min]="0"
-                  [minFractionDigits]="0"
-                  [maxFractionDigits]="0"
-                ></p-inputNumber>
-              </div>
-              <div class="field">
-                <label for="multiplier-{{ i }}">Multiplicador</label>
-                <p-inputNumber
-                  inputId="multiplier-{{ i }}"
-                  formControlName="packagingMultiplier"
-                  [locale]="numberLocale"
-                  [min]="1"
-                  [minFractionDigits]="0"
-                  [maxFractionDigits]="0"
-                ></p-inputNumber>
-              </div>
-              <div class="field">
-                <label>Base (unidades)</label>
-                <div class="field-static">{{ getLineBaseQty(i) }}</div>
-              </div>
-              <div class="field">
-                <label for="unitCost-{{ i }}">Precio / costo</label>
-                <p-inputNumber
-                  inputId="unitCost-{{ i }}"
-                  formControlName="unitCost"
-                  [locale]="numberLocale"
-                  [min]="0"
-                  [minFractionDigits]="2"
-                  [maxFractionDigits]="2"
-                ></p-inputNumber>
-              </div>
-              <div class="field">
-                <label for="currency-{{ i }}">Moneda</label>
-                <p-select
-                  inputId="currency-{{ i }}"
-                  formControlName="currency"
-                  [options]="currencyOptions"
-                  optionLabel="label"
-                  optionValue="value"
-                ></p-select>
-              </div>
-              <div class="field">
-                <label for="freight-{{ i }}">Flete</label>
-                <p-inputNumber
-                  inputId="freight-{{ i }}"
-                  formControlName="freightCost"
-                  [locale]="numberLocale"
-                  [min]="0"
-                  [minFractionDigits]="2"
-                  [maxFractionDigits]="2"
-                ></p-inputNumber>
-              </div>
-              <div class="field">
-                <label for="extra-{{ i }}">Gastos extra</label>
-                <p-inputNumber
-                  inputId="extra-{{ i }}"
-                  formControlName="extraCosts"
-                  [locale]="numberLocale"
-                  [min]="0"
-                  [minFractionDigits]="2"
-                  [maxFractionDigits]="2"
-                ></p-inputNumber>
-              </div>
-              <div class="field">
-                <label for="bonusQty-{{ i }}">Bonificaci&oacute;n (qty)</label>
-                <p-inputNumber
-                  inputId="bonusQty-{{ i }}"
-                  formControlName="bonusQty"
-                  [locale]="numberLocale"
-                  [min]="0"
-                  [minFractionDigits]="0"
-                  [maxFractionDigits]="0"
-                ></p-inputNumber>
-                <!-- <small class="field-hint">Base bonificada: {{ getLineBonusUnits(i) }}</small> -->
-              </div>
-              <div class="field">
-                <label for="discountType-{{ i }}">Descuento</label>
-                <p-select
-                  inputId="discountType-{{ i }}"
-                  formControlName="discountType"
-                  [options]="[
-                    { label: '%', value: 'PERCENT' },
-                    { label: 'Monto', value: 'AMOUNT' }
-                  ]"
-                  optionLabel="label"
-                  optionValue="value"
-                ></p-select>
-              </div>
-              <div class="field">
-                <label for="discountValue-{{ i }}">Valor descuento</label>
-                <p-inputNumber
-                  inputId="discountValue-{{ i }}"
-                  formControlName="discountValue"
-                  [locale]="numberLocale"
-                  [min]="0"
-                  [minFractionDigits]="2"
-                  [maxFractionDigits]="2"
-                ></p-inputNumber>
-              </div>
-              <div class="field full">
-                <label for="notes-{{ i }}">Observaci&oacute;n</label>
-                <input pInputText [id]="'notes-' + i" formControlName="notes" />
-              </div>
+              <p-fieldset legend="Productos" class="line-fieldset">
+                <div class="bc-row">
+                  <div class="bc-col bc-col-lg">
+                    <div class="bc-field">
+                      <label class="bc-label" for="packaging-{{ i }}">Empaque</label>
+                      <p-select
+                        inputId="packaging-{{ i }}"
+                        formControlName="packagingId"
+                        [options]="packagingOptions"
+                        optionLabel="label"
+                        optionValue="value"
+                        (onChange)="onPackagingChange(i)"
+                      ></p-select>
+                    </div>
+                  </div>
+                  <div class="bc-col bc-col-sm">
+                    <div class="bc-field">
+                      <label class="bc-label" for="qty-{{ i }}">Cantidad</label>
+                      <p-inputNumber
+                        inputId="qty-{{ i }}"
+                        formControlName="qty"
+                        [locale]="numberLocale"
+                        [min]="0"
+                        [minFractionDigits]="0"
+                        [maxFractionDigits]="0"
+                      ></p-inputNumber>
+                    </div>
+                  </div>
+                  <div class="bc-col bc-col-sm">
+                    <div class="bc-field">
+                      <label class="bc-label" for="multiplier-{{ i }}">Multiplicador</label>
+                      <p-inputNumber
+                        inputId="multiplier-{{ i }}"
+                        formControlName="packagingMultiplier"
+                        [locale]="numberLocale"
+                        [min]="1"
+                        [minFractionDigits]="0"
+                        [maxFractionDigits]="0"
+                      ></p-inputNumber>
+                    </div>
+                  </div>
+                  <div class="bc-col bc-col-sm">
+                    <div class="bc-field">
+                      <label class="bc-label">Base (unidades)</label>
+                      <div class="field-static">{{ getLineBaseQty(i) }}</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="bc-row">
+                  <div class="bc-col bc-col-md">
+                    <div class="bc-field">
+                      <label class="bc-label" for="unitCost-{{ i }}">Precio / costo</label>
+                      <p-inputNumber
+                        inputId="unitCost-{{ i }}"
+                        formControlName="unitCost"
+                        [locale]="numberLocale"
+                        [min]="0"
+                        [minFractionDigits]="2"
+                        [maxFractionDigits]="2"
+                      ></p-inputNumber>
+                    </div>
+                  </div>
+                  <div class="bc-col bc-col-md">
+                    <div class="bc-field">
+                      <label class="bc-label" for="currency-{{ i }}">Moneda</label>
+                      <p-select
+                        inputId="currency-{{ i }}"
+                        formControlName="currency"
+                        [options]="currencyOptions"
+                        optionLabel="label"
+                        optionValue="value"
+                      ></p-select>
+                    </div>
+                  </div>
+                </div>
+              </p-fieldset>
+
+              <p-fieldset legend="Gastos" class="line-fieldset">
+                <div class="bc-row">
+                  <div class="bc-col bc-col-md">
+                    <div class="bc-field">
+                      <label class="bc-label" for="freight-{{ i }}">Flete</label>
+                      <p-inputNumber
+                        inputId="freight-{{ i }}"
+                        formControlName="freightCost"
+                        [locale]="numberLocale"
+                        [min]="0"
+                        [minFractionDigits]="2"
+                        [maxFractionDigits]="2"
+                      ></p-inputNumber>
+                    </div>
+                  </div>
+                  <div class="bc-col bc-col-md">
+                    <div class="bc-field">
+                      <label class="bc-label" for="extra-{{ i }}">Gastos extra</label>
+                      <p-inputNumber
+                        inputId="extra-{{ i }}"
+                        formControlName="extraCosts"
+                        [locale]="numberLocale"
+                        [min]="0"
+                        [minFractionDigits]="2"
+                        [maxFractionDigits]="2"
+                      ></p-inputNumber>
+                    </div>
+                  </div>
+                </div>
+              </p-fieldset>
+
+              <p-fieldset legend="Descuentos" class="line-fieldset">
+                <div class="bc-row">
+                  <div class="bc-col bc-col-md">
+                    <div class="bc-field">
+                      <label class="bc-label" for="bonusQty-{{ i }}">Bonificaci&oacute;n (qty)</label>
+                      <p-inputNumber
+                        inputId="bonusQty-{{ i }}"
+                        formControlName="bonusQty"
+                        [locale]="numberLocale"
+                        [min]="0"
+                        [minFractionDigits]="0"
+                        [maxFractionDigits]="0"
+                      ></p-inputNumber>
+                      <small class="field-hint">Base bonificada: {{ getLineBonusUnits(i) }}</small>
+                    </div>
+                  </div>
+                  <div class="bc-col bc-col-md">
+                    <div class="bc-field">
+                      <label class="bc-label" for="discountType-{{ i }}">Descuento</label>
+                      <p-select
+                        inputId="discountType-{{ i }}"
+                        formControlName="discountType"
+                        [options]="[
+                          { label: '%', value: 'PERCENT' },
+                          { label: 'Monto', value: 'AMOUNT' }
+                        ]"
+                        optionLabel="label"
+                        optionValue="value"
+                      ></p-select>
+                    </div>
+                  </div>
+                  <div class="bc-col bc-col-md">
+                    <div class="bc-field">
+                      <label class="bc-label" for="discountValue-{{ i }}">Valor descuento</label>
+                      <p-inputNumber
+                        inputId="discountValue-{{ i }}"
+                        formControlName="discountValue"
+                        [locale]="numberLocale"
+                        [min]="0"
+                        [minFractionDigits]="2"
+                        [maxFractionDigits]="2"
+                      ></p-inputNumber>
+                    </div>
+                  </div>
+                </div>
+                <div class="bc-row">
+                  <div class="bc-col bc-col-100">
+                    <div class="bc-field">
+                      <label class="bc-label" for="notes-{{ i }}">Observaci&oacute;n</label>
+                      <textarea pTextarea [id]="'notes-' + i" rows="2" formControlName="notes"></textarea>
+                    </div>
+                  </div>
+                </div>
+              </p-fieldset>
             </div>
             <div class="line-actions">
               <p-button
