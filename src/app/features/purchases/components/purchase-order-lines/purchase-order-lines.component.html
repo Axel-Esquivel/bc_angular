@@ -39,42 +39,53 @@
                       ></p-select>
                     </div>
                   </div>
-                  <div class="po-col po-col-xs">
+                  <div class="po-col po-col-qty">
                     <div class="bc-field">
-                      <label class="bc-label" for="qty-{{ i }}">Cantidad</label>
-                      <p-inputNumber
-                        inputId="qty-{{ i }}"
-                        formControlName="qty"
-                        [locale]="numberLocale"
-                        [min]="0"
-                        [minFractionDigits]="0"
-                        [maxFractionDigits]="0"
-                      ></p-inputNumber>
+                      <p-floatLabel>
+                        <p-inputNumber
+                          inputId="qty-{{ i }}"
+                          formControlName="qty"
+                          [locale]="numberLocale"
+                          [min]="0"
+                          [minFractionDigits]="0"
+                          [maxFractionDigits]="0"
+                          [useGrouping]="false"
+                          class="w-full"
+                        ></p-inputNumber>
+                        <label for="qty-{{ i }}">Cantidad</label>
+                      </p-floatLabel>
                     </div>
                   </div>
-                  <div class="po-col po-col-xs">
+                  <div class="po-col po-col-mult">
                     <div class="bc-field">
-                      <label class="bc-label" for="multiplier-{{ i }}">Multiplicador</label>
-                      <p-inputNumber
-                        inputId="multiplier-{{ i }}"
-                        formControlName="packagingMultiplier"
-                        [locale]="numberLocale"
-                        [min]="1"
-                        [minFractionDigits]="0"
-                        [maxFractionDigits]="0"
-                      ></p-inputNumber>
+                      <p-floatLabel>
+                        <p-inputNumber
+                          inputId="mult-{{ i }}"
+                          formControlName="packagingMultiplier"
+                          [locale]="numberLocale"
+                          [min]="1"
+                          [minFractionDigits]="0"
+                          [maxFractionDigits]="0"
+                          [useGrouping]="false"
+                          class="w-full"
+                        ></p-inputNumber>
+                        <label for="mult-{{ i }}">Multiplicador</label>
+                      </p-floatLabel>
                     </div>
                   </div>
-                  <div class="po-col po-col-xs">
+                  <div class="po-col po-col-base">
                     <div class="bc-field">
-                      <label class="bc-label" for="baseQty-{{ i }}">Base (unidades)</label>
-                      <input
-                        pInputText
-                        [id]="'baseQty-' + i"
-                        [value]="getLineBaseQty(i)"
-                        readonly
-                        class="readonly-input"
-                      />
+                      <p-floatLabel>
+                        <input
+                          pInputText
+                          [id]="'base-' + i"
+                          [value]="getLineBaseQty(i)"
+                          readonly
+                          class="w-full"
+                          tabindex="-1"
+                        />
+                        <label [for]="'base-' + i">Base (unidades)</label>
+                      </p-floatLabel>
                     </div>
                   </div>
                 </div>
@@ -151,7 +162,7 @@
                         [minFractionDigits]="0"
                         [maxFractionDigits]="0"
                       ></p-inputNumber>
-                      <small class="field-hint">Base bonificada: {{ getLineBonusUnits(i) }}</small>
+                      <!-- <small class="field-hint">Base bonificada: {{ getLineBonusUnits(i) }}</small> -->
                     </div>
                   </div>
                   <div class="po-col po-col-md">

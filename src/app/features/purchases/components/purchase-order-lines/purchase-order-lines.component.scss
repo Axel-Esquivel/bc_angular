@@ -78,11 +78,19 @@
 }
 
 .po-col-lg {
-  flex: 2 1 280px;
+  flex: 1 1 420px;
 }
 
-.po-col-xs {
-  flex: 0 1 120px;
+.po-col-qty {
+  flex: 0 1 140px;
+}
+
+.po-col-mult {
+  flex: 0 1 180px;
+}
+
+.po-col-base {
+  flex: 0 1 180px;
 }
 
 .po-col-md {
@@ -94,10 +102,23 @@
   min-width: 100%;
 }
 
+/* Qty/Multiplier/Base misalignment was caused by tighter flex-basis vs other fields. */
+
 .bc-field {
   display: flex;
   flex-direction: column;
   gap: 6px;
+}
+
+.bc-field :global(.p-floatlabel) {
+  width: 100%;
+  display: block;
+}
+
+:host ::ng-deep .p-inputtext,
+:host ::ng-deep .p-inputnumber,
+:host ::ng-deep .p-select {
+  width: 100%;
 }
 
 .bc-label {
