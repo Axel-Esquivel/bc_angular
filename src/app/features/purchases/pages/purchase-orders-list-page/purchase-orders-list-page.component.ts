@@ -1,4 +1,5 @@
 import { Component, OnInit, inject } from '@angular/core';
+import { Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
 
 import { ActiveContextStateService } from '../../../../core/context/active-context-state.service';
@@ -27,6 +28,7 @@ export class PurchaseOrdersListPageComponent implements OnInit {
   private readonly providersService = inject(ProvidersService);
   private readonly activeContextState = inject(ActiveContextStateService);
   private readonly messageService = inject(MessageService);
+  private readonly router = inject(Router);
 
   rows: PurchaseOrderRow[] = [];
   orders: PurchaseOrder[] = [];
@@ -62,6 +64,18 @@ export class PurchaseOrdersListPageComponent implements OnInit {
       return;
     }
     this.newOrderDialogVisible = true;
+  }
+
+  openReceipts(): void {
+    if (!this.organizationId || !this.companyId) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Recepciones',
+        detail: 'Selecciona organizacion y empresa antes de continuar.',
+      });
+      return;
+    }
+    this.router.navigate(['/app/purchases/receipts']);
   }
 
   closeNewOrderDialog(): void {
@@ -112,6 +126,22 @@ export class PurchaseOrdersListPageComponent implements OnInit {
     }
     this.selectedEditOrder = order;
     this.editDialogVisible = true;
+  }
+
+  openReceipt(row: PurchaseOrderRow): void {
+    if (!this.canReceive(row)) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Pedidos',
+        detail: 'El pedido debe confirmarse antes de recepcionar.',
+      });
+      return;
+    }
+    this.router.navigate(['/app/purchases/receipts/new', row.id]);
+  }
+
+  canReceive(row: PurchaseOrderRow): boolean {
+    return row.status ? row.status !== 'DRAFT' : true;
   }
 
   closeEdit(): void {

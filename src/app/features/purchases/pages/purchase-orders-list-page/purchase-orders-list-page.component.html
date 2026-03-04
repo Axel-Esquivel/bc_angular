@@ -4,6 +4,13 @@
   </ng-template>
   <ng-template pTemplate="end">
     <p-button
+      label="Recepciones"
+      icon="pi pi-inbox"
+      severity="secondary"
+      (onClick)="openReceipts()"
+      [disabled]="!organizationId || !companyId"
+    ></p-button>
+    <p-button
       label="Nuevo pedido"
       icon="pi pi-plus"
       (onClick)="openNewOrderDialog()"
@@ -51,6 +58,15 @@
             size="small"
             severity="secondary"
             (onClick)="openView(row)"
+          ></p-button>
+          <p-button
+            label="Recepcionar"
+            icon="pi pi-inbox"
+            size="small"
+            severity="success"
+            (onClick)="openReceipt(row)"
+            [disabled]="!canReceive(row)"
+            [title]="!canReceive(row) ? 'El pedido debe confirmarse antes de recepcionar.' : ''"
           ></p-button>
         </td>
       </tr>
