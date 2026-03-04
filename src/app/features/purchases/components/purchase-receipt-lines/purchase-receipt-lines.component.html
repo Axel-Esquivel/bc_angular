@@ -1,0 +1,61 @@
+<div class="receipt-lines">
+  <p-fieldset legend="L&iacute;neas de recepci&oacute;n">
+    <p-table [value]="lineItems" [tableStyle]="{ width: '100%' }">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Producto</th>
+          <th>Cantidad pedida</th>
+          <th>Cantidad recibida</th>
+          <th>Bonificaci&oacute;n (mismo)</th>
+          <th>Descuento</th>
+          <th>Valor descuento</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-row let-i="rowIndex">
+        <tr [formGroup]="linesForm.at(i)">
+          <td>{{ getLineLabel(i) }}</td>
+          <td>{{ getOrderedQty(i) }}</td>
+          <td>
+            <p-inputNumber
+              inputId="received-{{ i }}"
+              formControlName="quantityReceived"
+              [locale]="numberLocale"
+              [min]="0"
+              [useGrouping]="false"
+            ></p-inputNumber>
+          </td>
+          <td>
+            <p-inputNumber
+              inputId="bonusQty-{{ i }}"
+              formControlName="bonusQty"
+              [locale]="numberLocale"
+              [min]="0"
+              [useGrouping]="false"
+            ></p-inputNumber>
+          </td>
+          <td>
+            <p-select
+              inputId="discountType-{{ i }}"
+              formControlName="discountType"
+              [options]="[
+                { label: '%', value: 'percent' },
+                { label: 'Monto', value: 'amount' }
+              ]"
+              optionLabel="label"
+              optionValue="value"
+            ></p-select>
+          </td>
+          <td>
+            <p-inputNumber
+              inputId="discountValue-{{ i }}"
+              formControlName="discountValue"
+              [locale]="numberLocale"
+              [min]="0"
+              [useGrouping]="false"
+            ></p-inputNumber>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </p-fieldset>
+</div>

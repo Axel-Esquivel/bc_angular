@@ -1,0 +1,22 @@
+<div class="receipt-summary">
+  <p-fieldset legend="Resumen">
+    <div class="summary-grid">
+      <div class="summary-row">
+        <span>Subtotal</span>
+        <strong>{{ subtotal | number:'1.2-2' }}</strong>
+      </div>
+      <div class="summary-row">
+        <span>Descuentos</span>
+        <strong>-{{ discounts | number:'1.2-2' }}</strong>
+      </div>
+      <div class="summary-row">
+        <span>Total neto</span>
+        <strong>{{ netTotal | number:'1.2-2' }}</strong>
+      </div>
+      <div class="summary-row">
+        <span>Total bonificado</span>
+        <strong>{{ bonusTotal | number:'1.2-2' }}</strong>
+      </div>
+    </div>
+  </p-fieldset>
+</div>

@@ -1,0 +1,51 @@
+<div class="receipt-bonuses">
+  <p-fieldset legend="Bonificaciones adicionales">
+    <div class="bonus-actions">
+      <p-button label="Agregar bonificaci&oacute;n" icon="pi pi-plus" (onClick)="addBonus.emit()"></p-button>
+    </div>
+    <div *ngIf="bonusesForm.length > 0">
+      <p-table [value]="bonusesForm.controls" [tableStyle]="{ width: '100%' }">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Producto</th>
+            <th>Cantidad</th>
+            <th>Acciones</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-group let-i="rowIndex">
+          <tr [formGroup]="group">
+            <td>
+              <p-autoComplete
+                inputId="bonusVariant-{{ i }}"
+                [suggestions]="variantOptions"
+                field="name"
+                [forceSelection]="true"
+                (completeMethod)="searchVariants($event)"
+                [ngModel]="selections[i]"
+                [ngModelOptions]="{ standalone: true }"
+                (onSelect)="setVariant(i, $event.value)"
+                (onClear)="clearVariant(i)"
+              ></p-autoComplete>
+            </td>
+            <td>
+              <p-inputNumber
+                inputId="bonusQty-{{ i }}"
+                formControlName="quantity"
+                [locale]="numberLocale"
+                [min]="0"
+                [useGrouping]="false"
+              ></p-inputNumber>
+            </td>
+            <td>
+              <p-button
+                icon="pi pi-trash"
+                severity="danger"
+                (onClick)="removeBonus.emit(i)"
+              ></p-button>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+  </p-fieldset>
+</div>

@@ -1,0 +1,72 @@
+<div class="receipt-form">
+  <div class="receipt-header">
+    <div class="header-row">
+      <div class="header-field">
+        <p-floatLabel>
+          <p-select
+            inputId="purchaseOrder"
+            [options]="orderOptions"
+            optionLabel="label"
+            optionValue="value"
+            [loading]="loadingOrders"
+            [ngModel]="selectedOrderId"
+            (onChange)="onOrderChange($event.value)"
+          ></p-select>
+          <label for="purchaseOrder">Pedido</label>
+        </p-floatLabel>
+      </div>
+      <div class="header-field">
+        <p-floatLabel>
+          <p-select
+            inputId="warehouse"
+            [options]="warehouseOptions"
+            optionLabel="label"
+            optionValue="value"
+            [loading]="loadingWarehouses"
+            [ngModel]="selectedWarehouseId"
+            (onChange)="onWarehouseChange($event.value)"
+          ></p-select>
+          <label for="warehouse">Almac&eacute;n</label>
+        </p-floatLabel>
+      </div>
+      <div class="header-actions">
+        <p-button
+          label="Validar recepci&oacute;n"
+          icon="pi pi-check"
+          severity="secondary"
+          (onClick)="validate.emit()"
+          [disabled]="validating"
+        ></p-button>
+        <p-button
+          label="Registrar recepci&oacute;n"
+          icon="pi pi-save"
+          (onClick)="save.emit()"
+          [disabled]="saving"
+        ></p-button>
+        <p-button
+          label="Cancelar"
+          severity="secondary"
+          (onClick)="cancel.emit()"
+        ></p-button>
+      </div>
+    </div>
+  </div>
+
+  <app-purchase-receipt-lines
+    [lineItems]="lineItems"
+    [lines]="receiptForm.controls.lines"
+  ></app-purchase-receipt-lines>
+
+  <app-purchase-receipt-bonuses
+    [bonuses]="receiptForm.controls.bonuses"
+    (addBonus)="addBonus.emit()"
+    (removeBonus)="removeBonus.emit($event)"
+  ></app-purchase-receipt-bonuses>
+
+  <app-purchase-receipt-summary
+    [subtotal]="subtotal"
+    [discounts]="discounts"
+    [netTotal]="netTotal"
+    [bonusTotal]="bonusTotal"
+  ></app-purchase-receipt-summary>
+</div>

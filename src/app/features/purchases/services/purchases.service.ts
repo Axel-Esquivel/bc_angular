@@ -59,6 +59,38 @@ export interface SupplierLastCostResult {
   lastRecordedAt: string | null;
 }
 
+export interface GoodsReceiptLinePayload {
+  variantId: string;
+  productId?: string;
+  quantity: number;
+  quantityReceived?: number;
+  unitCost: number;
+  discountType?: 'percent' | 'amount' | 'PERCENT' | 'AMOUNT';
+  discountValue?: number;
+  bonusQty?: number;
+  isBonus?: boolean;
+  bonusSourceLineId?: string;
+}
+
+export interface CreateGoodsReceiptPayload {
+  OrganizationId: string;
+  companyId: string;
+  purchaseOrderId?: string;
+  warehouseId: string;
+  lines: GoodsReceiptLinePayload[];
+}
+
+export interface GoodsReceiptValidationIssue {
+  path: string;
+  message: string;
+}
+
+export interface GoodsReceiptValidationResult {
+  valid: boolean;
+  errors: GoodsReceiptValidationIssue[];
+  warnings: GoodsReceiptValidationIssue[];
+}
+
 export interface PurchaseOrderLine {
   id: string;
   variantId: string;
@@ -230,5 +262,13 @@ export class PurchasesService {
     return this.http.get<ApiResponse<BestPriceResponse>>(`${this.baseUrl}/orders/best-price`, {
       params: httpParams,
     });
+  }
+
+  validateGoodsReceipt(payload: CreateGoodsReceiptPayload): Observable<ApiResponse<GoodsReceiptValidationResult>> {
+    return this.http.post<ApiResponse<GoodsReceiptValidationResult>>(`${this.baseUrl}/grn/validate`, payload);
+  }
+
+  createGoodsReceipt(payload: CreateGoodsReceiptPayload): Observable<ApiResponse<unknown>> {
+    return this.http.post<ApiResponse<unknown>>(`${this.baseUrl}/grn`, payload);
   }
 }

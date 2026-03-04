@@ -1,0 +1,25 @@
+<div class="purchase-receipt-page">
+  <app-purchase-receipt-form
+    [orderOptions]="orderOptions"
+    [warehouseOptions]="warehouseOptions"
+    [selectedOrderId]="selectedOrderId"
+    [selectedWarehouseId]="selectedWarehouseId"
+    [lineItems]="lineItems"
+    [receiptForm]="receiptForm"
+    [subtotal]="totalSubtotal"
+    [discounts]="totalDiscounts"
+    [netTotal]="totalNet"
+    [bonusTotal]="totalBonusQty"
+    [loadingOrders]="loadingOrders"
+    [loadingWarehouses]="loadingWarehouses"
+    [validating]="validating"
+    [saving]="saving"
+    (orderChange)="onOrderChange($event)"
+    (warehouseChange)="onWarehouseChange($event)"
+    (addBonus)="addBonusLine()"
+    (removeBonus)="removeBonusLine($event)"
+    (validate)="validateReceipt()"
+    (save)="saveReceipt()"
+    (cancel)="cancel()"
+  ></app-purchase-receipt-form>
+</div>

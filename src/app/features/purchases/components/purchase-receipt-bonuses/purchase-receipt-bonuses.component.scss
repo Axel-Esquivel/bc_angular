@@ -1,0 +1,18 @@
+.receipt-bonuses {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.bonus-actions {
+  margin-bottom: 0.75rem;
+}
+
+.receipt-bonuses :global(.p-inputnumber),
+.receipt-bonuses :global(.p-autocomplete) {
+  width: 100%;
+}
+
+.receipt-bonuses :global(.p-inputnumber-input),
+.receipt-bonuses :global(.p-autocomplete-input) {
+  width: 100%;
+}

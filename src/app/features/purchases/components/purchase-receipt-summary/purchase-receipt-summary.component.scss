@@ -1,0 +1,13 @@
+.receipt-summary {
+  display: block;
+}
+
+.summary-grid {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+}
