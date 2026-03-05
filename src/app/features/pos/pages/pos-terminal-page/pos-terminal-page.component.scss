@@ -9,12 +9,14 @@
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
+  flex-wrap: wrap;
 }
 
 .pos-controls {
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  flex-wrap: wrap;
 }
 
 .pos-layout {
@@ -38,6 +40,13 @@
 }
 
 .muted {
+  color: var(--text-secondary, #6b7280);
+}
+
+.pos-note {
+  width: 100%;
+  margin: 0;
+  font-size: 0.85rem;
   color: var(--text-secondary, #6b7280);
 }
 

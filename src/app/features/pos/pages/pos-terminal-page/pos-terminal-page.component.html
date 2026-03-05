@@ -9,12 +9,23 @@
     </div>
     <div class="pos-controls">
       <p-select
+        appendTo="body"
         [options]="warehouseOptions"
         optionLabel="name"
         optionValue="id"
         placeholder="Selecciona almac\u00e9n"
         [(ngModel)]="selectedWarehouseId"
         [disabled]="warehouseOptions.length === 0"
+      ></p-select>
+      <p-select
+        appendTo="body"
+        [options]="priceListOptions"
+        optionLabel="label"
+        optionValue="value"
+        placeholder="Lista de precios"
+        [(ngModel)]="selectedPriceListId"
+        [disabled]="priceListOptions.length === 0 || priceListsLoading"
+        (onChange)="onPriceListChange()"
       ></p-select>
       <p-button
         label="Abrir sesi\u00f3n"
@@ -24,6 +35,9 @@
         (onClick)="openSession()"
       ></p-button>
     </div>
+    <p class="pos-note">
+      Precio: lista seleccionada (min. cantidad) o precio base si no aplica.
+    </p>
   </header>
 
   <section class="pos-layout">

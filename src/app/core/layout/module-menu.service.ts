@@ -98,7 +98,10 @@ export class ModuleMenuService {
       });
       configItems.push({
         label: 'Catalogos',
-        items: [{ label: 'Paises', routerLink: '/settings/countries' }],
+        items: [
+          { label: 'Paises', routerLink: '/settings/countries' },
+          { label: 'Listas de precios', routerLink: '/app/price-lists' },
+        ],
       });
     }
 

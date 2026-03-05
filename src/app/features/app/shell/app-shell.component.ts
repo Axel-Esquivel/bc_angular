@@ -63,6 +63,16 @@ export class AppShellComponent {
               },
             ],
           },
+          {
+            label: 'Catálogos',
+            items: [
+              {
+                label: 'Listas de precios',
+                icon: 'pi pi-tag',
+                routerLink: '/app/price-lists',
+              },
+            ],
+          },
         ],
       ],
     },

@@ -1,0 +1,29 @@
+.items-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  gap: 1rem;
+}
+
+.items-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.items-help {
+  margin: 0 0 1rem;
+  color: var(--text-secondary, #6b7280);
+  font-size: 0.9rem;
+}
+
+.variant-cell :deep(.p-autocomplete) {
+  width: 100%;
+}
+
+table :deep(.p-inputnumber),
+table :deep(.p-select),
+table :deep(.p-autocomplete),
+table input[pInputText] {
+  width: 100%;
+}

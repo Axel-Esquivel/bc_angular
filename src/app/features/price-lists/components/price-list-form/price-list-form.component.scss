@@ -1,0 +1,25 @@
+.price-list-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem 1.5rem;
+}
+
+.field :deep(.p-floatlabel),
+.field :deep(.p-inputtext),
+.field :deep(textarea[pTextarea]),
+.field :deep(.p-select) {
+  width: 100%;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+

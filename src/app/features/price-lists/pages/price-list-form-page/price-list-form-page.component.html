@@ -1,0 +1,30 @@
+<p-toolbar>
+  <ng-template pTemplate="start">
+    <div class="toolbar-title">
+      {{ isEditMode ? 'Editar lista de precios' : 'Nueva lista de precios' }}
+    </div>
+  </ng-template>
+  <ng-template pTemplate="end">
+    <p-button label="Volver" icon="pi pi-arrow-left" severity="secondary" (onClick)="onCancel()"></p-button>
+  </ng-template>
+</p-toolbar>
+
+<div class="messages" *ngIf="contextMissing">
+  <p-message severity="warn" text="Selecciona organizaci&oacute;n y empresa."></p-message>
+</div>
+<div class="messages" *ngIf="!contextMissing && errorMessage">
+  <p-message severity="error" [text]="errorMessage"></p-message>
+</div>
+
+<app-price-list-form
+  [priceList]="priceList ?? undefined"
+  [companyOptions]="companyOptions"
+  [currencyOptions]="currencyOptions"
+  [defaultCurrencyId]="defaultCurrencyId"
+  [organizationId]="organizationId"
+  [organizationName]="organizationName"
+  [companyId]="companyId"
+  [saving]="saving || loading"
+  (save)="onSave($event)"
+  (cancel)="onCancel()"
+></app-price-list-form>

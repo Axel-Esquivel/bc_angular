@@ -1,0 +1,108 @@
+<div class="items-header">
+  <div class="items-title">Items</div>
+  <p-button
+    label="Agregar item"
+    icon="pi pi-plus"
+    severity="secondary"
+    (onClick)="onAddItem()"
+    [disabled]="disabled"
+  ></p-button>
+</div>
+<p class="items-help">
+  Agrega precios por variante. Opcionalmente define cantidad m&iacute;nima y descuento por segmento/canal.
+</p>
+
+<p-table
+  [value]="itemGroups"
+  [rows]="10"
+  [paginator]="itemGroups.length > 10"
+  responsiveLayout="stack"
+  [breakpoint]="'960px'"
+>
+  <ng-template pTemplate="header">
+    <tr>
+      <th>Variante</th>
+      <th>Precio</th>
+      <th>Moneda</th>
+      <th>Cant. m&iacute;nima</th>
+      <th>Descuento %</th>
+      <th>Segmento (opcional)</th>
+      <th>Canal (opcional)</th>
+      <th>Acciones</th>
+    </tr>
+  </ng-template>
+  <ng-template pTemplate="body" let-group let-rowIndex="rowIndex">
+    <tr [formGroup]="group">
+      <td class="variant-cell">
+        <p-autoComplete
+          appendTo="body"
+          formControlName="variantLabel"
+          [suggestions]="getSuggestions(rowIndex)"
+          (completeMethod)="onVariantSearch(rowIndex, $event)"
+          (onSelect)="onVariantSelect(rowIndex, $event)"
+          (onClear)="onVariantClear(rowIndex)"
+          optionLabel="label"
+          placeholder="SKU, c&oacute;digo o nombre"
+        ></p-autoComplete>
+      </td>
+      <td>
+        <p-inputNumber
+          formControlName="price"
+          [locale]="numberLocale"
+          [minFractionDigits]="2"
+          [maxFractionDigits]="2"
+          [min]="0"
+        ></p-inputNumber>
+      </td>
+      <td>
+        <p-select
+          appendTo="body"
+          formControlName="currency"
+          [options]="currencyOptions"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="Moneda"
+        ></p-select>
+      </td>
+      <td>
+        <p-inputNumber
+          formControlName="minQuantity"
+          [locale]="numberLocale"
+          [min]="1"
+          [maxFractionDigits]="0"
+        ></p-inputNumber>
+      </td>
+      <td>
+        <p-inputNumber
+          formControlName="discountPercentage"
+          [locale]="numberLocale"
+          [min]="0"
+          [max]="100"
+          [maxFractionDigits]="2"
+          [pTooltip]="'Descuento adicional aplicado al precio'"
+          [tooltipDisabled]="!group.controls.discountPercentage.value"
+        ></p-inputNumber>
+      </td>
+      <td>
+        <input pInputText formControlName="customerSegment" placeholder="Ej: Minorista, Mayorista, VIP" />
+      </td>
+      <td>
+        <input pInputText formControlName="channel" placeholder="Ej: Tienda, POS, WhatsApp" />
+      </td>
+      <td>
+        <p-button
+          icon="pi pi-trash"
+          severity="danger"
+          size="small"
+          (onClick)="onRemoveItem(rowIndex)"
+          [disabled]="disabled"
+        ></p-button>
+      </td>
+    </tr>
+  </ng-template>
+  <ng-template pTemplate="emptymessage">
+    <tr>
+      <td colspan="8">Sin items.</td>
+    </tr>
+  </ng-template>
+</p-table>

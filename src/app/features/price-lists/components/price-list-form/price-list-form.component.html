@@ -1,0 +1,64 @@
+<form class="price-list-form" [formGroup]="form">
+  <div class="form-grid">
+    <div class="field">
+      <p-floatLabel>
+        <input pInputText id="priceListName" formControlName="name" />
+        <label for="priceListName">Nombre</label>
+      </p-floatLabel>
+    </div>
+    <div class="field">
+      <p-floatLabel>
+        <textarea pTextarea id="priceListDescription" rows="2" formControlName="description"></textarea>
+        <label for="priceListDescription">Descripci&oacute;n</label>
+      </p-floatLabel>
+    </div>
+    <div class="field" *ngIf="companyOptions.length > 0; else companyInput">
+      <p-floatLabel>
+        <p-select
+          appendTo="body"
+          inputId="priceListCompany"
+          formControlName="companyId"
+          [options]="companyOptions"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="Empresa"
+        ></p-select>
+        <label for="priceListCompany">Empresa</label>
+      </p-floatLabel>
+    </div>
+    <ng-template #companyInput>
+      <div class="field">
+        <p-floatLabel>
+          <input pInputText id="priceListCompanyText" formControlName="companyId" />
+          <label for="priceListCompanyText">Empresa</label>
+        </p-floatLabel>
+      </div>
+    </ng-template>
+    <div class="field">
+      <p-floatLabel>
+        <input
+          pInputText
+          id="priceListOrgName"
+          [value]="organizationName || organizationId || ''"
+          readonly
+        />
+        <label for="priceListOrgName">Organizaci&oacute;n</label>
+      </p-floatLabel>
+      <input type="hidden" formControlName="OrganizationId" />
+    </div>
+  </div>
+
+  <app-price-list-items
+    [items]="itemsArray"
+    [currencyOptions]="currencyOptions"
+    [defaultCurrencyId]="defaultCurrencyId"
+    [disabled]="saving"
+    (addItem)="onAddItem()"
+    (removeItem)="onRemoveItem($event)"
+  ></app-price-list-items>
+
+  <div class="form-actions">
+    <p-button label="Cancelar" severity="secondary" (onClick)="onCancel()"></p-button>
+    <p-button label="Guardar" icon="pi pi-save" (onClick)="onSubmit()" [disabled]="saving"></p-button>
+  </div>
+</form>

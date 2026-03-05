@@ -1,0 +1,78 @@
+<p-toolbar>
+  <ng-template pTemplate="start">
+    <div class="toolbar-title">Listas de precios</div>
+  </ng-template>
+  <ng-template pTemplate="end">
+    <p-button
+      label="Nueva lista"
+      icon="pi pi-plus"
+      (onClick)="openNew()"
+      [disabled]="contextMissing"
+    ></p-button>
+  </ng-template>
+</p-toolbar>
+
+<div class="messages" *ngIf="contextMissing">
+  <p-message severity="warn" text="Selecciona organizaci&oacute;n y empresa."></p-message>
+</div>
+<div class="messages" *ngIf="!contextMissing && errorMessage">
+  <p-message severity="error" [text]="errorMessage"></p-message>
+</div>
+
+<div class="price-lists-table">
+  <p-table [value]="rows" [loading]="loading" dataKey="id" [rows]="20" [paginator]="rows.length > 20">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Nombre</th>
+        <th>Descripci&oacute;n</th>
+        <th>Empresa</th>
+        <th>Items</th>
+        <th>Acciones</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-row>
+      <tr>
+        <td>{{ row.name }}</td>
+        <td>{{ row.description || '-' }}</td>
+        <td>{{ row.companyLabel }}</td>
+        <td>{{ row.itemsCount }}</td>
+        <td class="actions">
+          <p-button
+            label="Editar"
+            icon="pi pi-pencil"
+            size="small"
+            severity="secondary"
+            (onClick)="openEdit(row)"
+          ></p-button>
+          <p-button
+            label="Eliminar"
+            icon="pi pi-trash"
+            size="small"
+            severity="danger"
+            (onClick)="openDeleteDialog(row)"
+          ></p-button>
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="5">Sin listas de precios.</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<p-dialog
+  header="Eliminar lista"
+  [(visible)]="deleteDialogVisible"
+  [modal]="true"
+  [draggable]="false"
+  [style]="{ width: '360px' }"
+  (onHide)="cancelDelete()"
+>
+  <p>¿Eliminar la lista "{{ deleteTarget?.name }}"?</p>
+  <div class="dialog-actions">
+    <p-button label="Cancelar" severity="secondary" (onClick)="cancelDelete()"></p-button>
+    <p-button label="Eliminar" severity="danger" (onClick)="confirmDelete()"></p-button>
+  </div>
+</p-dialog>

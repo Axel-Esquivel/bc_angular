@@ -55,6 +55,12 @@ const MODULE_META: Record<string, { icon: string; route: string; name?: string; 
     name: 'Compras',
     description: 'Órdenes y recepción.',
   },
+  'price-lists': {
+    icon: 'pi pi-tag',
+    route: '/app/price-lists',
+    name: 'Precios',
+    description: 'Listas y reglas.',
+  },
   products: {
     icon: 'pi pi-tags',
     route: '/app/products',

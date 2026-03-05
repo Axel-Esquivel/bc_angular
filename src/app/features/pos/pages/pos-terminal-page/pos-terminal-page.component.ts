@@ -14,6 +14,8 @@ import { PosHttpService } from '../../services/pos.service';
 import { PosProductsService } from '../../services/products.service';
 import { PrepaidApiService } from '../../../../core/api/prepaid-api.service';
 import { PrepaidVariantConfig } from '../../../../shared/models/prepaid.model';
+import { PriceListsService } from '../../../price-lists/services/price-lists.service';
+import { PriceList } from '../../../price-lists/models/price-list.model';
 
 @Component({
   standalone: false,
@@ -31,10 +33,15 @@ export class PosTerminalPageComponent implements OnInit {
   private readonly realtimeService = inject(RealtimeService);
   private readonly warehousesApi = inject(WarehousesApiService);
   private readonly prepaidApi = inject(PrepaidApiService);
+  private readonly priceListsService = inject(PriceListsService);
   private readonly fb = inject(FormBuilder);
 
   products: PosProduct[] = [];
   productsLoading = false;
+  priceLists: PriceList[] = [];
+  priceListOptions: SelectOption[] = [];
+  selectedPriceListId: string | null = null;
+  priceListsLoading = false;
   cartLines: PosCartLine[] = [];
   total = 0;
   sessionId: string | null = null;
@@ -43,6 +50,7 @@ export class PosTerminalPageComponent implements OnInit {
   readonly stockByVariant = new Map<string, number>();
   private context: ActiveContext | null = null;
   private readonly prepaidConfigByVariant = new Map<string, PrepaidVariantConfig>();
+  private readonly basePriceByVariant = new Map<string, number>();
   prepaidDialogVisible = false;
   prepaidDialogLockedDenomination = false;
   pendingPrepaidProduct: PosProduct | null = null;
@@ -81,6 +89,7 @@ export class PosTerminalPageComponent implements OnInit {
       });
 
     this.loadWarehouses(context.companyId!);
+    this.loadPriceLists();
     this.onSearchProducts('');
     this.loadPrepaidConfigs();
   }
@@ -155,8 +164,8 @@ export class PosTerminalPageComponent implements OnInit {
     const safeQuantity = quantity > 0 ? quantity : 1;
     this.cartLines = this.cartLines.map((line) =>
       line.productId === lineId
-        ? { ...line, quantity: safeQuantity, subtotal: safeQuantity * (line.unitPrice ?? 0) }
-        : line
+        ? this.withResolvedPrice(line, safeQuantity)
+        : line,
     );
     this.recalculateTotals();
   }
@@ -248,27 +257,32 @@ export class PosTerminalPageComponent implements OnInit {
   }
 
   private addOrUpdateLine(product: PosProduct, prepaid?: PosCartLine['prepaid']): void {
+    this.registerBasePrice(product);
     const existing = this.cartLines.find((line) => line.productId === product.id);
     if (existing) {
+      const nextQuantity = existing.quantity + 1;
+      const nextUnitPrice = this.resolveUnitPrice(product.id, nextQuantity, existing.unitPrice);
       this.cartLines = this.cartLines.map((line) =>
         line.productId === product.id
           ? {
               ...line,
-              quantity: line.quantity + 1,
-              subtotal: (line.quantity + 1) * (line.unitPrice ?? 0),
+              quantity: nextQuantity,
+              unitPrice: nextUnitPrice,
+              subtotal: nextQuantity * nextUnitPrice,
               prepaid: prepaid ?? line.prepaid,
             }
           : line
       );
     } else {
+      const unitPrice = this.resolveUnitPrice(product.id, 1, product.price);
       this.cartLines = [
         ...this.cartLines,
         {
           productId: product.id,
           productName: product.name,
           quantity: 1,
-          unitPrice: product.price,
-          subtotal: product.price,
+          unitPrice,
+          subtotal: unitPrice,
           prepaid,
         },
       ];
@@ -314,6 +328,97 @@ export class PosTerminalPageComponent implements OnInit {
       });
   }
 
+  onPriceListChange(): void {
+    this.applyPriceListToCart();
+  }
+
+  private loadPriceLists(): void {
+    if (!this.context?.organizationId || !this.context?.companyId) {
+      this.priceLists = [];
+      this.priceListOptions = [];
+      this.selectedPriceListId = null;
+      return;
+    }
+    this.priceListsLoading = true;
+    this.priceListsService.list().subscribe({
+      next: ({ result }) => {
+        const list = Array.isArray(result) ? result : [];
+        this.priceLists = list.filter(
+          (item) =>
+            item.OrganizationId === this.context?.organizationId &&
+            item.companyId === this.context?.companyId,
+        );
+        this.priceListOptions = this.priceLists.map((item) => ({
+          label: item.name,
+          value: item.id,
+        }));
+        if (!this.selectedPriceListId) {
+          this.selectedPriceListId = this.priceLists[0]?.id ?? null;
+        }
+        this.applyPriceListToCart();
+        this.priceListsLoading = false;
+      },
+      error: () => {
+        this.priceLists = [];
+        this.priceListOptions = [];
+        this.selectedPriceListId = null;
+        this.priceListsLoading = false;
+      },
+    });
+  }
+
+  private applyPriceListToCart(): void {
+    if (this.cartLines.length === 0) {
+      return;
+    }
+    this.cartLines = this.cartLines.map((line) => this.withResolvedPrice(line, line.quantity));
+    this.recalculateTotals();
+  }
+
+  private withResolvedPrice(line: PosCartLine, quantity: number): PosCartLine {
+    const basePrice = this.basePriceByVariant.get(line.productId) ?? line.unitPrice;
+    const unitPrice = this.resolveUnitPrice(line.productId, quantity, basePrice);
+    return {
+      ...line,
+      quantity,
+      unitPrice,
+      subtotal: quantity * unitPrice,
+    };
+  }
+
+  private resolveUnitPrice(variantId: string, quantity: number, fallbackPrice: number): number {
+    const priceFromList = this.resolvePriceFromList(variantId, quantity);
+    return priceFromList ?? fallbackPrice;
+  }
+
+  private resolvePriceFromList(variantId: string, quantity: number): number | null {
+    const priceList = this.selectedPriceList;
+    if (!priceList) {
+      return null;
+    }
+    const candidates = priceList.items.filter((item) => item.variantId === variantId);
+    if (candidates.length === 0) {
+      return null;
+    }
+    const applicable = candidates
+      .filter((item) => (item.minQuantity ?? 1) <= quantity)
+      .sort((a, b) => (b.minQuantity ?? 1) - (a.minQuantity ?? 1));
+    return applicable[0]?.price ?? null;
+  }
+
+  private get selectedPriceList(): PriceList | null {
+    if (!this.selectedPriceListId) {
+      return null;
+    }
+    return this.priceLists.find((item) => item.id === this.selectedPriceListId) ?? null;
+  }
+
+  private registerBasePrice(product: PosProduct): void {
+    if (!this.basePriceByVariant.has(product.id)) {
+      this.basePriceByVariant.set(product.id, product.price);
+    }
+  }
+
   openSession(): void {
     if (!this.context || !this.selectedWarehouseId) {
       return;
@@ -349,4 +454,9 @@ export class PosTerminalPageComponent implements OnInit {
       detail,
     });
   }
+}
+
+interface SelectOption {
+  label: string;
+  value: string;
 }

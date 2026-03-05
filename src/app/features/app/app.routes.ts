@@ -37,6 +37,7 @@ export const appRoutes: Routes = [
       { path: 'providers', loadChildren: () => import('../providers/providers.module').then((m) => m.ProvidersModule) },
       { path: 'purchases', loadChildren: () => import('../purchases/purchases.module').then((m) => m.PurchasesModule) },
       { path: 'prepaid', loadChildren: () => import('../prepaid/prepaid.module').then((m) => m.PrepaidModule) },
+      { path: 'price-lists', loadChildren: () => import('../price-lists/price-lists.module').then((m) => m.PriceListsModule) },
       { path: 'settings', loadChildren: () => import('../settings/settings.module').then((m) => m.SettingsModule) },
       { path: 'inventory', component: StockPageComponent },
       { path: 'inventory/movements', component: MovementsPageComponent },
