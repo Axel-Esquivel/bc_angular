@@ -9,6 +9,7 @@
             optionLabel="label"
             optionValue="value"
             [loading]="loadingOrders"
+            [appendTo]="'body'"
             [ngModel]="selectedOrderId"
             (onChange)="onOrderChange($event.value)"
           ></p-select>
@@ -23,6 +24,7 @@
             optionLabel="label"
             optionValue="value"
             [loading]="loadingWarehouses"
+            [appendTo]="'body'"
             [ngModel]="selectedWarehouseId"
             (onChange)="onWarehouseChange($event.value)"
           ></p-select>

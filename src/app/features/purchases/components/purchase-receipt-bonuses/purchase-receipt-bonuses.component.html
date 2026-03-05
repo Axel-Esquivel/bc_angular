@@ -15,17 +15,22 @@
         <ng-template pTemplate="body" let-group let-i="rowIndex">
           <tr [formGroup]="group">
             <td>
-              <p-autoComplete
-                inputId="bonusVariant-{{ i }}"
-                [suggestions]="variantOptions"
-                field="name"
-                [forceSelection]="true"
-                (completeMethod)="searchVariants($event)"
-                [ngModel]="selections[i]"
-                [ngModelOptions]="{ standalone: true }"
-                (onSelect)="setVariant(i, $event.value)"
-                (onClear)="clearVariant(i)"
-              ></p-autoComplete>
+              <p-floatLabel>
+                <p-autoComplete
+                  inputId="bonusVariant-{{ i }}"
+                  [suggestions]="variantOptions"
+                  field="label"
+                  [forceSelection]="true"
+                  [appendTo]="'body'"
+                  placeholder="Buscar por SKU, c\u00f3digo de barras o nombre"
+                  (completeMethod)="searchVariants($event)"
+                  [ngModel]="selections[i]"
+                  [ngModelOptions]="{ standalone: true }"
+                  (onSelect)="setVariant(i, $event.value)"
+                  (onClear)="clearVariant(i)"
+                ></p-autoComplete>
+                <label for="bonusVariant-{{ i }}">Producto</label>
+              </p-floatLabel>
             </td>
             <td>
               <p-inputNumber

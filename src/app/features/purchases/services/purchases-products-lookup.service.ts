@@ -10,6 +10,7 @@ export interface VariantOption {
   productId: string;
   name: string;
   sku?: string;
+  barcode?: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -59,11 +60,14 @@ export class PurchasesProductsLookupService {
   }
 
   private mapVariantOption(variant: ProductVariant): VariantOption {
+    const barcode =
+      Array.isArray(variant.barcodes) && variant.barcodes.length > 0 ? variant.barcodes[0] : undefined;
     return {
       id: variant.id,
       productId: variant.productId,
       name: variant.name,
       sku: variant.sku ?? undefined,
+      barcode,
     };
   }
 }

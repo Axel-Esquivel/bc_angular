@@ -8,6 +8,8 @@ import { PurchasesService, PurchaseOrder } from '../../services/purchases.servic
 import { WarehousesService, Warehouse } from '../../../warehouses/services/warehouses.service';
 import { PurchasesProductsLookupService } from '../../services/purchases-products-lookup.service';
 import { ApiResponse } from '../../../../shared/models/api-response.model';
+import { ProvidersService } from '../../../providers/services/providers.service';
+import { Provider } from '../../../../shared/models/provider.model';
 
 interface SelectOption {
   label: string;
@@ -43,6 +45,7 @@ type BonusLineForm = FormGroup<{
 export class PurchaseReceiptPageComponent {
   private readonly purchasesService = inject(PurchasesService);
   private readonly warehousesService = inject(WarehousesService);
+  private readonly providersService = inject(ProvidersService);
   private readonly activeContext = inject(ActiveContextStateService);
   private readonly lookupService = inject(PurchasesProductsLookupService);
   private readonly fb = inject(FormBuilder);
@@ -54,6 +57,7 @@ export class PurchaseReceiptPageComponent {
   orderOptions: SelectOption[] = [];
   orders: PurchaseOrder[] = [];
   warehouseOptions: SelectOption[] = [];
+  private providerIndex = new Map<string, string>();
 
   selectedOrderId: string | null = null;
   selectedWarehouseId: string | null = null;
@@ -81,6 +85,7 @@ export class PurchaseReceiptPageComponent {
   totalBonusQty = 0;
 
   constructor() {
+    this.loadProviders();
     this.loadOrders();
     this.loadWarehouses();
     this.preloadVariants();
@@ -210,7 +215,7 @@ export class PurchaseReceiptPageComponent {
         const list = Array.isArray(response.result) ? response.result : [];
         this.orders = list;
         this.orderOptions = list.map((order) => ({
-          label: `${order.id} - ${order.supplierId}`,
+          label: this.buildOrderLabel(order),
           value: order.id,
         }));
         this.loadingOrders = false;
@@ -219,6 +224,61 @@ export class PurchaseReceiptPageComponent {
         this.loadingOrders = false;
       },
     });
+  }
+
+  private loadProviders(): void {
+    const OrganizationId = this.organizationId ?? undefined;
+    const companyId = this.companyId ?? undefined;
+    if (!OrganizationId || !companyId) {
+      return;
+    }
+    this.providersService.getAll().subscribe({
+      next: (response: ApiResponse<Provider[]>) => {
+        const list = Array.isArray(response.result) ? response.result : [];
+        const filtered = list.filter(
+          (item) => item.OrganizationId === OrganizationId && item.companyId === companyId,
+        );
+        this.providerIndex = new Map(filtered.map((provider) => [provider.id, provider.name]));
+        if (this.orders.length > 0) {
+          this.orderOptions = this.orders.map((order) => ({
+            label: this.buildOrderLabel(order),
+            value: order.id,
+          }));
+        }
+      },
+      error: () => {
+        this.providerIndex.clear();
+      },
+    });
+  }
+
+  private buildOrderLabel(order: PurchaseOrder): string {
+    const dateSource = order.createdAt ?? order.expectedDeliveryDate ?? null;
+    const dateLabel = this.formatDateSafe(dateSource);
+    const supplierName = this.providerIndex.get(order.supplierId) ?? order.supplierId;
+    return `${dateLabel} - ${supplierName}`;
+  }
+
+  private formatDateSafe(value: string | Date | null | undefined): string {
+    if (!value) {
+      return 'Sin fecha';
+    }
+    const date = value instanceof Date ? value : new Date(value);
+    if (Number.isNaN(date.getTime())) {
+      return 'Sin fecha';
+    }
+    try {
+      return date.toLocaleDateString(undefined, {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+      });
+    } catch {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
   }
 
   private loadWarehouses(): void {
@@ -332,8 +392,18 @@ export class PurchaseReceiptPageComponent {
 
     const bonusLines = this.bonusFormArray.controls
       .map((group) => group.getRawValue())
-      .filter((bonus) => bonus.variantId && bonus.quantity > 0)
-      .map((bonus) => ({
+      .filter((bonus) => bonus.variantId || bonus.quantity > 0);
+
+    if (bonusLines.some((bonus) => !bonus.variantId || bonus.quantity <= 0)) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'RecepciÃ³n',
+        detail: 'Completa las bonificaciones: producto y cantidad mayor a 0.',
+      });
+      return null;
+    }
+
+    const mappedBonusLines = bonusLines.map((bonus) => ({
         variantId: bonus.variantId,
         quantity: bonus.quantity,
         quantityReceived: bonus.quantity,
@@ -347,7 +417,7 @@ export class PurchaseReceiptPageComponent {
       companyId,
       purchaseOrderId: this.selectedOrderId ?? undefined,
       warehouseId: this.selectedWarehouseId,
-      lines: [...baseLines, ...bonusLines],
+      lines: [...baseLines, ...mappedBonusLines],
     };
   }
 
