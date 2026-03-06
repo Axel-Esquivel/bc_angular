@@ -1,201 +1,212 @@
-<p-toolbar>
-  <ng-template pTemplate="start">
-    <div class="order-toolbar">
-      <div class="toolbar-provider">
+<div #f>
+  <p-toolbar>
+    <ng-template pTemplate="start">
+      <div class="order-toolbar">
+        <div class="toolbar-provider">
+          <p-select
+            inputId="supplierId"
+            [options]="providerOptions"
+            optionLabel="label"
+            optionValue="value"
+            [(ngModel)]="selectedProviderId"
+            (onChange)="onProviderChange()"
+            [disabled]="providerOptions.length === 0 || isViewMode"
+            placeholder="Proveedor"
+            appendTo="body"
+          ></p-select>
+        </div>
+        <div class="toolbar-actions">
+          <p-button
+            *ngIf="!isViewMode"
+            label="Agregar producto"
+            icon="pi pi-plus"
+            (onClick)="openAddProduct()"
+            [disabled]="!selectedProviderId"
+          ></p-button>
+          <p-button
+            *ngIf="!isViewMode"
+            label="Asignar productos"
+            icon="pi pi-list"
+            severity="secondary"
+            (onClick)="openAssignDialog()"
+            [disabled]="!selectedProviderId"
+          ></p-button>
+          <p-button
+            *ngIf="embedded"
+            label="Cancelar"
+            severity="secondary"
+            (onClick)="onCancel()"
+          ></p-button>
+          <p-button
+            *ngIf="!isViewMode"
+            label="Guardar"
+            icon="pi pi-save"
+            (onClick)="saveOrder()"
+            [disabled]="saving"
+          ></p-button>
+        </div>
+      </div>
+    </ng-template>
+  </p-toolbar>
+  
+  <div class="messages">
+    <p-message
+      *ngIf="!contextMissing && providerOptions.length === 0"
+      severity="warn"
+      text="No hay proveedores. Crea uno para poder registrar pedidos."
+    ></p-message>
+    <p-message
+      *ngIf="!contextMissing && providerOptions.length > 0 && !selectedProviderId"
+      severity="info"
+      text="Selecciona un proveedor para ver sus productos."
+    ></p-message>
+    <div class="empty-catalog" *ngIf="!contextMissing && selectedProviderId && !loadingProducts && lineItems.length === 0">
+      <p-message
+        severity="info"
+        text="Este proveedor no tiene productos asignados."
+      ></p-message>
+    </div>
+  </div>
+  
+  <div class="order-header" [formGroup]="headerForm">
+    <div class="header-grid">
+      <div class="field">
+        <label for="orderDate">Fecha pedido</label>
+        <p-datepicker
+          inputId="orderDate"
+          formControlName="orderDate"
+          [showIcon]="true"
+          dateFormat="dd-mm-yy"
+          appendTo="body"
+          ></p-datepicker>
+      </div>
+      <div class="field">
+        <label for="expectedDeliveryDate">Fecha entrega estimada</label>
+        <p-datepicker
+          inputId="expectedDeliveryDate"
+          formControlName="expectedDeliveryDate"
+          [showIcon]="true"
+          dateFormat="dd-mm-yy"
+          appendTo="body"
+        ></p-datepicker>
+      </div>
+      <div class="field">
+        <label for="receivedAt">Fecha recepci&oacute;n</label>
+        <p-datepicker
+          inputId="receivedAt"
+          formControlName="receivedAt"
+          [showIcon]="true"
+          dateFormat="dd-mm-yy"
+          appendTo="body"
+        ></p-datepicker>
+      </div>
+      <div class="field">
+        <label for="status">Estado</label>
         <p-select
-          inputId="supplierId"
-          [options]="providerOptions"
+          inputId="status"
+          formControlName="status"
+          [options]="statusOptions"
           optionLabel="label"
           optionValue="value"
-          [(ngModel)]="selectedProviderId"
-          (onChange)="onProviderChange()"
-          [disabled]="providerOptions.length === 0 || isViewMode"
-          placeholder="Proveedor"
         ></p-select>
       </div>
-      <div class="toolbar-actions">
-        <p-button
-          *ngIf="!isViewMode"
-          label="Agregar producto"
-          icon="pi pi-plus"
-          (onClick)="openAddProduct()"
-          [disabled]="!selectedProviderId"
-        ></p-button>
-        <p-button
-          *ngIf="!isViewMode"
-          label="Asignar productos"
-          icon="pi pi-list"
-          severity="secondary"
-          (onClick)="openAssignDialog()"
-          [disabled]="!selectedProviderId"
-        ></p-button>
-        <p-button
-          *ngIf="embedded"
-          label="Cancelar"
-          severity="secondary"
-          (onClick)="onCancel()"
-        ></p-button>
-        <p-button
-          *ngIf="!isViewMode"
-          label="Guardar"
-          icon="pi pi-save"
-          (onClick)="saveOrder()"
-          [disabled]="saving"
-        ></p-button>
+      <div class="field">
+        <label for="currencyId">Moneda</label>
+        <p-select
+          inputId="currencyId"
+          formControlName="currencyId"
+          [options]="currencyOptions"
+          optionLabel="label"
+          optionValue="value"
+        ></p-select>
+      </div>
+      <div class="field">
+        <label for="globalFreight">Flete global</label>
+        <p-inputNumber
+          inputId="globalFreight"
+          formControlName="globalFreight"
+          [locale]="numberLocale"
+          [min]="0"
+          [minFractionDigits]="2"
+          [maxFractionDigits]="2"
+        ></p-inputNumber>
+      </div>
+      <div class="field">
+        <label for="globalExtraCosts">Gastos globales</label>
+        <p-inputNumber
+          inputId="globalExtraCosts"
+          formControlName="globalExtraCosts"
+          [locale]="numberLocale"
+          [min]="0"
+          [minFractionDigits]="2"
+          [maxFractionDigits]="2"
+        ></p-inputNumber>
+      </div>
+      <div class="field full">
+        <label for="orderNotes">Observaci&oacute;n</label>
+        <textarea pTextarea id="orderNotes" rows="2" formControlName="notes"></textarea>
       </div>
     </div>
-  </ng-template>
-</p-toolbar>
-
-<div class="messages">
-  <p-message
-    *ngIf="!contextMissing && providerOptions.length === 0"
-    severity="warn"
-    text="No hay proveedores. Crea uno para poder registrar pedidos."
-  ></p-message>
-  <p-message
-    *ngIf="!contextMissing && providerOptions.length > 0 && !selectedProviderId"
-    severity="info"
-    text="Selecciona un proveedor para ver sus productos."
-  ></p-message>
-  <div class="empty-catalog" *ngIf="!contextMissing && selectedProviderId && !loadingProducts && lineItems.length === 0">
-    <p-message
-      severity="info"
-      text="Este proveedor no tiene productos asignados."
-    ></p-message>
-  </div>
-</div>
-
-<div class="order-header" [formGroup]="headerForm">
-  <div class="header-grid">
-    <div class="field">
-      <label for="orderDate">Fecha pedido</label>
-      <p-datepicker inputId="orderDate" formControlName="orderDate" [showIcon]="true" dateFormat="yy-mm-dd"></p-datepicker>
-    </div>
-    <div class="field">
-      <label for="expectedDeliveryDate">Fecha entrega estimada</label>
-      <p-datepicker
-        inputId="expectedDeliveryDate"
-        formControlName="expectedDeliveryDate"
-        [showIcon]="true"
-        dateFormat="yy-mm-dd"
-      ></p-datepicker>
-    </div>
-    <div class="field">
-      <label for="receivedAt">Fecha recepci&oacute;n</label>
-      <p-datepicker
-        inputId="receivedAt"
-        formControlName="receivedAt"
-        [showIcon]="true"
-        dateFormat="yy-mm-dd"
-      ></p-datepicker>
-    </div>
-    <div class="field">
-      <label for="status">Estado</label>
-      <p-select
-        inputId="status"
-        formControlName="status"
-        [options]="statusOptions"
-        optionLabel="label"
-        optionValue="value"
-      ></p-select>
-    </div>
-    <div class="field">
-      <label for="currencyId">Moneda default</label>
-      <p-select
-        inputId="currencyId"
-        formControlName="currencyId"
-        [options]="currencyOptions"
-        optionLabel="label"
-        optionValue="value"
-      ></p-select>
-    </div>
-    <div class="field">
-      <label for="globalFreight">Flete global</label>
-      <p-inputNumber
-        inputId="globalFreight"
-        formControlName="globalFreight"
-        [locale]="numberLocale"
-        [min]="0"
-        [minFractionDigits]="2"
-        [maxFractionDigits]="2"
-      ></p-inputNumber>
-    </div>
-    <div class="field">
-      <label for="globalExtraCosts">Gastos globales</label>
-      <p-inputNumber
-        inputId="globalExtraCosts"
-        formControlName="globalExtraCosts"
-        [locale]="numberLocale"
-        [min]="0"
-        [minFractionDigits]="2"
-        [maxFractionDigits]="2"
-      ></p-inputNumber>
-    </div>
-    <div class="field full">
-      <label for="orderNotes">Observaci&oacute;n</label>
-      <textarea pTextarea id="orderNotes" rows="2" formControlName="notes"></textarea>
+    <div class="header-total">
+      <div class="total-row">
+        <span>Subtotal:</span>
+        <strong>{{ orderSubtotal | number:'1.2-2' }}</strong>
+      </div>
+      <div class="total-row">
+        <span>Descuentos:</span>
+        <strong>-{{ orderDiscountTotal | number:'1.2-2' }}</strong>
+      </div>
+      <div class="total-row total">
+        <span>Total:</span>
+        <strong>{{ orderTotal | number:'1.2-2' }}</strong>
+      </div>
     </div>
   </div>
-  <div class="header-total">
-    <div class="total-row">
-      <span>Subtotal:</span>
-      <strong>{{ orderSubtotal | number:'1.2-2' }}</strong>
-    </div>
-    <div class="total-row">
-      <span>Descuentos:</span>
-      <strong>-{{ orderDiscountTotal | number:'1.2-2' }}</strong>
-    </div>
-    <div class="total-row total">
-      <span>Total:</span>
-      <strong>{{ orderTotal | number:'1.2-2' }}</strong>
-    </div>
+  
+  <div class="order-lines">
+    <app-purchase-order-lines
+      [form]="orderForm"
+      [lines]="lineItems"
+      [currencyOptions]="currencyOptions"
+      [packagingOptions]="packagingOptions"
+      [organizationId]="organizationId"
+      (change)="onLinesChange($event)"
+      (remove)="removeLine($event)"
+    ></app-purchase-order-lines>
   </div>
+  
+  <p-dialog
+    header="Agregar producto"
+    [(visible)]="addDialogVisible"
+    [modal]="true"
+    [closable]="true"
+    [draggable]="false"
+    [style]="{ width: '520px' }"
+  >
+    <app-add-order-product-dialog
+      [supplierId]="selectedProviderId"
+      [OrganizationId]="organizationId"
+      [companyId]="companyId"
+      (save)="onProductAdded($event)"
+      (cancel)="closeAddProduct()"
+    ></app-add-order-product-dialog>
+  </p-dialog>
+  
+  <p-dialog
+    header="Asignar productos"
+    [(visible)]="assignDialogVisible"
+    [modal]="true"
+    [closable]="true"
+    [draggable]="false"
+    [style]="{ width: '900px' }"
+  >
+    <app-supplier-catalog-assign
+      [organizationId]="organizationId || ''"
+      [companyId]="companyId || ''"
+      [supplierId]="selectedProviderId || ''"
+      (saved)="onAssignSaved()"
+      (cancel)="closeAssignDialog()"
+    ></app-supplier-catalog-assign>
+  </p-dialog>
+
 </div>
-
-<div class="order-lines">
-  <app-purchase-order-lines
-    [form]="orderForm"
-    [lines]="lineItems"
-    [currencyOptions]="currencyOptions"
-    [packagingOptions]="packagingOptions"
-    [organizationId]="organizationId"
-    (change)="onLinesChange($event)"
-    (remove)="removeLine($event)"
-  ></app-purchase-order-lines>
-</div>
-
-<p-dialog
-  header="Agregar producto"
-  [(visible)]="addDialogVisible"
-  [modal]="true"
-  [closable]="true"
-  [draggable]="false"
-  [style]="{ width: '520px' }"
->
-  <app-add-order-product-dialog
-    [supplierId]="selectedProviderId"
-    [OrganizationId]="organizationId"
-    [companyId]="companyId"
-    (save)="onProductAdded($event)"
-    (cancel)="closeAddProduct()"
-  ></app-add-order-product-dialog>
-</p-dialog>
-
-<p-dialog
-  header="Asignar productos"
-  [(visible)]="assignDialogVisible"
-  [modal]="true"
-  [closable]="true"
-  [draggable]="false"
-  [style]="{ width: '900px' }"
->
-  <app-supplier-catalog-assign
-    [organizationId]="organizationId || ''"
-    [companyId]="companyId || ''"
-    [supplierId]="selectedProviderId || ''"
-    (saved)="onAssignSaved()"
-    (cancel)="closeAssignDialog()"
-  ></app-supplier-catalog-assign>
-</p-dialog>
-
