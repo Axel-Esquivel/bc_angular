@@ -34,16 +34,15 @@
   <ng-template pTemplate="body" let-group let-rowIndex="rowIndex">
     <tr [formGroup]="group">
       <td class="variant-cell">
-        <p-autoComplete
-          appendTo="body"
-          formControlName="variantLabel"
-          [suggestions]="getSuggestions(rowIndex)"
-          (completeMethod)="onVariantSearch(rowIndex, $event)"
-          (onSelect)="onVariantSelect(rowIndex, $event)"
-          (onClear)="onVariantClear(rowIndex)"
-          optionLabel="label"
-          placeholder="SKU, c&oacute;digo o nombre"
-        ></p-autoComplete>
+        <app-variant-picker
+          label="Variante"
+          placeholder="Seleccionar variante"
+          [value]="group.controls.variantId.value || null"
+          [displayValue]="group.controls.variantLabel.value || null"
+          [disabled]="disabled"
+          (valueChange)="onVariantValueChange(rowIndex, $event)"
+          (variantSelected)="onVariantSelected(rowIndex, $event)"
+        ></app-variant-picker>
       </td>
       <td>
         <p-inputNumber

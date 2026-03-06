@@ -1,7 +1,7 @@
-import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormArray, FormControl, FormGroup } from '@angular/forms';
 
-import { VariantsLookupService, VariantOption } from '../../services/variants-lookup.service';
+import { VariantOption } from '../../../../shared/services/variants-lookup.service';
 
 interface SelectOption {
   label: string;
@@ -26,8 +26,6 @@ export type PriceListItemFormGroup = FormGroup<{
   styleUrl: './price-list-items.component.scss',
 })
 export class PriceListItemsComponent {
-  private readonly lookupService = inject(VariantsLookupService);
-
   @Input() items: FormArray<PriceListItemFormGroup> = new FormArray<PriceListItemFormGroup>([]);
   @Input() currencyOptions: SelectOption[] = [];
   @Input() defaultCurrencyId: string | null = null;
@@ -36,7 +34,6 @@ export class PriceListItemsComponent {
   @Output() removeItem = new EventEmitter<number>();
 
   readonly numberLocale = 'en-US';
-  private readonly suggestions = new Map<number, VariantOption[]>();
 
   get itemGroups(): PriceListItemFormGroup[] {
     return this.items.controls;
@@ -50,42 +47,32 @@ export class PriceListItemsComponent {
     this.removeItem.emit(index);
   }
 
-  onVariantSearch(index: number, event: { query: string }): void {
-    const term = event.query ?? '';
-    this.lookupService.searchVariants(term).subscribe({
-      next: (options) => {
-        this.suggestions.set(index, options);
-      },
-      error: () => {
-        this.suggestions.set(index, []);
-      },
-    });
+  trackByIndex(index: number): number {
+    return index;
   }
 
-  onVariantSelect(index: number, event: { value: VariantOption }): void {
+  onVariantSelected(index: number, option: VariantOption): void {
     const group = this.itemGroups[index];
     if (!group) {
       return;
     }
-    group.controls.variantId.setValue(event.value.id);
-    group.controls.variantLabel.setValue(event.value.label);
+    group.controls.variantId.setValue(option.id);
+    group.controls.variantLabel.setValue(option.label);
   }
 
-  onVariantClear(index: number): void {
+  onVariantValueChange(index: number, value: string | null): void {
+    if (value === null) {
+      this.onVariantCleared(index);
+    }
+  }
+
+  onVariantCleared(index: number): void {
     const group = this.itemGroups[index];
     if (!group) {
       return;
     }
     group.controls.variantId.setValue('');
     group.controls.variantLabel.setValue('');
-  }
-
-  getSuggestions(index: number): VariantOption[] {
-    return this.suggestions.get(index) ?? [];
-  }
-
-  trackByIndex(index: number): number {
-    return index;
   }
 
 }

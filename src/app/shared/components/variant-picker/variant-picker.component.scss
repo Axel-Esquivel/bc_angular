@@ -1,0 +1,33 @@
+.variant-dialog {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.variant-picker {
+  width: 100%;
+}
+
+:host {
+  display: block;
+  width: 100%;
+}
+
+.variant-picker :deep(.p-inputgroup) {
+  width: 100%;
+}
+
+.variant-picker :deep(input[pInputText]) {
+  width: 100%;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.search-bar input[pInputText] {
+  width: 100%;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+}

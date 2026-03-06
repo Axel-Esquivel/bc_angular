@@ -6,7 +6,7 @@ import {
   PriceList,
   PriceListItem,
 } from '../../models/price-list.model';
-import { VariantsLookupService, VariantOption } from '../../services/variants-lookup.service';
+import { VariantsLookupService, VariantOption } from '../../../../shared/services/variants-lookup.service';
 import { PriceListItemFormGroup } from '../price-list-items/price-list-items.component';
 
 interface SelectOption {
@@ -161,7 +161,6 @@ export class PriceListFormComponent implements OnChanges, OnInit {
     return (
       cached ?? {
       id: variantId,
-      productId: '',
       name: variantId,
       label: variantId,
     }

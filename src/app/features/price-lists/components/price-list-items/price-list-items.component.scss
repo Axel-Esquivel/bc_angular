@@ -21,6 +21,15 @@
   width: 100%;
 }
 
+.variant-cell {
+  min-width: 280px;
+}
+
+.variant-cell app-variant-picker {
+  display: block;
+  width: 100%;
+}
+
 table :deep(.p-inputnumber),
 table :deep(.p-select),
 table :deep(.p-autocomplete),

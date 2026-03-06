@@ -20,6 +20,7 @@ import { PriceListItemsComponent } from './components/price-list-items/price-lis
 import { PriceListFormPageComponent } from './pages/price-list-form-page/price-list-form-page.component';
 import { PriceListsPageComponent } from './pages/price-lists-page/price-lists-page.component';
 import { priceListsRoutes } from './price-lists.routes';
+import { VariantPickerComponent } from '../../shared/components/variant-picker/variant-picker.component';
 
 @NgModule({
   declarations: [
@@ -44,6 +45,7 @@ import { priceListsRoutes } from './price-lists.routes';
     TextareaModule,
     ToolbarModule,
     TooltipModule,
+    VariantPickerComponent,
   ],
 })
 export class PriceListsModule {}
