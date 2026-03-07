@@ -13,7 +13,7 @@
 </p-toolbar>
 
 <div class="messages" *ngIf="contextMissing">
-  <p-message severity="warn" text="Selecciona organizaci&oacute;n y empresa."></p-message>
+  <p-message severity="warn" text="Selecciona organización y empresa."></p-message>
 </div>
 <div class="messages" *ngIf="!contextMissing && errorMessage">
   <p-message severity="error" [text]="errorMessage"></p-message>
@@ -24,7 +24,7 @@
     <ng-template pTemplate="header">
       <tr>
         <th>Nombre</th>
-        <th>Descripci&oacute;n</th>
+        <th>Descripción</th>
         <th>Empresa</th>
         <th>Items</th>
         <th>Acciones</th>

@@ -1,4 +1,4 @@
-<p-toolbar>
+﻿<p-toolbar>
   <ng-template pTemplate="start">
     <div class="toolbar-title">
       <span>Proveedores</span>
@@ -15,8 +15,8 @@
       <tr>
         <th>Nombre</th>
         <th>NIT</th>
-        <th>D&iacute;as cr&eacute;dito</th>
-        <th>L&iacute;mite cr&eacute;dito</th>
+        <th>Días crédito</th>
+        <th>Límite crédito</th>
         <th>Estado</th>
         <th class="actions">Acciones</th>
       </tr>
@@ -24,9 +24,9 @@
     <ng-template pTemplate="body" let-provider>
       <tr>
         <td>{{ provider.name }}</td>
-        <td>{{ provider.nit || '�' }}</td>
-        <td>{{ provider.creditDays ?? '�' }}</td>
-        <td>{{ provider.creditLimit ?? '�' }}</td>
+        <td>{{ provider.nit || '—' }}</td>
+        <td>{{ provider.creditDays ?? '—' }}</td>
+        <td>{{ provider.creditLimit ?? '—' }}</td>
         <td>{{ resolveStatusLabel(provider.status) }}</td>
         <td class="actions">
           <p-button
@@ -42,7 +42,7 @@
     <ng-template pTemplate="emptymessage">
       <tr>
         <td colspan="6">
-          {{ contextMissing ? 'Selecciona organizaci&oacute;n y empresa para ver proveedores.' : 'Sin proveedores.' }}
+          {{ contextMissing ? 'Selecciona organización y empresa para ver proveedores.' : 'Sin proveedores.' }}
         </td>
       </tr>
     </ng-template>
@@ -63,3 +63,4 @@
     (cancel)="closeDialog()"
   ></app-provider-form>
 </p-dialog>
+

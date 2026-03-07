@@ -9,7 +9,7 @@
     <div class="field">
       <p-floatLabel>
         <textarea pTextarea id="priceListDescription" rows="2" formControlName="description"></textarea>
-        <label for="priceListDescription">Descripci&oacute;n</label>
+        <label for="priceListDescription">Descripción</label>
       </p-floatLabel>
     </div>
     <div class="field" *ngIf="companyOptions.length > 0; else companyInput">
@@ -42,7 +42,7 @@
           [value]="organizationName || organizationId || ''"
           readonly
         />
-        <label for="priceListOrgName">Organizaci&oacute;n</label>
+        <label for="priceListOrgName">Organización</label>
       </p-floatLabel>
       <input type="hidden" formControlName="OrganizationId" />
     </div>

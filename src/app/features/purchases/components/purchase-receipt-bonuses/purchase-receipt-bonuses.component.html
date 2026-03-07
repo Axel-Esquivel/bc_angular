@@ -1,7 +1,7 @@
 <div class="receipt-bonuses">
   <p-fieldset legend="Bonificaciones adicionales">
     <div class="bonus-actions">
-      <p-button label="Agregar bonificaci&oacute;n" icon="pi pi-plus" (onClick)="addBonus.emit()"></p-button>
+      <p-button label="Agregar bonificación" icon="pi pi-plus" (onClick)="addBonus.emit()"></p-button>
     </div>
     <div *ngIf="bonusesForm.length > 0">
       <p-table [value]="bonusesForm.controls" [tableStyle]="{ width: '100%' }">

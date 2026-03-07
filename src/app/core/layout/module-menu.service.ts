@@ -55,14 +55,17 @@ export class ModuleMenuService {
 
     return combineLatest([modules$, overview$]).pipe(
       map(([modules, overview]) => {
-        const moduleItems = modules
-          .filter((module) => module.state?.status !== 'disabled' && !module.isSystem)
-          .map((module) => this.toMenuItem(module));
+        const enabledModules = modules.filter(
+          (module) => module.state?.status !== 'disabled' && !module.isSystem,
+        );
+        const moduleItems = enabledModules.map((module) => this.toMenuItem(module));
+        const hasPriceLists = enabledModules.some((module) => module.key === 'price-lists');
         return this.buildMenu(
           moduleItems,
           overview?.currentOrgRoleKey === 'owner',
           overview?.currentOrgId ?? null,
-          companyId
+          companyId,
+          hasPriceLists,
         );
       }),
       catchError(() => of(this.buildMenu([], false, null, companyId))),
@@ -82,6 +85,7 @@ export class ModuleMenuService {
     isOwner: boolean,
     organizationId: string | null,
     companyId?: string,
+    showPriceLists = false,
   ): MenuItem[] {
     const configItems: MenuItem[] = [];
     if (isOwner) {
@@ -100,7 +104,7 @@ export class ModuleMenuService {
         label: 'Catalogos',
         items: [
           { label: 'Paises', routerLink: '/settings/countries' },
-          { label: 'Listas de precios', routerLink: '/app/price-lists' },
+          ...(showPriceLists ? [{ label: 'Listas de precios', routerLink: '/app/price-lists' }] : []),
         ],
       });
     }

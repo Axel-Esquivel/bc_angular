@@ -71,7 +71,7 @@ export class PriceListFormPageComponent implements OnInit {
 
   onSave(payload: CreatePriceListPayload): void {
     if (!payload.OrganizationId || !payload.companyId) {
-      this.errorMessage = 'Selecciona organizaci&oacute;n y empresa.';
+      this.errorMessage = 'Selecciona organización y empresa.';
       return;
     }
 

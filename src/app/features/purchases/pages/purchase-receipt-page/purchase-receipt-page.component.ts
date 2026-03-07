@@ -397,7 +397,7 @@ export class PurchaseReceiptPageComponent {
     if (bonusLines.some((bonus) => !bonus.variantId || bonus.quantity <= 0)) {
       this.messageService.add({
         severity: 'warn',
-        summary: 'RecepciÃ³n',
+        summary: 'Recepción',
         detail: 'Completa las bonificaciones: producto y cantidad mayor a 0.',
       });
       return null;

@@ -28,19 +28,19 @@
             [ngModel]="selectedWarehouseId"
             (onChange)="onWarehouseChange($event.value)"
           ></p-select>
-          <label for="warehouse">Almac&eacute;n</label>
+          <label for="warehouse">Almacén</label>
         </p-floatLabel>
       </div>
       <div class="header-actions">
         <p-button
-          label="Validar recepci&oacute;n"
+          label="Validar recepción"
           icon="pi pi-check"
           severity="secondary"
           (onClick)="validate.emit()"
           [disabled]="validating"
         ></p-button>
         <p-button
-          label="Registrar recepci&oacute;n"
+          label="Registrar recepción"
           icon="pi pi-save"
           (onClick)="save.emit()"
           [disabled]="saving"
