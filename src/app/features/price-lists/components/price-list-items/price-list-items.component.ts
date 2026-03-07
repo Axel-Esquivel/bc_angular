@@ -152,7 +152,7 @@ export class PriceListItemsComponent implements OnInit, OnChanges, DoCheck {
     const safeUnits = Number.isFinite(unitsPerPack) && unitsPerPack > 0 ? unitsPerPack : 1;
     const current = group.controls.minQuantity.value ?? null;
     const lastAuto = this.autoMinQuantityByIndex.get(index);
-    const shouldOverride = current === null || current === 0 || current === lastAuto;
+    const shouldOverride = current === null || current === 0 || current === 1 || current === lastAuto;
     if (!shouldOverride) {
       return;
     }
