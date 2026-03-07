@@ -27,6 +27,7 @@ export class VariantPickerComponent implements OnInit, OnChanges {
   @Input() label = 'Variante';
   @Input() placeholder = 'Seleccionar variante';
   @Input() disabled = false;
+  @Input() hideInput = false;
   @Input() value: string | null = null;
   @Input() displayValue: string | null = null;
 

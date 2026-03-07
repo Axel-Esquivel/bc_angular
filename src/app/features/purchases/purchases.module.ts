@@ -16,6 +16,7 @@ import { MessageModule } from 'primeng/message';
 import { AutoCompleteModule } from 'primeng/autocomplete';
 import { AccordionModule } from 'primeng/accordion';
 import { FieldsetModule } from 'primeng/fieldset';
+import { VariantPickerComponent } from '../../shared/components/variant-picker/variant-picker.component';
 
 import { AddOrderProductDialogComponent } from './components/add-order-product-dialog/add-order-product-dialog.component';
 import { SupplierCatalogFormComponent } from './components/supplier-catalog-form/supplier-catalog-form.component';
@@ -65,6 +66,7 @@ import { purchasesRoutes } from './purchases.routes';
     AutoCompleteModule,
     AccordionModule,
     FieldsetModule,
+    VariantPickerComponent,
   ],
 })
 export class PurchasesModule {}

@@ -21,6 +21,7 @@ export interface VariantOption {
   barcode?: string | null;
   categoryName?: string | null;
   productName?: string | null;
+  productId?: string | null;
   label: string;
 }
 
@@ -91,6 +92,7 @@ export class VariantsLookupService {
       barcode,
       categoryName: null,
       productName: null,
+      productId: variant.productId ?? null,
       label: this.buildLabel(variant.name, variant.sku ?? null, barcode),
     };
   }
@@ -100,4 +102,3 @@ export class VariantsLookupService {
     return parts.join(' · ');
   }
 }
-

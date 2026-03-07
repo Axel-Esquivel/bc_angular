@@ -1,17 +1,13 @@
 <form [formGroup]="form" class="dialog-form">
   <div class="field">
-    <label for="variant">Variante</label>
-    <p-autoComplete
-      inputId="variant"
-      formControlName="variant"
-      [suggestions]="filteredVariants"
-      [optionLabel]="'display'"
+    <app-variant-picker
+      label="Variante"
       placeholder="Buscar variante"
-      emptyMessage="No hay variantes"
-      (completeMethod)="onSearch($event)"
-      (onSelect)="onVariantSelect($event)"
-      [dropdown]="true"
-    ></p-autoComplete>
+      [value]="form.controls.variantId.value || null"
+      [displayValue]="form.controls.variantLabel.value || null"
+      (valueChange)="onVariantValueChange($event)"
+      (variantSelected)="onVariantSelected($event)"
+    ></app-variant-picker>
   </div>
 
   <div class="field-group">

@@ -3,10 +3,7 @@ import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms'
 import { MessageService } from 'primeng/api';
 
 import { PurchasesService, SupplierLastCostResult } from '../../services/purchases.service';
-import {
-  PurchasesProductsLookupService,
-  VariantOption,
-} from '../../services/purchases-products-lookup.service';
+import { VariantOption } from '../../../../shared/services/variants-lookup.service';
 
 export interface AddOrderProductResult {
   productId: string;
@@ -19,7 +16,8 @@ export interface AddOrderProductResult {
 }
 
 type AddProductForm = FormGroup<{
-  variant: FormControl<ProductOptionDisplay | null>;
+  variantId: FormControl<string>;
+  variantLabel: FormControl<string>;
   qty: FormControl<number | null>;
   unitCost: FormControl<number | null>;
 }>;
@@ -34,7 +32,6 @@ type AddProductForm = FormGroup<{
 export class AddOrderProductDialogComponent {
   private readonly fb = inject(FormBuilder);
   private readonly purchasesService = inject(PurchasesService);
-  private readonly lookupService = inject(PurchasesProductsLookupService);
   private readonly messageService = inject(MessageService);
 
   @Input() supplierId: string | null = null;
@@ -47,31 +44,32 @@ export class AddOrderProductDialogComponent {
   readonly numberLocale = 'en-US';
 
   form: AddProductForm = this.fb.group({
-    variant: this.fb.control<ProductOptionDisplay | null>(null, { validators: [Validators.required] }),
+    variantId: this.fb.nonNullable.control('', { validators: [Validators.required] }),
+    variantLabel: this.fb.nonNullable.control('', { validators: [Validators.required] }),
     qty: this.fb.control<number | null>(1, { validators: [Validators.required, Validators.min(0.01)] }),
     unitCost: this.fb.control<number | null>(null, { validators: [Validators.required, Validators.min(0)] }),
   });
 
-  filteredVariants: ProductOptionDisplay[] = [];
   lastCost: SupplierLastCostResult | null = null;
+  selectedVariant: VariantOption | null = null;
 
-  onSearch(event: { query: string }): void {
-    const term = event.query ?? '';
-    this.lookupService.searchVariants(term).subscribe({
-      next: (options) => {
-        this.filteredVariants = options.map((option) => ({
-          ...option,
-          display: this.formatOption(option),
-        }));
-      },
-      error: () => {
-        this.filteredVariants = [];
-      },
-    });
+  onVariantSelected(option: VariantOption): void {
+    this.form.controls.variantId.setValue(option.id);
+    this.form.controls.variantLabel.setValue(option.label);
+    this.selectedVariant = option;
+    this.loadLastCost(option.id);
   }
 
-  onVariantSelect(event: { value: ProductOptionDisplay }): void {
-    const option = event.value;
+  onVariantValueChange(value: string | null): void {
+    if (value === null) {
+      this.form.controls.variantId.setValue('');
+      this.form.controls.variantLabel.setValue('');
+      this.lastCost = null;
+      this.selectedVariant = null;
+    }
+  }
+
+  private loadLastCost(variantId: string): void {
     const supplierId = this.supplierId ?? undefined;
     const OrganizationId = this.OrganizationId ?? undefined;
     const companyId = this.companyId ?? undefined;
@@ -82,7 +80,7 @@ export class AddOrderProductDialogComponent {
     }
 
     this.purchasesService
-      .getSupplierVariantLastCost({ OrganizationId, companyId, supplierId, variantId: option.id })
+      .getSupplierVariantLastCost({ OrganizationId, companyId, supplierId, variantId })
       .subscribe({
         next: ({ result }) => {
           this.lastCost = result ?? null;
@@ -102,11 +100,12 @@ export class AddOrderProductDialogComponent {
       return;
     }
 
-    const variant = this.form.controls.variant.value;
+    const variantId = this.form.controls.variantId.value;
+    const variantLabel = this.form.controls.variantLabel.value;
     const qty = this.form.controls.qty.value ?? 0;
     const unitCost = this.form.controls.unitCost.value ?? 0;
 
-    if (!variant) {
+    if (!variantId) {
       return;
     }
 
@@ -121,9 +120,9 @@ export class AddOrderProductDialogComponent {
     }
 
     this.save.emit({
-      productId: variant.productId,
-      variantId: variant.id,
-      variantLabel: variant.name,
+      productId: this.selectedVariant?.productId ?? '',
+      variantId,
+      variantLabel,
       qty,
       unitCost,
       lastCost: this.lastCost?.lastCost ?? null,
@@ -143,11 +142,4 @@ export class AddOrderProductDialogComponent {
     });
   }
 
-  private formatOption(option: VariantOption): string {
-    return option.sku ? `${option.name} (${option.sku})` : option.name;
-  }
-}
-
-interface ProductOptionDisplay extends VariantOption {
-  display: string;
 }

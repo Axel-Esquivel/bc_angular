@@ -79,6 +79,7 @@ export class PurchaseOrderLinesComponent implements OnChanges, OnDestroy {
   @Input() currencyOptions: CurrencyOption[] = [];
   @Input() packagingOptions: PackagingOption[] = [];
   @Input() organizationId: string | null = null;
+  @Input() highlightedIndex: number | null = null;
   @Output() change = new EventEmitter<PurchaseOrderLineDraft[]>();
   @Output() remove = new EventEmitter<number>();
 

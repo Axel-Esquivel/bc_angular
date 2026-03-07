@@ -1,4 +1,4 @@
-import { Component, DestroyRef, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, inject } from '@angular/core';
+import { Component, DestroyRef, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ViewChild, inject } from '@angular/core';
 import { MessageService } from 'primeng/api';
 import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { forkJoin } from 'rxjs';
@@ -23,6 +23,8 @@ import {
 import { AddOrderProductResult } from '../../components/add-order-product-dialog/add-order-product-dialog.component';
 import { PurchasesProductsLookupService } from '../../services/purchases-products-lookup.service';
 import { applyMultiplierState } from '../../utils/packaging-multiplier.util';
+import { VariantOption } from '../../../../shared/services/variants-lookup.service';
+import { VariantPickerComponent } from '../../../../shared/components/variant-picker/variant-picker.component';
 
 interface SelectOption {
   label: string;
@@ -72,6 +74,8 @@ export class PurchaseOrderCreatePageComponent implements OnInit, OnChanges {
   @Output() saved = new EventEmitter<void>();
   @Output() cancel = new EventEmitter<void>();
 
+  @ViewChild('orderVariantPicker') orderVariantPicker?: VariantPickerComponent;
+
   providers: Provider[] = [];
   providerOptions: SelectOption[] = [];
   selectedProviderId: string | null = null;
@@ -112,8 +116,8 @@ export class PurchaseOrderCreatePageComponent implements OnInit, OnChanges {
   loadingProducts = false;
   saving = false;
   contextMissing = false;
-  addDialogVisible = false;
   assignDialogVisible = false;
+  highlightedLineIndex: number | null = null;
 
   ngOnInit(): void {
     this.preloadVariants();
@@ -173,11 +177,11 @@ export class PurchaseOrderCreatePageComponent implements OnInit, OnChanges {
       this.showError('Selecciona un proveedor.');
       return;
     }
-    this.addDialogVisible = true;
+    this.openVariantPicker();
   }
 
-  closeAddProduct(): void {
-    this.addDialogVisible = false;
+  openVariantPicker(): void {
+    this.orderVariantPicker?.openDialog();
   }
 
   openAssignDialog(): void {
@@ -215,7 +219,7 @@ export class PurchaseOrderCreatePageComponent implements OnInit, OnChanges {
         summary: 'Pedidos',
         detail: 'La variante ya estaba en el pedido. Se sumo la cantidad.',
       });
-      this.addDialogVisible = false;
+      this.highlightLine(existingIndex);
       return;
     }
 
@@ -257,8 +261,48 @@ export class PurchaseOrderCreatePageComponent implements OnInit, OnChanges {
     ) ?? null;
     applyMultiplierState(lastGroup, packagingOption);
 
-    this.addDialogVisible = false;
+    this.highlightLine(this.lineItems.length - 1);
     this.recalculateTotal();
+  }
+
+  onVariantPicked(option: VariantOption): void {
+    const supplierId = this.selectedProviderId ?? undefined;
+    const OrganizationId = this.organizationId ?? undefined;
+    const companyId = this.companyId ?? undefined;
+
+    if (!supplierId || !OrganizationId || !companyId) {
+      this.showError('Selecciona organizacion, empresa y proveedor.');
+      return;
+    }
+
+    this.purchasesService
+      .getSupplierVariantLastCost({ OrganizationId, companyId, supplierId, variantId: option.id })
+      .subscribe({
+        next: ({ result }) => {
+          const lastCost = result?.lastCost ?? null;
+          const lastCurrency = result?.lastCurrency ?? null;
+          this.onProductAdded({
+            productId: option.productId ?? '',
+            variantId: option.id,
+            variantLabel: option.name || option.label,
+            qty: 1,
+            unitCost: lastCost ?? 0,
+            lastCost,
+            lastCurrency,
+          });
+        },
+        error: () => {
+          this.onProductAdded({
+            productId: option.productId ?? '',
+            variantId: option.id,
+            variantLabel: option.name || option.label,
+            qty: 1,
+            unitCost: 0,
+            lastCost: null,
+            lastCurrency: null,
+          });
+        },
+      });
   }
 
   removeLine(index: number): void {
@@ -724,6 +768,15 @@ export class PurchaseOrderCreatePageComponent implements OnInit, OnChanges {
     this.orderSubtotal = subtotal;
     this.orderDiscountTotal = discountTotal;
     this.orderTotal = linesTotal + globalFreight + globalExtras;
+  }
+
+  private highlightLine(index: number): void {
+    this.highlightedLineIndex = index;
+    window.setTimeout(() => {
+      if (this.highlightedLineIndex === index) {
+        this.highlightedLineIndex = null;
+      }
+    }, 2000);
   }
 
   private resolveLineDiscount(

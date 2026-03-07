@@ -3,7 +3,7 @@
     <p-accordion [multiple]="true">
       <p-accordion-panel *ngFor="let group of formArray.controls; let i = index" [value]="i">
         <p-accordion-header>
-          <div class="line-header">
+          <div class="line-header" [class.line-highlight]="highlightedIndex === i">
             <div class="line-title">
               {{ getLineVariantLabel(i) }}
             </div>

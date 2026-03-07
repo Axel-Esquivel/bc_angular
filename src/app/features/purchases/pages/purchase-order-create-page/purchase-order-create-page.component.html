@@ -170,27 +170,17 @@
       [currencyOptions]="currencyOptions"
       [packagingOptions]="packagingOptions"
       [organizationId]="organizationId"
+      [highlightedIndex]="highlightedLineIndex"
       (change)="onLinesChange($event)"
       (remove)="removeLine($event)"
     ></app-purchase-order-lines>
   </div>
   
-  <p-dialog
-    header="Agregar producto"
-    [(visible)]="addDialogVisible"
-    [modal]="true"
-    [closable]="true"
-    [draggable]="false"
-    [style]="{ width: '520px' }"
-  >
-    <app-add-order-product-dialog
-      [supplierId]="selectedProviderId"
-      [OrganizationId]="organizationId"
-      [companyId]="companyId"
-      (save)="onProductAdded($event)"
-      (cancel)="closeAddProduct()"
-    ></app-add-order-product-dialog>
-  </p-dialog>
+  <app-variant-picker
+    #orderVariantPicker
+    [hideInput]="true"
+    (variantSelected)="onVariantPicked($event)"
+  ></app-variant-picker>
   
   <p-dialog
     header="Asignar productos"
