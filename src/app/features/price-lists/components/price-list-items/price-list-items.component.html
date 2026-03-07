@@ -55,6 +55,7 @@
           placeholder="Empaque"
           [showClear]="true"
           [disabled]="disabled || isPackagingDisabled(group)"
+          (onChange)="onPackagingSelected(rowIndex)"
         ></p-select>
       </td>
       <td>
