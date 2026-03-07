@@ -1,4 +1,4 @@
-<div class="items-header">
+﻿<div class="items-header">
   <div class="items-title">Items</div>
   <p-button
     label="Agregar item"
@@ -22,6 +22,7 @@
   <ng-template pTemplate="header">
     <tr>
       <th>Variante</th>
+      <th>Empaque (opcional)</th>
       <th>Precio</th>
       <th>Moneda</th>
       <th>Cant. mínima</th>
@@ -43,6 +44,18 @@
           (valueChange)="onVariantValueChange(rowIndex, $event)"
           (variantSelected)="onVariantSelected(rowIndex, $event)"
         ></app-variant-picker>
+      </td>
+      <td class="packaging-cell">
+        <p-select
+          appendTo="body"
+          formControlName="packagingId"
+          [options]="packagingOptionsFor(group)"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="Empaque"
+          [showClear]="true"
+          [disabled]="disabled || isPackagingDisabled(group)"
+        ></p-select>
       </td>
       <td>
         <p-inputNumber
@@ -101,7 +114,8 @@
   </ng-template>
   <ng-template pTemplate="emptymessage">
     <tr>
-      <td colspan="8">Sin items.</td>
+      <td colspan="9">Sin items.</td>
     </tr>
   </ng-template>
 </p-table>
+

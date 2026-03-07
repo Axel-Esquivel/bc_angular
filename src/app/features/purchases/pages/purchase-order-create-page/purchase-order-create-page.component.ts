@@ -8,6 +8,7 @@ import { ActiveContextStateService } from '../../../../core/context/active-conte
 import { CompaniesApiService } from '../../../../core/api/companies-api.service';
 import { OrganizationCoreApiService } from '../../../../core/api/organization-core-api.service';
 import { PackagingName, PackagingNamesApiService } from '../../../../core/api/packaging-names-api.service';
+import { ProductsApiService } from '../../../../core/api/products-api.service';
 import { ProvidersService } from '../../../providers/services/providers.service';
 import { PurchasesService, PurchaseOrder } from '../../services/purchases.service';
 import { Provider } from '../../../../shared/models/provider.model';
@@ -66,6 +67,7 @@ export class PurchaseOrderCreatePageComponent implements OnInit, OnChanges {
   private readonly companiesApi = inject(CompaniesApiService);
   private readonly organizationCoreApi = inject(OrganizationCoreApiService);
   private readonly packagingNamesApi = inject(PackagingNamesApiService);
+  private readonly productsApi = inject(ProductsApiService);
   private readonly destroyRef = inject(DestroyRef);
 
   @Input() embedded = false;
@@ -281,25 +283,41 @@ export class PurchaseOrderCreatePageComponent implements OnInit, OnChanges {
         next: ({ result }) => {
           const lastCost = result?.lastCost ?? null;
           const lastCurrency = result?.lastCurrency ?? null;
-          this.onProductAdded({
-            productId: option.productId ?? '',
-            variantId: option.id,
-            variantLabel: option.name || option.label,
-            qty: 1,
-            unitCost: lastCost ?? 0,
-            lastCost,
-            lastCurrency,
+          if (lastCost !== null && lastCost !== undefined) {
+            this.onProductAdded({
+              productId: option.productId ?? '',
+              variantId: option.id,
+              variantLabel: option.name || option.label,
+              qty: 1,
+              unitCost: lastCost,
+              lastCost,
+              lastCurrency,
+            });
+            return;
+          }
+          this.resolveFallbackUnitCost(option.id, 0, (unitCost, currency) => {
+            this.onProductAdded({
+              productId: option.productId ?? '',
+              variantId: option.id,
+              variantLabel: option.name || option.label,
+              qty: 1,
+              unitCost,
+              lastCost: null,
+              lastCurrency: currency ?? null,
+            });
           });
         },
         error: () => {
-          this.onProductAdded({
-            productId: option.productId ?? '',
-            variantId: option.id,
-            variantLabel: option.name || option.label,
-            qty: 1,
-            unitCost: 0,
-            lastCost: null,
-            lastCurrency: null,
+          this.resolveFallbackUnitCost(option.id, 0, (unitCost, currency) => {
+            this.onProductAdded({
+              productId: option.productId ?? '',
+              variantId: option.id,
+              variantLabel: option.name || option.label,
+              qty: 1,
+              unitCost,
+              lastCost: null,
+              lastCurrency: currency ?? null,
+            });
           });
         },
       });
@@ -616,6 +634,38 @@ export class PurchaseOrderCreatePageComponent implements OnInit, OnChanges {
 
   private get linesFormArray(): FormArray<LineFormGroup> {
     return this.orderForm.controls.lines;
+  }
+
+  private resolveFallbackUnitCost(
+    variantId: string,
+    fallbackPrice: number,
+    onResolved: (unitCost: number, currency: string | null) => void,
+  ): void {
+    const OrganizationId = this.organizationId ?? undefined;
+    const companyId = this.companyId ?? undefined;
+    if (!OrganizationId || !companyId) {
+      onResolved(fallbackPrice, this.defaultCurrencyId ?? null);
+      return;
+    }
+    this.productsApi
+      .resolvePrice({
+        OrganizationId,
+        companyId,
+        enterpriseId: this.activeContextState.getActiveContext().enterpriseId ?? undefined,
+        variantId,
+        quantity: 1,
+        fallbackPrice,
+      })
+      .subscribe({
+        next: ({ result }) => {
+          const unitCost = result?.unitPrice ?? fallbackPrice;
+          const currency = result?.currency ?? this.defaultCurrencyId ?? null;
+          onResolved(unitCost, currency);
+        },
+        error: () => {
+          onResolved(fallbackPrice, this.defaultCurrencyId ?? null);
+        },
+      });
   }
 
   private applyDefaultCurrencyToLines(): void {

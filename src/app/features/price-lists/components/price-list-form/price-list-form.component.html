@@ -1,4 +1,4 @@
-<form class="price-list-form" [formGroup]="form">
+﻿<form class="price-list-form" [formGroup]="form">
   <div class="form-grid">
     <div class="field">
       <p-floatLabel>
@@ -52,6 +52,7 @@
     [items]="itemsArray"
     [currencyOptions]="currencyOptions"
     [defaultCurrencyId]="defaultCurrencyId"
+    [organizationId]="organizationId"
     [disabled]="saving"
     (addItem)="onAddItem()"
     (removeItem)="onRemoveItem($event)"
@@ -62,3 +63,4 @@
     <p-button label="Guardar" icon="pi pi-save" (onClick)="onSubmit()" [disabled]="saving"></p-button>
   </div>
 </form>
+

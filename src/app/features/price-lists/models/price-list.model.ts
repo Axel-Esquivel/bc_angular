@@ -1,5 +1,6 @@
 export interface PriceListItem {
   variantId: string;
+  packagingId?: string;
   price: number;
   currency?: string;
   minQuantity?: number;
@@ -34,4 +35,3 @@ export interface UpdatePriceListPayload {
   OrganizationId?: string;
   companyId?: string;
 }
-

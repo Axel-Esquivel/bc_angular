@@ -6,6 +6,25 @@ import { APP_CONFIG_TOKEN, AppConfig } from '../config/app-config';
 import { ApiResponse, PaginatedResponse } from '../../shared/models/api-response.model';
 import { Product } from '../../shared/models/product.model';
 
+export interface ResolvePricePayload {
+  OrganizationId: string;
+  companyId: string;
+  enterpriseId?: string;
+  variantId: string;
+  packagingId?: string;
+  quantity?: number;
+  customerSegment?: string;
+  channel?: string;
+  priceListId?: string;
+  fallbackPrice?: number;
+}
+
+export interface ResolvedPriceResult {
+  unitPrice: number;
+  currency?: string;
+  source: 'price_list' | 'packaging' | 'fallback';
+}
+
 @Injectable({ providedIn: 'root' })
 export class ProductsApiService {
   private readonly baseUrl: string;
@@ -60,5 +79,9 @@ export class ProductsApiService {
 
   deleteProduct(id: string): Observable<ApiResponse<void>> {
     return this.http.delete<ApiResponse<void>>(`${this.baseUrl}/${id}`);
+  }
+
+  resolvePrice(payload: ResolvePricePayload): Observable<ApiResponse<ResolvedPriceResult>> {
+    return this.http.post<ApiResponse<ResolvedPriceResult>>(`${this.baseUrl}/resolve-price`, payload);
   }
 }

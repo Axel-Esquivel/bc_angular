@@ -13,6 +13,7 @@ import { PosProduct } from '../../models/pos-product.model';
 import { PosHttpService } from '../../services/pos.service';
 import { PosProductsService } from '../../services/products.service';
 import { PrepaidApiService } from '../../../../core/api/prepaid-api.service';
+import { ProductsApiService } from '../../../../core/api/products-api.service';
 import { PrepaidVariantConfig } from '../../../../shared/models/prepaid.model';
 import { PriceListsService } from '../../../price-lists/services/price-lists.service';
 import { PriceList } from '../../../price-lists/models/price-list.model';
@@ -34,6 +35,7 @@ export class PosTerminalPageComponent implements OnInit {
   private readonly warehousesApi = inject(WarehousesApiService);
   private readonly prepaidApi = inject(PrepaidApiService);
   private readonly priceListsService = inject(PriceListsService);
+  private readonly productsApi = inject(ProductsApiService);
   private readonly fb = inject(FormBuilder);
 
   products: PosProduct[] = [];
@@ -167,6 +169,7 @@ export class PosTerminalPageComponent implements OnInit {
         ? this.withResolvedPrice(line, safeQuantity)
         : line,
     );
+    this.requestResolvedPrice(lineId, safeQuantity);
     this.recalculateTotals();
   }
 
@@ -261,31 +264,31 @@ export class PosTerminalPageComponent implements OnInit {
     const existing = this.cartLines.find((line) => line.productId === product.id);
     if (existing) {
       const nextQuantity = existing.quantity + 1;
-      const nextUnitPrice = this.resolveUnitPrice(product.id, nextQuantity, existing.unitPrice);
       this.cartLines = this.cartLines.map((line) =>
         line.productId === product.id
           ? {
               ...line,
               quantity: nextQuantity,
-              unitPrice: nextUnitPrice,
-              subtotal: nextQuantity * nextUnitPrice,
+              unitPrice: existing.unitPrice,
+              subtotal: nextQuantity * existing.unitPrice,
               prepaid: prepaid ?? line.prepaid,
             }
           : line
       );
+      this.requestResolvedPrice(product.id, nextQuantity, existing.unitPrice);
     } else {
-      const unitPrice = this.resolveUnitPrice(product.id, 1, product.price);
       this.cartLines = [
         ...this.cartLines,
         {
           productId: product.id,
           productName: product.name,
           quantity: 1,
-          unitPrice,
-          subtotal: unitPrice,
+          unitPrice: product.price,
+          subtotal: product.price,
           prepaid,
         },
       ];
+      this.requestResolvedPrice(product.id, 1, product.price);
     }
     this.recalculateTotals();
   }
@@ -372,51 +375,60 @@ export class PosTerminalPageComponent implements OnInit {
       return;
     }
     this.cartLines = this.cartLines.map((line) => this.withResolvedPrice(line, line.quantity));
+    this.cartLines.forEach((line) => {
+      this.requestResolvedPrice(line.productId, line.quantity, line.unitPrice);
+    });
     this.recalculateTotals();
   }
 
   private withResolvedPrice(line: PosCartLine, quantity: number): PosCartLine {
     const basePrice = this.basePriceByVariant.get(line.productId) ?? line.unitPrice;
-    const unitPrice = this.resolveUnitPrice(line.productId, quantity, basePrice);
     return {
       ...line,
       quantity,
-      unitPrice,
-      subtotal: quantity * unitPrice,
+      unitPrice: basePrice,
+      subtotal: quantity * basePrice,
     };
-  }
-
-  private resolveUnitPrice(variantId: string, quantity: number, fallbackPrice: number): number {
-    const priceFromList = this.resolvePriceFromList(variantId, quantity);
-    return priceFromList ?? fallbackPrice;
-  }
-
-  private resolvePriceFromList(variantId: string, quantity: number): number | null {
-    const priceList = this.selectedPriceList;
-    if (!priceList) {
-      return null;
-    }
-    const candidates = priceList.items.filter((item) => item.variantId === variantId);
-    if (candidates.length === 0) {
-      return null;
-    }
-    const applicable = candidates
-      .filter((item) => (item.minQuantity ?? 1) <= quantity)
-      .sort((a, b) => (b.minQuantity ?? 1) - (a.minQuantity ?? 1));
-    return applicable[0]?.price ?? null;
-  }
-
-  private get selectedPriceList(): PriceList | null {
-    if (!this.selectedPriceListId) {
-      return null;
-    }
-    return this.priceLists.find((item) => item.id === this.selectedPriceListId) ?? null;
   }
 
   private registerBasePrice(product: PosProduct): void {
     if (!this.basePriceByVariant.has(product.id)) {
       this.basePriceByVariant.set(product.id, product.price);
     }
+  }
+
+  private requestResolvedPrice(variantId: string, quantity: number, fallbackPrice?: number): void {
+    if (!this.context?.organizationId || !this.context?.companyId) {
+      return;
+    }
+    this.productsApi
+      .resolvePrice({
+        OrganizationId: this.context.organizationId,
+        companyId: this.context.companyId,
+        enterpriseId: this.context.enterpriseId ?? undefined,
+        variantId,
+        quantity,
+        priceListId: this.selectedPriceListId ?? undefined,
+        fallbackPrice,
+      })
+      .subscribe({
+        next: ({ result }) => {
+          if (!result) {
+            return;
+          }
+          this.cartLines = this.cartLines.map((line) =>
+            line.productId === variantId
+              ? {
+                  ...line,
+                  unitPrice: result.unitPrice,
+                  subtotal: line.quantity * result.unitPrice,
+                }
+              : line,
+          );
+          this.recalculateTotals();
+        },
+        error: () => undefined,
+      });
   }
 
   openSession(): void {

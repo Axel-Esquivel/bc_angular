@@ -30,6 +30,10 @@
   width: 100%;
 }
 
+.packaging-cell {
+  min-width: 220px;
+}
+
 table :deep(.p-inputnumber),
 table :deep(.p-select),
 table :deep(.p-autocomplete),

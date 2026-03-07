@@ -141,6 +141,7 @@ export class PriceListFormComponent implements OnChanges, OnInit {
       {
       variantId: this.fb.nonNullable.control(item?.variantId ?? '', { validators: [Validators.required] }),
       variantLabel: this.fb.nonNullable.control(option?.label ?? '', { validators: [Validators.required] }),
+      packagingId: this.fb.control<string | null>(item?.packagingId ?? null),
       price: this.fb.control<number | null>(item?.price ?? null, {
         validators: [Validators.required, Validators.min(0)],
       }),
@@ -178,6 +179,7 @@ export class PriceListFormComponent implements OnChanges, OnInit {
 
   private normalizeItem(item: {
     variantId: string;
+    packagingId: string | null;
     price: number | null;
     currency: string | null;
     minQuantity: number | null;
@@ -187,6 +189,7 @@ export class PriceListFormComponent implements OnChanges, OnInit {
   }): PriceListItem {
     return {
       variantId: item.variantId,
+      packagingId: item.packagingId?.trim() || undefined,
       price: item.price ?? 0,
       currency: item.currency?.trim() || undefined,
       minQuantity: item.minQuantity ?? undefined,
