@@ -1,26 +1,22 @@
 <div class="assign-header">
   <div class="title">Asignar productos</div>
-  <div class="actions">
-    <p-button label="Cerrar" severity="secondary" (onClick)="close()"></p-button>
-  </div>
 </div>
 
 <div class="assign-add">
-  <p-autoComplete
-    inputId="variantSearch"
-    [(ngModel)]="selectedVariant"
-    [suggestions]="variantSuggestions"
-    [optionLabel]="'display'"
-    emptyMessage="No hay variantes"
-    placeholder="Buscar por nombre, SKU o barcode"
-    (completeMethod)="onSearch($event)"
-    (onSelect)="onVariantSelect($event)"
-  ></p-autoComplete>
+  <app-variant-picker
+    label="Buscar variante"
+    placeholder="Buscar por nombre, SKU o código de barras"
+    [value]="selectedVariantId"
+    [displayValue]="selectedVariantLabel"
+    [disabled]="saving"
+    (valueChange)="onVariantValueChange($event)"
+    (variantSelected)="onAssignVariantSelected($event)"
+  ></app-variant-picker>
   <p-button
     label="Agregar"
     icon="pi pi-plus"
     (onClick)="addSelectedVariant()"
-    [disabled]="!selectedVariant || saving"
+    [disabled]="!selectedVariantOption || saving"
   ></p-button>
 </div>
 

@@ -9,11 +9,6 @@
   font-weight: 600;
 }
 
-.actions {
-  display: flex;
-  gap: 0.5rem;
-}
-
 .assign-add {
   margin-top: 1rem;
   display: flex;
@@ -21,7 +16,7 @@
   align-items: center;
 }
 
-.assign-add p-autoComplete {
+.assign-add app-variant-picker {
   flex: 1;
 }
 

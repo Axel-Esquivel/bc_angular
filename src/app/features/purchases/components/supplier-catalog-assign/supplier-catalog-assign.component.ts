@@ -7,11 +7,7 @@ import {
   SupplierCatalogItem,
   SupplierCatalogStatus,
 } from '../../../../shared/models/supplier-catalog.model';
-import { PurchasesProductsLookupService, VariantOption } from '../../services/purchases-products-lookup.service';
-
-interface VariantOptionDisplay extends VariantOption {
-  display: string;
-}
+import { VariantOption, VariantsLookupService } from '../../../../shared/services/variants-lookup.service';
 
 @Component({
   selector: 'app-supplier-catalog-assign',
@@ -22,7 +18,7 @@ interface VariantOptionDisplay extends VariantOption {
 })
 export class SupplierCatalogAssignComponent implements OnInit, OnChanges {
   private readonly purchasesService = inject(PurchasesService);
-  private readonly lookupService = inject(PurchasesProductsLookupService);
+  private readonly lookupService = inject(VariantsLookupService);
   private readonly messageService = inject(MessageService);
 
   @Input() organizationId!: string;
@@ -30,14 +26,14 @@ export class SupplierCatalogAssignComponent implements OnInit, OnChanges {
   @Input() supplierId!: string;
 
   @Output() saved = new EventEmitter<void>();
-  @Output() cancel = new EventEmitter<void>();
 
   items: SupplierCatalogItem[] = [];
   loading = false;
   saving = false;
 
-  selectedVariant: VariantOptionDisplay | null = null;
-  variantSuggestions: VariantOptionDisplay[] = [];
+  selectedVariantId: string | null = null;
+  selectedVariantLabel: string | null = null;
+  selectedVariantOption: VariantOption | null = null;
 
   ngOnInit(): void {
     this.loadCatalog();
@@ -49,23 +45,18 @@ export class SupplierCatalogAssignComponent implements OnInit, OnChanges {
     }
   }
 
-  onSearch(event: { query: string }): void {
-    const term = event.query ?? '';
-    this.lookupService.searchVariants(term).subscribe({
-      next: (options) => {
-        this.variantSuggestions = options.map((option) => ({
-          ...option,
-          display: this.formatOption(option),
-        }));
-      },
-      error: () => {
-        this.variantSuggestions = [];
-      },
-    });
+  onAssignVariantSelected(variant: VariantOption): void {
+    this.selectedVariantId = variant.id;
+    this.selectedVariantLabel = variant.label;
+    this.selectedVariantOption = variant;
   }
 
-  onVariantSelect(event: { value: VariantOptionDisplay }): void {
-    this.selectedVariant = event.value;
+  onVariantValueChange(value: string | null): void {
+    if (value === null) {
+      this.selectedVariantId = null;
+      this.selectedVariantLabel = null;
+      this.selectedVariantOption = null;
+    }
   }
 
   addSelectedVariant(): void {
@@ -73,12 +64,12 @@ export class SupplierCatalogAssignComponent implements OnInit, OnChanges {
       this.showError('Falta contexto para asignar.');
       return;
     }
-    if (!this.selectedVariant) {
+    if (!this.selectedVariantOption) {
       this.showError('Selecciona una variante.');
       return;
     }
 
-    const exists = this.items.some((item) => item.variantId === this.selectedVariant?.id);
+    const exists = this.items.some((item) => item.variantId === this.selectedVariantOption?.id);
     if (exists) {
       this.showError('La variante ya esta asignada al proveedor.');
       return;
@@ -86,7 +77,7 @@ export class SupplierCatalogAssignComponent implements OnInit, OnChanges {
 
     const payload: CreateSupplierCatalogDto = {
       supplierId: this.supplierId,
-      variantId: this.selectedVariant.id,
+      variantId: this.selectedVariantOption.id,
       unitCost: 0,
       status: 'active',
     };
@@ -104,7 +95,9 @@ export class SupplierCatalogAssignComponent implements OnInit, OnChanges {
             this.items = [result, ...this.items];
           }
           this.saving = false;
-          this.selectedVariant = null;
+          this.selectedVariantId = null;
+          this.selectedVariantLabel = null;
+          this.selectedVariantOption = null;
           this.saved.emit();
         },
         error: () => {
@@ -127,10 +120,6 @@ export class SupplierCatalogAssignComponent implements OnInit, OnChanges {
         this.showError('No se pudo eliminar el item.');
       },
     });
-  }
-
-  close(): void {
-    this.cancel.emit();
   }
 
   getVariantLabel(variantId: string): string {
@@ -166,10 +155,6 @@ export class SupplierCatalogAssignComponent implements OnInit, OnChanges {
       });
   }
 
-  private formatOption(option: VariantOption): string {
-    return option.sku ? `${option.name} (${option.sku})` : option.name;
-  }
-
   private showError(detail: string): void {
     this.messageService.add({
       severity: 'error',
@@ -178,4 +163,3 @@ export class SupplierCatalogAssignComponent implements OnInit, OnChanges {
     });
   }
 }
-
