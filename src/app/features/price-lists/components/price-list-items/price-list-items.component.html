@@ -14,7 +14,7 @@
   </div>
 </div>
 <p class="items-help">
-  Agrega precios por variante. Opcionalmente define cantidad mínima y descuento por segmento/canal.
+  Agrega precios por variante. Opcionalmente define cantidad mÃ­nima y descuento por segmento/canal.
 </p>
 
 <p-accordion [multiple]="true" [(value)]="activePanels" expandIcon="pi pi-chevron-down" collapseIcon="pi pi-chevron-up">
@@ -105,7 +105,7 @@
                 [min]="1"
                 [maxFractionDigits]="0"
               ></p-inputNumber>
-              <label>Cant. mínima</label>
+              <label>Cant. mÃ­nima</label>
             </p-floatLabel>
           </div>
           <div class="item-field">
@@ -147,7 +147,7 @@
               <strong>{{ formatCost(getReferenceCosts(group)?.averageCost ?? null, group.controls.currency.value) }}</strong>
             </div>
             <div class="cost-item">
-              <span>Últ. costo</span>
+              <span>Ãšlt. costo</span>
               <strong>{{ formatCost(getReferenceCosts(group)?.lastPurchaseCost ?? null, group.controls.currency.value) }}</strong>
             </div>
             <div class="cost-item">
@@ -159,7 +159,7 @@
               <strong>{{ formatPercent(computeMargin(group.controls.price.value, getReferenceCosts(group)?.averageCost ?? null)) }}</strong>
             </div>
             <div class="cost-item" [class.cost-negative]="isNegative(computeMargin(group.controls.price.value, getReferenceCosts(group)?.lastPurchaseCost ?? null))">
-              <span>Margen últ.</span>
+              <span>Margen Ãšlt.</span>
               <strong>{{ formatPercent(computeMargin(group.controls.price.value, getReferenceCosts(group)?.lastPurchaseCost ?? null)) }}</strong>
             </div>
           </div>
