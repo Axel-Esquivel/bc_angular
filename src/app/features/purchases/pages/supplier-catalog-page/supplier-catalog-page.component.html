@@ -1,7 +1,7 @@
-ï»¿<p-toolbar>
+<p-toolbar>
   <ng-template pTemplate="start">
     <div class="toolbar-title">
-      <span>CatÃ¡logo proveedor-producto</span>
+      <span>Catálogo proveedor-producto</span>
     </div>
   </ng-template>
   <ng-template pTemplate="end">
@@ -72,13 +72,13 @@
     <ng-template pTemplate="body" let-row>
       <tr>
         <td>{{ row.variantLabel }}</td>
-        <td>{{ row.unitCost ?? 'â€”' }}</td>
-        <td>{{ row.currency || 'â€”' }}</td>
-        <td>{{ row.freightCost ?? 'â€”' }}</td>
+        <td>{{ row.unitCost ?? '—' }}</td>
+        <td>{{ row.currency || '—' }}</td>
+        <td>{{ row.freightCost ?? '—' }}</td>
         <td>{{ row.bonusType || 'none' }}</td>
-        <td>{{ row.bonusValue ?? 'â€”' }}</td>
-        <td>{{ row.minQty ?? 'â€”' }}</td>
-        <td>{{ row.leadTimeDays ?? 'â€”' }}</td>
+        <td>{{ row.bonusValue ?? '—' }}</td>
+        <td>{{ row.minQty ?? '—' }}</td>
+        <td>{{ row.leadTimeDays ?? '—' }}</td>
         <td>{{ resolveStatusLabel(row.status) }}</td>
         <td class="actions">
           <p-button
@@ -94,7 +94,7 @@
     <ng-template pTemplate="emptymessage">
       <tr>
         <td colspan="10">
-          {{ contextMissing ? 'Selecciona organizaciÃ³n y empresa.' : 'Sin datos para el proveedor seleccionado.' }}
+          {{ contextMissing ? 'Selecciona organización y empresa.' : 'Sin datos para el proveedor seleccionado.' }}
         </td>
       </tr>
     </ng-template>
@@ -102,7 +102,7 @@
 </div>
 
 <p-dialog
-  [header]="editingOverrideId ? 'Editar \u00edtem' : 'Nuevo \u00edtem'"
+  [header]="editingOverrideId ? 'Editar ítem' : 'Nuevo ítem'"
   [(visible)]="dialogVisible"
   [modal]="true"
   [closable]="true"
@@ -117,5 +117,6 @@
     (cancel)="closeDialog()"
   ></app-supplier-catalog-form>
 </p-dialog>
+
 
 

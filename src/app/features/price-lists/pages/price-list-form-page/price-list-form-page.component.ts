@@ -40,6 +40,7 @@ export class PriceListFormPageComponent implements OnInit {
   organizationId: string | null = null;
   organizationName: string | null = null;
   companyId: string | null = null;
+  enterpriseId: string | null = null;
 
   loading = false;
   saving = false;
@@ -57,6 +58,7 @@ export class PriceListFormPageComponent implements OnInit {
     this.organizationId = context.organizationId ?? null;
     this.companyId = context.companyId ?? null;
     this.defaultCurrencyId = context.currencyId ?? null;
+    this.enterpriseId = context.enterpriseId ?? null;
     this.contextMissing = !this.organizationId;
 
     this.priceListId = this.route.snapshot.paramMap.get('id');

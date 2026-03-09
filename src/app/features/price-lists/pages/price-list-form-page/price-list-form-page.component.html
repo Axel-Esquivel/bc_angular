@@ -15,6 +15,11 @@
 <div class="messages" *ngIf="!contextMissing && errorMessage">
   <p-message severity="error" [text]="errorMessage"></p-message>
 </div>
+<div class="info-hint" *ngIf="!contextMissing">
+  Esta lista se puede asignar como predeterminada al contexto comercial correspondiente y sobrescribe
+  el precio base del empaque cuando aplica. La lista predeterminada se asigna en Configuración &gt;
+  Módulos &gt; Listas de precios.
+</div>
 
 <app-price-list-form
   [priceList]="priceList ?? undefined"
@@ -24,6 +29,7 @@
   [organizationId]="organizationId"
   [organizationName]="organizationName"
   [companyId]="companyId"
+  [enterpriseId]="enterpriseId"
   [saving]="saving || loading"
   (save)="onSave($event)"
   (cancel)="onCancel()"

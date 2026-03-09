@@ -2,7 +2,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
   gap: 1rem;
 }
 
@@ -11,32 +11,118 @@
   font-weight: 600;
 }
 
+.items-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 .items-help {
   margin: 0 0 1rem;
   color: var(--text-secondary, #6b7280);
   font-size: 0.9rem;
 }
 
-.variant-cell :deep(.p-autocomplete) {
+.item-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
   width: 100%;
 }
 
-.variant-cell {
-  min-width: 280px;
+.item-title {
+  font-weight: 600;
+  min-width: 160px;
 }
 
-.variant-cell app-variant-picker {
-  display: block;
+.item-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  color: var(--text-secondary, #6b7280);
+  font-size: 0.85rem;
+  flex: 1 1 auto;
+}
+
+.item-summary span::after {
+  content: '·';
+  margin-left: 0.5rem;
+  color: var(--text-secondary, #6b7280);
+}
+
+.item-summary span:last-child::after {
+  content: '';
+  margin: 0;
+}
+
+.item-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.item-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding-top: 0.5rem;
+}
+
+.item-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.item-field {
+  flex: 1 1 280px;
+  min-width: 240px;
+}
+
+.variant-cell app-variant-picker,
+.packaging-cell :deep(.p-select),
+.item-field :deep(.p-inputnumber),
+.item-field :deep(.p-select),
+.item-field input[pInputText] {
   width: 100%;
 }
 
-.packaging-cell {
-  min-width: 220px;
+.cost-panel {
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--surface-border, #e5e7eb);
+  border-radius: 0.5rem;
+  background: var(--surface-card, #ffffff);
 }
 
-table :deep(.p-inputnumber),
-table :deep(.p-select),
-table :deep(.p-autocomplete),
-table input[pInputText] {
-  width: 100%;
+.cost-title {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.cost-values {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.5rem;
+  font-size: 0.85rem;
+  color: var(--text-secondary, #6b7280);
+}
+
+.cost-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.cost-item strong {
+  color: var(--text-color, #111827);
+  font-weight: 600;
+}
+
+.cost-negative strong {
+  color: var(--red-500, #ef4444);
+}
+
+.empty-items {
+  margin-top: 1rem;
+  color: var(--text-secondary, #6b7280);
 }

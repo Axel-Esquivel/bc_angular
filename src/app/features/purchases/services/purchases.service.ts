@@ -147,6 +147,12 @@ export interface BestPriceResponse {
   fxNote?: string;
 }
 
+export interface ReferenceCostsResult {
+  averageCost: number | null;
+  lastPurchaseCost: number | null;
+  packagingBasePrice: number | null;
+}
+
 @Injectable({ providedIn: 'root' })
 export class PurchasesService {
   private readonly baseUrl: string;
@@ -260,6 +266,28 @@ export class PurchasesService {
       httpParams = httpParams.set('limit', String(params.limit));
     }
     return this.http.get<ApiResponse<BestPriceResponse>>(`${this.baseUrl}/orders/best-price`, {
+      params: httpParams,
+    });
+  }
+
+  getReferenceCosts(params: {
+    OrganizationId: string;
+    companyId: string;
+    variantId: string;
+    packagingId?: string;
+    enterpriseId?: string;
+  }): Observable<ApiResponse<ReferenceCostsResult>> {
+    let httpParams = new HttpParams()
+      .set('OrganizationId', params.OrganizationId)
+      .set('companyId', params.companyId)
+      .set('variantId', params.variantId);
+    if (params.packagingId) {
+      httpParams = httpParams.set('packagingId', params.packagingId);
+    }
+    if (params.enterpriseId) {
+      httpParams = httpParams.set('enterpriseId', params.enterpriseId);
+    }
+    return this.http.get<ApiResponse<ReferenceCostsResult>>(`${this.baseUrl}/reference-costs`, {
       params: httpParams,
     });
   }

@@ -39,6 +39,7 @@ export class PriceListFormComponent implements OnChanges, OnInit {
   @Input() organizationId: string | null = null;
   @Input() organizationName: string | null = null;
   @Input() companyId: string | null = null;
+  @Input() enterpriseId: string | null = null;
   @Input() saving = false;
   @Output() save = new EventEmitter<CreatePriceListPayload>();
   @Output() cancel = new EventEmitter<void>();

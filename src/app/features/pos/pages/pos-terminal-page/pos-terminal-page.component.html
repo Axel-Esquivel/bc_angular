@@ -4,7 +4,7 @@
       <p class="eyebrow">Punto de venta</p>
       <h1>POS</h1>
       <p class="muted">
-        Estado: {{ sessionId ? 'Sesi\u00f3n abierta' : 'Sesi\u00f3n no iniciada' }}
+        Estado: {{ sessionId ? 'Sesión abierta' : 'Sesión no iniciada' }}
       </p>
     </div>
     <div class="pos-controls">
@@ -13,7 +13,7 @@
         [options]="warehouseOptions"
         optionLabel="name"
         optionValue="id"
-        placeholder="Selecciona almac\u00e9n"
+        placeholder="Selecciona almacén"
         [(ngModel)]="selectedWarehouseId"
         [disabled]="warehouseOptions.length === 0"
       ></p-select>
@@ -28,7 +28,7 @@
         (onChange)="onPriceListChange()"
       ></p-select>
       <p-button
-        label="Abrir sesi\u00f3n"
+        label="Abrir sesión"
         icon="pi pi-play"
         severity="success"
         [disabled]="!!sessionId || !selectedWarehouseId"
@@ -96,3 +96,4 @@
     </div>
   </ng-template>
 </p-dialog>
+

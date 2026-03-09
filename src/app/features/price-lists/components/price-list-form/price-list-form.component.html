@@ -2,13 +2,24 @@
   <div class="form-grid">
     <div class="field">
       <p-floatLabel>
-        <input pInputText id="priceListName" formControlName="name" />
+        <input
+          pInputText
+          id="priceListName"
+          formControlName="name"
+          placeholder="Ej: Sucursal Centro, Mayorista, Domicilio"
+        />
         <label for="priceListName">Nombre</label>
       </p-floatLabel>
     </div>
     <div class="field">
       <p-floatLabel>
-        <textarea pTextarea id="priceListDescription" rows="2" formControlName="description"></textarea>
+        <textarea
+          pTextarea
+          id="priceListDescription"
+          rows="2"
+          formControlName="description"
+          placeholder="Ej: precios para ventas de mostrador de la sucursal 1"
+        ></textarea>
         <label for="priceListDescription">Descripción</label>
       </p-floatLabel>
     </div>
@@ -53,6 +64,8 @@
     [currencyOptions]="currencyOptions"
     [defaultCurrencyId]="defaultCurrencyId"
     [organizationId]="organizationId"
+    [companyId]="form.controls.companyId.value"
+    [enterpriseId]="enterpriseId"
     [disabled]="saving"
     (addItem)="onAddItem()"
     (removeItem)="onRemoveItem($event)"

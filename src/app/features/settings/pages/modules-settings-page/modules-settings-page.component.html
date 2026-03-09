@@ -67,7 +67,47 @@
       ></p-button>
     </p-card>
 
-    <p-card class="module-settings" *ngIf="selectedKey && selectedKey !== 'products'">
+    <p-card class="module-settings" *ngIf="selectedKey === 'price-lists'">
+      <ng-container *ngIf="isModuleEnabled(modules, 'price-lists'); else priceListsDisabled">
+        <h3>Listas de precios</h3>
+        <p>Configura la lista de precios por defecto para la empresa activa.</p>
+
+        <div class="field-row" *ngIf="priceListsContextMissing">
+          <p>Selecciona un contexto con empresa para configurar este módulo.</p>
+        </div>
+
+        <div class="field-row" [formGroup]="priceListsForm">
+          <p-floatLabel>
+            <p-select
+              inputId="defaultPriceListId"
+              [options]="priceListOptions"
+              optionLabel="label"
+              optionValue="value"
+              [loading]="priceListsLoading"
+              [showClear]="true"
+              placeholder="Selecciona una lista"
+              formControlName="defaultPriceListId"
+              appendTo="body"
+            ></p-select>
+            <label for="defaultPriceListId">Lista por defecto</label>
+          </p-floatLabel>
+        </div>
+
+        <p-button
+          label="Guardar"
+          icon="pi pi-save"
+          [loading]="saving"
+          [disabled]="priceListsContextMissing"
+          (onClick)="savePriceListsSettings()"
+        ></p-button>
+      </ng-container>
+      <ng-template #priceListsDisabled>
+        <h3>Listas de precios</h3>
+        <p>Este módulo no está habilitado para la organización activa.</p>
+      </ng-template>
+    </p-card>
+
+    <p-card class="module-settings" *ngIf="selectedKey && selectedKey !== 'products' && selectedKey !== 'price-lists'">
       <h3>Sin ajustes</h3>
       <p>Este módulo no tiene configuración disponible.</p>
     </p-card>

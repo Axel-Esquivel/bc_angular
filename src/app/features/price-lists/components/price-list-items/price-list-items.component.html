@@ -1,122 +1,180 @@
-ï»¿<div class="items-header">
+<div class="items-header">
   <div class="items-title">Items</div>
-  <p-button
-    label="Agregar item"
-    icon="pi pi-plus"
-    severity="secondary"
-    (onClick)="onAddItem()"
-    [disabled]="disabled"
-  ></p-button>
+  <div class="items-actions">
+    <p-button
+      icon="pi pi-plus"
+      text
+      size="small"
+      severity="secondary"
+      [pTooltip]="'Agregar item'"
+      tooltipPosition="left"
+      (onClick)="onAddItem()"
+      [disabled]="disabled"
+    ></p-button>
+  </div>
 </div>
 <p class="items-help">
-  Agrega precios por variante. Opcionalmente define cantidad mÃ­nima y descuento por segmento/canal.
+  Agrega precios por variante. Opcionalmente define cantidad mínima y descuento por segmento/canal.
 </p>
 
-<p-table
-  [value]="itemGroups"
-  [rows]="10"
-  [paginator]="itemGroups.length > 10"
-  responsiveLayout="stack"
-  [breakpoint]="'960px'"
->
-  <ng-template pTemplate="header">
-    <tr>
-      <th>Variante</th>
-      <th>Empaque (opcional)</th>
-      <th>Precio</th>
-      <th>Moneda</th>
-      <th>Cant. mÃ­nima</th>
-      <th>Descuento %</th>
-      <th>Segmento (opcional)</th>
-      <th>Canal (opcional)</th>
-      <th>Acciones</th>
-    </tr>
-  </ng-template>
-  <ng-template pTemplate="body" let-group let-rowIndex="rowIndex">
-    <tr [formGroup]="group">
-      <td class="variant-cell">
-        <app-variant-picker
-          label="Variante"
-          placeholder="Seleccionar variante"
-          [value]="group.controls.variantId.value || null"
-          [displayValue]="group.controls.variantLabel.value || null"
-          [disabled]="disabled"
-          (valueChange)="onVariantValueChange(rowIndex, $event)"
-          (variantSelected)="onVariantSelected(rowIndex, $event)"
-        ></app-variant-picker>
-      </td>
-      <td class="packaging-cell">
-        <p-select
-          appendTo="body"
-          formControlName="packagingId"
-          [options]="packagingOptionsFor(group)"
-          optionLabel="label"
-          optionValue="value"
-          placeholder="Empaque"
-          [showClear]="true"
-          [disabled]="disabled || isPackagingDisabled(group)"
-          (onChange)="onPackagingSelected(rowIndex)"
-        ></p-select>
-      </td>
-      <td>
-        <p-inputNumber
-          formControlName="price"
-          [locale]="numberLocale"
-          [minFractionDigits]="2"
-          [maxFractionDigits]="2"
-          [min]="0"
-        ></p-inputNumber>
-      </td>
-      <td>
-        <p-select
-          appendTo="body"
-          formControlName="currency"
-          [options]="currencyOptions"
-          optionLabel="label"
-          optionValue="value"
-          placeholder="Moneda"
-        ></p-select>
-      </td>
-      <td>
-        <p-inputNumber
-          formControlName="minQuantity"
-          [locale]="numberLocale"
-          [min]="1"
-          [maxFractionDigits]="0"
-        ></p-inputNumber>
-      </td>
-      <td>
-        <p-inputNumber
-          formControlName="discountPercentage"
-          [locale]="numberLocale"
-          [min]="0"
-          [max]="100"
-          [maxFractionDigits]="2"
-          [pTooltip]="'Descuento adicional aplicado al precio'"
-          [tooltipDisabled]="!group.controls.discountPercentage.value"
-        ></p-inputNumber>
-      </td>
-      <td>
-        <input pInputText formControlName="customerSegment" placeholder="Ej: Minorista, Mayorista, VIP" />
-      </td>
-      <td>
-        <input pInputText formControlName="channel" placeholder="Ej: Tienda, POS, WhatsApp" />
-      </td>
-      <td>
-        <p-button
-          icon="pi pi-trash"
-          severity="danger"
-          size="small"
-          (onClick)="onRemoveItem(rowIndex)"
-          [disabled]="disabled"
-        ></p-button>
-      </td>
-    </tr>
-  </ng-template>
-  <ng-template pTemplate="emptymessage">
-    <tr>
-      <td colspan="9">Sin items.</td>
-    </tr>
-  </ng-template>
-</p-table>
+<p-accordion [multiple]="true" [(value)]="activePanels" expandIcon="pi pi-chevron-down" collapseIcon="pi pi-chevron-up">
+  <p-accordion-panel *ngFor="let group of itemGroups; let i = index" [value]="i">
+    <p-accordion-header>
+      <div class="item-header">
+        <div class="item-title">{{ getItemTitle(group) }}</div>
+        <div class="item-summary">
+          <span>{{ getPackagingLabel(group) }}</span>
+          <span>{{ getPriceLabel(group) }}</span>
+          <span>{{ getMinQuantityLabel(group) }}</span>
+        </div>
+        <div class="item-actions">
+          <p-button
+            icon="pi pi-trash"
+            text
+            size="small"
+            severity="danger"
+            (onClick)="onRemoveItem(i); $event.stopPropagation()"
+            [disabled]="disabled"
+          ></p-button>
+        </div>
+      </div>
+    </p-accordion-header>
+    <p-accordion-content>
+      <div class="item-form" [formGroup]="group">
+        <div class="item-row">
+          <div class="item-field variant-cell">
+            <app-variant-picker
+              label="Variante"
+              placeholder="Seleccionar variante"
+              [value]="group.controls.variantId.value || null"
+              [displayValue]="group.controls.variantLabel.value || null"
+              [disabled]="disabled"
+              (valueChange)="onVariantValueChange(i, $event)"
+              (variantSelected)="onVariantSelected(i, $event)"
+            ></app-variant-picker>
+          </div>
+          <div class="item-field packaging-cell">
+            <p-floatLabel>
+              <p-select
+                appendTo="body"
+                formControlName="packagingId"
+                [options]="packagingOptionsFor(group)"
+                optionLabel="label"
+                optionValue="value"
+                placeholder="Empaque"
+                [showClear]="true"
+                [disabled]="disabled || isPackagingDisabled(group)"
+                (onChange)="onPackagingSelected(i)"
+              ></p-select>
+              <label>Empaque (opcional)</label>
+            </p-floatLabel>
+          </div>
+        </div>
+
+        <div class="item-row">
+          <div class="item-field">
+            <p-floatLabel>
+              <p-inputNumber
+                formControlName="price"
+                [locale]="numberLocale"
+                [minFractionDigits]="2"
+                [maxFractionDigits]="2"
+                [min]="0"
+              ></p-inputNumber>
+              <label>Precio</label>
+            </p-floatLabel>
+          </div>
+          <div class="item-field">
+            <p-floatLabel>
+              <p-select
+                appendTo="body"
+                formControlName="currency"
+                [options]="currencyOptions"
+                optionLabel="label"
+                optionValue="value"
+                placeholder="Moneda"
+              ></p-select>
+              <label>Moneda</label>
+            </p-floatLabel>
+          </div>
+          <div class="item-field">
+            <p-floatLabel>
+              <p-inputNumber
+                formControlName="minQuantity"
+                [locale]="numberLocale"
+                [min]="1"
+                [maxFractionDigits]="0"
+              ></p-inputNumber>
+              <label>Cant. mínima</label>
+            </p-floatLabel>
+          </div>
+          <div class="item-field">
+            <p-floatLabel>
+              <p-inputNumber
+                formControlName="discountPercentage"
+                [locale]="numberLocale"
+                [min]="0"
+                [max]="100"
+                [maxFractionDigits]="2"
+                [pTooltip]="'Descuento adicional aplicado al precio'"
+                [tooltipDisabled]="!group.controls.discountPercentage.value"
+              ></p-inputNumber>
+              <label>Descuento %</label>
+            </p-floatLabel>
+          </div>
+        </div>
+
+        <div class="item-row">
+          <div class="item-field">
+            <p-floatLabel>
+              <input pInputText formControlName="customerSegment" placeholder="Ej: Minorista, Mayorista, VIP" />
+              <label>Segmento (opcional)</label>
+            </p-floatLabel>
+          </div>
+          <div class="item-field">
+            <p-floatLabel>
+              <input pInputText formControlName="channel" placeholder="Ej: Tienda, POS, WhatsApp" />
+              <label>Canal (opcional)</label>
+            </p-floatLabel>
+          </div>
+        </div>
+
+        <div class="cost-panel" *ngIf="shouldShowReference(group)">
+          <div class="cost-title">Referencias de costo</div>
+          <div class="cost-values" *ngIf="!isReferenceLoading(group); else loadingReferences">
+            <div class="cost-item">
+              <span>Costo prom.</span>
+              <strong>{{ formatCost(getReferenceCosts(group)?.averageCost ?? null, group.controls.currency.value) }}</strong>
+            </div>
+            <div class="cost-item">
+              <span>Últ. costo</span>
+              <strong>{{ formatCost(getReferenceCosts(group)?.lastPurchaseCost ?? null, group.controls.currency.value) }}</strong>
+            </div>
+            <div class="cost-item">
+              <span>Base empaque</span>
+              <strong>{{ formatCost(getReferenceCosts(group)?.packagingBasePrice ?? null, group.controls.currency.value) }}</strong>
+            </div>
+            <div class="cost-item" [class.cost-negative]="isNegative(computeMargin(group.controls.price.value, getReferenceCosts(group)?.averageCost ?? null))">
+              <span>Margen prom.</span>
+              <strong>{{ formatPercent(computeMargin(group.controls.price.value, getReferenceCosts(group)?.averageCost ?? null)) }}</strong>
+            </div>
+            <div class="cost-item" [class.cost-negative]="isNegative(computeMargin(group.controls.price.value, getReferenceCosts(group)?.lastPurchaseCost ?? null))">
+              <span>Margen últ.</span>
+              <strong>{{ formatPercent(computeMargin(group.controls.price.value, getReferenceCosts(group)?.lastPurchaseCost ?? null)) }}</strong>
+            </div>
+          </div>
+          <ng-template #loadingReferences>
+            <div class="cost-values">
+              <span>Referencias de costo: cargando...</span>
+            </div>
+          </ng-template>
+        </div>
+      </div>
+    </p-accordion-content>
+  </p-accordion-panel>
+</p-accordion>
+
+<div class="empty-items" *ngIf="itemGroups.length === 0">
+  Sin items.
+</div>
 

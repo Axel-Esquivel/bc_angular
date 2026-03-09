@@ -1,11 +1,22 @@
 import { Component, OnInit, inject } from '@angular/core';
-import { FormBuilder } from '@angular/forms';
+import { FormBuilder, FormControl } from '@angular/forms';
 import { MessageService } from 'primeng/api';
-import { take } from 'rxjs';
+import { finalize, take } from 'rxjs';
 
 import { OrganizationsService } from '../../../../core/api/organizations-api.service';
 import { ActiveContextStateService } from '../../../../core/context/active-context-state.service';
 import { OrganizationModuleOverviewItem } from '../../../../shared/models/organization-modules.model';
+import { PriceListsService } from '../../../price-lists/services/price-lists.service';
+import { PriceList } from '../../../price-lists/models/price-list.model';
+
+interface SelectOption {
+  label: string;
+  value: string | null;
+}
+
+interface PriceListsModuleSettings {
+  defaultByCompanyId?: Record<string, string | null>;
+}
 
 interface ProductsSettingsForm {
   enableVariants: boolean;
@@ -25,17 +36,25 @@ export class ModulesSettingsPageComponent implements OnInit {
   private readonly activeContextState = inject(ActiveContextStateService);
   private readonly fb = inject(FormBuilder);
   private readonly messageService = inject(MessageService);
+  private readonly priceListsService = inject(PriceListsService);
 
   modules: OrganizationModuleOverviewItem[] = [];
   loading = false;
   selectedKey: string | null = null;
   saving = false;
   contextMissing = false;
+  priceListsLoading = false;
+  priceListOptions: SelectOption[] = [];
+  priceListsContextMissing = false;
 
   readonly productsForm = this.fb.nonNullable.group({
     enableVariants: [false],
     autoGenerateSku: [true],
     allowMultipleBarcodes: [false],
+  });
+
+  readonly priceListsForm = this.fb.group({
+    defaultPriceListId: new FormControl<string | null>(null),
   });
 
   readonly eanPrefixForm = this.fb.nonNullable.group({
@@ -51,6 +70,10 @@ export class ModulesSettingsPageComponent implements OnInit {
     if (moduleKey === 'products') {
       this.loadProductsSettings();
       this.loadEanPrefix();
+    }
+    if (moduleKey === 'price-lists') {
+      this.loadPriceListsSettings();
+      this.loadPriceListsOptions();
     }
   }
 
@@ -88,6 +111,45 @@ export class ModulesSettingsPageComponent implements OnInit {
             severity: 'error',
             summary: 'Configuraci?n',
             detail: 'No se pudieron guardar los ajustes.',
+          });
+        },
+      });
+  }
+
+  savePriceListsSettings(): void {
+    const organizationId = this.getOrganizationId();
+    const companyId = this.getCompanyId();
+    if (!organizationId || !companyId) {
+      this.priceListsContextMissing = true;
+      return;
+    }
+    this.priceListsContextMissing = false;
+    this.saving = true;
+    const defaultPriceListId = this.priceListsForm.controls.defaultPriceListId.value ?? null;
+    this.organizationsApi
+      .updateModuleSettings(organizationId, {
+        moduleKey: 'price-lists',
+        settings: {
+          companyId,
+          defaultPriceListId,
+        },
+      })
+      .pipe(take(1))
+      .subscribe({
+        next: () => {
+          this.saving = false;
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Configuración',
+            detail: 'Lista de precios por defecto guardada.',
+          });
+        },
+        error: () => {
+          this.saving = false;
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Configuración',
+            detail: 'No se pudo guardar la lista por defecto.',
           });
         },
       });
@@ -183,6 +245,57 @@ export class ModulesSettingsPageComponent implements OnInit {
       });
   }
 
+  private loadPriceListsSettings(): void {
+    const organizationId = this.getOrganizationId();
+    const companyId = this.getCompanyId();
+    if (!organizationId || !companyId) {
+      this.priceListsContextMissing = true;
+      this.priceListsForm.reset({ defaultPriceListId: null }, { emitEvent: false });
+      return;
+    }
+    this.priceListsContextMissing = false;
+    this.organizationsApi
+      .getById(organizationId)
+      .pipe(take(1))
+      .subscribe({
+        next: (response) => {
+          const settings = response.result?.moduleSettings?.['price-lists'];
+          const current = this.getDefaultPriceListId(settings, companyId);
+          this.priceListsForm.patchValue({ defaultPriceListId: current ?? null }, { emitEvent: false });
+        },
+        error: () => undefined,
+      });
+  }
+
+  private loadPriceListsOptions(): void {
+    const organizationId = this.getOrganizationId();
+    const companyId = this.getCompanyId();
+    if (!organizationId || !companyId) {
+      this.priceListOptions = [];
+      return;
+    }
+    this.priceListsLoading = true;
+    this.priceListsService
+      .list()
+      .pipe(
+        take(1),
+        finalize(() => {
+          this.priceListsLoading = false;
+        }),
+      )
+      .subscribe({
+        next: (response) => {
+          const lists = (response.result ?? []).filter(
+            (item) => item.OrganizationId === organizationId && item.companyId === companyId,
+          );
+          this.priceListOptions = this.buildPriceListOptions(lists);
+        },
+        error: () => {
+          this.priceListOptions = [];
+        },
+      });
+  }
+
   private loadEanPrefix(): void {
     const organizationId = this.getOrganizationId();
     if (!organizationId) {
@@ -205,9 +318,36 @@ export class ModulesSettingsPageComponent implements OnInit {
     return context.organizationId ?? null;
   }
 
+  private getCompanyId(): string | null {
+    const context = this.activeContextState.getActiveContext();
+    return context.companyId ?? null;
+  }
+
+  private getDefaultPriceListId(value: unknown, companyId: string): string | null {
+    if (!value || typeof value !== 'object') {
+      return null;
+    }
+    const settings = value as PriceListsModuleSettings;
+    const map = settings.defaultByCompanyId ?? {};
+    const current = map[companyId] ?? null;
+    return typeof current === 'string' && current.trim() ? current.trim() : null;
+  }
+
+  private buildPriceListOptions(lists: PriceList[]): SelectOption[] {
+    return lists.map((item) => ({
+      label: item.name ?? item.id,
+      value: item.id,
+    }));
+  }
+
   private isProductsSettings(
     value: unknown,
   ): value is { enableVariants?: boolean; autoGenerateSku?: boolean; allowMultipleBarcodes?: boolean } {
     return typeof value === 'object' && value !== null;
+  }
+
+  isModuleEnabled(modules: OrganizationModuleOverviewItem[], key: string): boolean {
+    const module = modules.find((item) => item.key === key);
+    return Boolean(module && module.state?.status !== 'disabled');
   }
 }

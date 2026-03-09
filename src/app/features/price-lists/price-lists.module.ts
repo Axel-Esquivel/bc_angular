@@ -3,6 +3,7 @@ import { NgModule } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { AutoCompleteModule } from 'primeng/autocomplete';
+import { AccordionModule } from 'primeng/accordion';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { FloatLabelModule } from 'primeng/floatlabel';
@@ -33,6 +34,7 @@ import { VariantPickerComponent } from '../../shared/components/variant-picker/v
     CommonModule,
     ReactiveFormsModule,
     RouterModule.forChild(priceListsRoutes),
+    AccordionModule,
     AutoCompleteModule,
     ButtonModule,
     DialogModule,

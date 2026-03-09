@@ -6,6 +6,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { ActiveContextStateService } from '../../../../core/context/active-context-state.service';
 import { CompaniesApiService } from '../../../../core/api/companies-api.service';
+import { OrganizationsService } from '../../../../core/api/organizations-api.service';
 import { OrganizationCoreApiService } from '../../../../core/api/organization-core-api.service';
 import { PackagingName, PackagingNamesApiService } from '../../../../core/api/packaging-names-api.service';
 import { ProductsApiService } from '../../../../core/api/products-api.service';
@@ -65,6 +66,7 @@ export class PurchaseOrderCreatePageComponent implements OnInit, OnChanges {
   private readonly fb = inject(FormBuilder);
   private readonly lookupService = inject(PurchasesProductsLookupService);
   private readonly companiesApi = inject(CompaniesApiService);
+  private readonly organizationsApi = inject(OrganizationsService);
   private readonly organizationCoreApi = inject(OrganizationCoreApiService);
   private readonly packagingNamesApi = inject(PackagingNamesApiService);
   private readonly productsApi = inject(ProductsApiService);
@@ -120,12 +122,14 @@ export class PurchaseOrderCreatePageComponent implements OnInit, OnChanges {
   contextMissing = false;
   assignDialogVisible = false;
   highlightedLineIndex: number | null = null;
+  defaultPriceListId: string | null = null;
 
   ngOnInit(): void {
     this.preloadVariants();
     this.loadCurrencies();
     this.loadProviders();
     this.loadPackagingNames();
+    this.loadDefaultPriceList();
     this.bindHeaderChanges();
   }
 
@@ -594,6 +598,28 @@ export class PurchaseOrderCreatePageComponent implements OnInit, OnChanges {
     });
   }
 
+  private loadDefaultPriceList(): void {
+    const context = this.activeContextState.getActiveContext();
+    const organizationId = context.organizationId ?? null;
+    const companyId = context.companyId ?? null;
+    if (!organizationId || !companyId) {
+      this.defaultPriceListId = null;
+      return;
+    }
+    this.organizationsApi.getById(organizationId).subscribe({
+      next: ({ result }) => {
+        const settings = result?.moduleSettings?.['price-lists'] as {
+          defaultByCompanyId?: Record<string, string | null>;
+        } | null;
+        const current = settings?.defaultByCompanyId?.[companyId] ?? null;
+        this.defaultPriceListId = typeof current === 'string' && current.trim() ? current.trim() : null;
+      },
+      error: () => {
+        this.defaultPriceListId = null;
+      },
+    });
+  }
+
   private loadPackagingNames(): void {
     const organizationId = this.organizationId ?? undefined;
     if (!organizationId) {
@@ -654,6 +680,7 @@ export class PurchaseOrderCreatePageComponent implements OnInit, OnChanges {
         enterpriseId: this.activeContextState.getActiveContext().enterpriseId ?? undefined,
         variantId,
         quantity: 1,
+        priceListId: this.defaultPriceListId ?? undefined,
         fallbackPrice,
       })
       .subscribe({

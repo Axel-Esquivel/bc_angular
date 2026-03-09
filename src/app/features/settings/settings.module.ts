@@ -10,6 +10,7 @@ import { DialogModule } from 'primeng/dialog';
 import { FloatLabelModule } from 'primeng/floatlabel';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { InputTextModule } from 'primeng/inputtext';
+import { SelectModule } from 'primeng/select';
 import { TableModule } from 'primeng/table';
 import { ToastModule } from 'primeng/toast';
 import { ToolbarModule } from 'primeng/toolbar';
@@ -33,6 +34,7 @@ import { settingsRoutes } from './settings.routes';
     FloatLabelModule,
     InputNumberModule,
     InputTextModule,
+    SelectModule,
     TableModule,
     ToastModule,
     ToolbarModule,
