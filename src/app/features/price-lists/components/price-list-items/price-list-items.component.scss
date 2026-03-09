@@ -45,7 +45,7 @@
 }
 
 .item-summary span::after {
-  content: '·';
+  content: '-';
   margin-left: 0.5rem;
   color: var(--text-secondary, #6b7280);
 }
