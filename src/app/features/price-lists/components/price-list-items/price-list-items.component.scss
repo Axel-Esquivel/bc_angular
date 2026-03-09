@@ -64,7 +64,7 @@
 .item-form {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 2rem;
   padding-top: 0.5rem;
 }
 
@@ -125,4 +125,9 @@
 .empty-items {
   margin-top: 1rem;
   color: var(--text-secondary, #6b7280);
+}
+
+
+input, p-select, p-inputnumber {
+  width: 100%;
 }
