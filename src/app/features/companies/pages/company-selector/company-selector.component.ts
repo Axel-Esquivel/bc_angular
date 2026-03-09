@@ -228,8 +228,8 @@ export class CompanySelectorComponent implements OnInit {
         this.submitting = false;
         this.messageService.add({
           severity: 'error',
-          summary: 'Companias',
-          detail: 'No se pudo marcar la compania por defecto.',
+          summary: 'Compa??as',
+          detail: 'No se pudo marcar la compa??a por defecto.',
         });
         this.router.navigateByUrl('/dashboard');
       },
@@ -253,7 +253,7 @@ export class CompanySelectorComponent implements OnInit {
     console.log('CREATE_CLICK_WORKS');
     this.messageService.add({
       severity: 'info',
-      summary: 'Crear compania',
+      summary: 'Crear compa??a',
       detail: 'Click detectado',
     });
   }
@@ -312,7 +312,7 @@ export class CompanySelectorComponent implements OnInit {
     console.log('CREATE_SUBMIT', this.createForm.getRawValue());
     this.messageService.add({
       severity: 'info',
-      summary: 'Crear compania',
+      summary: 'Crear compa??a',
       detail: 'Submit ejecutado',
     });
     if (this.submitting) {
@@ -330,7 +330,7 @@ export class CompanySelectorComponent implements OnInit {
         errors.push('nombre');
       }
       if (this.createForm.controls.countryIds.invalid) {
-        errors.push('paises');
+        errors.push('pa?ses');
       }
       if (this.createForm.controls.currencyIds.invalid) {
         errors.push('monedas');
@@ -414,8 +414,8 @@ export class CompanySelectorComponent implements OnInit {
           this.createCompanyDialogOpen = false;
           this.messageService.add({
             severity: 'success',
-            summary: 'Companias',
-            detail: 'Compania creada.',
+            summary: 'Compa??as',
+            detail: 'Compa??a creada.',
           });
         },
           error: (error) => {
@@ -423,8 +423,8 @@ export class CompanySelectorComponent implements OnInit {
             const message = error?.error?.message;
             this.messageService.add({
               severity: 'error',
-              summary: 'Companias',
-              detail: typeof message === 'string' ? message : 'No se pudo crear la compania.',
+              summary: 'Compa??as',
+              detail: typeof message === 'string' ? message : 'No se pudo crear la compa??a.',
             });
           },
         });
@@ -563,8 +563,8 @@ export class CompanySelectorComponent implements OnInit {
         this.loadingCompanies = false;
         this.messageService.add({
           severity: 'error',
-          summary: 'Companias',
-          detail: 'No se pudieron cargar las companias.',
+          summary: 'Compa??as',
+          detail: 'No se pudieron cargar las compa??as.',
         });
       },
     });
@@ -601,8 +601,8 @@ export class CompanySelectorComponent implements OnInit {
         this.loadingCore = false;
         this.messageService.add({
           severity: 'warn',
-          summary: 'Organizacion',
-          detail: 'No se pudieron cargar los paises y monedas de la organizacion.',
+          summary: 'Organizaci?n',
+          detail: 'No se pudieron cargar los pa?ses y monedas de la organizaci?n.',
         });
       },
     });

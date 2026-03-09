@@ -47,7 +47,7 @@ export class ProvidersListPageComponent implements OnInit {
     const organizationId = context.organizationId ?? undefined;
     const companyId = context.companyId ?? undefined;
     if (!organizationId || !companyId) {
-      this.showError('Selecciona organizacion y empresa antes de continuar.');
+      this.showError('Selecciona organizaci?n y empresa antes de continuar.');
       return;
     }
 

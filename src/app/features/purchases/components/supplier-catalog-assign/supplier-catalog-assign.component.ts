@@ -150,7 +150,7 @@ export class SupplierCatalogAssignComponent implements OnInit, OnChanges {
         error: () => {
           this.items = [];
           this.loading = false;
-          this.showError('No se pudo cargar el catalogo.');
+          this.showError('No se pudo cargar el cat?logo.');
         },
       });
   }
@@ -158,7 +158,7 @@ export class SupplierCatalogAssignComponent implements OnInit, OnChanges {
   private showError(detail: string): void {
     this.messageService.add({
       severity: 'error',
-      summary: 'Catalogo proveedor-producto',
+      summary: 'Cat?logo proveedor-producto',
       detail,
     });
   }

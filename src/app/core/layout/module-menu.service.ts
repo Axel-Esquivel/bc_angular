@@ -91,19 +91,19 @@ export class ModuleMenuService {
     if (isOwner) {
       if (companyId) {
         configItems.push({
-          label: 'Configuracion de modulos',
+          label: 'Configuraci?n de m?dulos',
           routerLink: ['/companies', companyId, 'settings/modules'],
         });
       }
       configItems.push({
-        label: 'Tienda de modulos',
+        label: 'Tienda de m?dulos',
         routerLink: '/app/modules/store',
         queryParams: { returnUrl: '/app/home' },
       });
       configItems.push({
-        label: 'Catalogos',
+        label: 'Cat?logos',
         items: [
-          { label: 'Paises', routerLink: '/settings/countries' },
+          { label: 'Pa?ses', routerLink: '/settings/countries' },
           ...(showPriceLists ? [{ label: 'Listas de precios', routerLink: '/app/price-lists' }] : []),
         ],
       });
@@ -112,7 +112,7 @@ export class ModuleMenuService {
     return [
       { label: 'Dashboard', routerLink: '/app' },
       ...moduleItems,
-      ...(configItems.length > 0 ? [{ label: 'Configuracion', items: configItems }] : []),
+      ...(configItems.length > 0 ? [{ label: 'Configuraci?n', items: configItems }] : []),
     ];
   }
 

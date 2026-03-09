@@ -171,7 +171,7 @@ export class ModuleStorePageComponent implements OnInit {
     }
 
     this.confirmationService.confirm({
-      header: 'Instalar modulo',
+      header: 'Instalar m?dulo',
       message: `Se instalaran las dependencias necesarias para ${module.name}. ¿Continuar?`,
       icon: 'pi pi-download',
       acceptLabel: 'Instalar',
@@ -196,7 +196,7 @@ export class ModuleStorePageComponent implements OnInit {
             },
             error: (error: HttpErrorResponse) => {
               this.installing.delete(module.key);
-              const detail = this.buildErrorMessage(error) ?? 'No se pudo instalar el modulo.';
+              const detail = this.buildErrorMessage(error) ?? 'No se pudo instalar el m?dulo.';
               this.messageService.add({
                 severity: 'error',
                 summary: 'Error',
@@ -214,7 +214,7 @@ export class ModuleStorePageComponent implements OnInit {
     }
 
     this.confirmationService.confirm({
-      header: 'Desinstalar modulo',
+      header: 'Desinstalar m?dulo',
       message: `¿Deseas desinstalar ${module.name}?`,
       icon: 'pi pi-trash',
       acceptLabel: 'Desinstalar',
@@ -234,7 +234,7 @@ export class ModuleStorePageComponent implements OnInit {
 
     this.confirmationService.confirm({
       header: 'Instalar suite',
-      message: `Se instalaran ${suiteModules.length} modulos de la suite ${suiteKey}. ¿Continuar?`,
+      message: `Se instalaran ${suiteModules.length} m?dulos de la suite ${suiteKey}. ¿Continuar?`,
       icon: 'pi pi-download',
       acceptLabel: 'Instalar',
       rejectLabel: 'Cancelar',
@@ -318,8 +318,8 @@ export class ModuleStorePageComponent implements OnInit {
           }
           this.messageService.add({
             severity: 'success',
-            summary: 'Configuracion completa',
-            detail: 'La organizacion quedo marcada como configurada.',
+            summary: 'Configuraci?n completa',
+            detail: 'La organizaci?n quedo marcada como configurada.',
           });
           this.router.navigateByUrl('/app');
         },
@@ -327,7 +327,7 @@ export class ModuleStorePageComponent implements OnInit {
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
-            detail: 'No se pudo completar la configuracion.',
+            detail: 'No se pudo completar la configuraci?n.',
           });
         },
       });
@@ -347,7 +347,7 @@ export class ModuleStorePageComponent implements OnInit {
           const uninstalled = response.result?.uninstalledKeys ?? [];
           this.messageService.add({
             severity: 'success',
-            summary: 'Modulo desinstalado',
+            summary: 'M?dulo desinstalado',
             detail: `Desinstalados: ${uninstalled.length}.`,
           });
           this.uninstalling.delete(module.key);
@@ -358,7 +358,7 @@ export class ModuleStorePageComponent implements OnInit {
           if (error.status === 409 && error.error?.dependents?.length) {
             this.confirmationService.confirm({
               header: 'Dependencias encontradas',
-              message: `El modulo es requerido por: ${error.error.dependents.join(', ')}. ¿Desinstalar en cascada?`,
+              message: `El m?dulo es requerido por: ${error.error.dependents.join(', ')}. ¿Desinstalar en cascada?`,
               icon: 'pi pi-exclamation-triangle',
               acceptLabel: 'Desinstalar en cascada',
               rejectLabel: 'Cancelar',
@@ -366,7 +366,7 @@ export class ModuleStorePageComponent implements OnInit {
             });
             return;
           }
-          const detail = this.buildErrorMessage(error) ?? 'No se pudo desinstalar el modulo.';
+          const detail = this.buildErrorMessage(error) ?? 'No se pudo desinstalar el m?dulo.';
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
@@ -470,11 +470,11 @@ export class ModuleStorePageComponent implements OnInit {
           this.visibleModules = [];
           this.groupedModules = {};
           this.groupedKeys = [];
-          this.errorMessage = 'No se pudo cargar modulos instalables.';
+          this.errorMessage = 'No se pudo cargar m?dulos instalables.';
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
-            detail: 'No se pudieron cargar los modulos instalables.',
+            detail: 'No se pudieron cargar los m?dulos instalables.',
           });
         },
       });

@@ -56,8 +56,8 @@ export class CountriesPageComponent implements OnInit {
         this.loading = false;
         this.messageService.add({
           severity: 'error',
-          summary: 'Paises',
-          detail: 'No se pudieron cargar los paises.',
+          summary: 'Pa?ses',
+          detail: 'No se pudieron cargar los pa?ses.',
         });
       },
     });
@@ -112,8 +112,8 @@ export class CountriesPageComponent implements OnInit {
         this.submitting = false;
         this.messageService.add({
           severity: 'error',
-          summary: 'Paises',
-          detail: 'No se pudo guardar el pais.',
+          summary: 'Pa?ses',
+          detail: 'No se pudo guardar el pa?s.',
         });
       },
     });

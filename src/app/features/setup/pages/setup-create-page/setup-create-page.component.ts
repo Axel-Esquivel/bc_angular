@@ -191,8 +191,8 @@ export class SetupCreatePageComponent implements OnInit {
       return;
     }
     this.confirmationService.confirm({
-      header: "Eliminar pais",
-      message: "Deseas eliminar este pais?",
+      header: "Eliminar pa?s",
+      message: "Deseas eliminar este pa?s?",
       acceptLabel: "Eliminar",
       rejectLabel: "Cancelar",
       accept: () => {
@@ -249,14 +249,14 @@ export class SetupCreatePageComponent implements OnInit {
       return;
     }
     this.confirmationService.confirm({
-      header: "Eliminar compania",
-      message: "Deseas eliminar esta compania? Esta accion no esta disponible por el momento.",
+      header: "Eliminar compa??a",
+      message: "Deseas eliminar esta compa??a? Esta accion no esta disponible por el momento.",
       acceptLabel: "Entendido",
       rejectLabel: "Cancelar",
       accept: () => {
         this.messageService.add({
           severity: "info",
-          summary: "Compania",
+          summary: "Compa??a",
           detail: "Eliminacion no disponible por el momento.",
         });
       },
@@ -337,13 +337,13 @@ export class SetupCreatePageComponent implements OnInit {
       .pipe(take(1))
       .subscribe({
         next: () => {
-          this.messageService.add({ severity: 'success', summary: 'Listo', detail: 'Compania actualizada.' });
+          this.messageService.add({ severity: 'success', summary: 'Listo', detail: 'Compa??a actualizada.' });
           this.editCompanyDialogOpen = false;
           this.step3RefreshToken += 1;
           this.step4RefreshToken += 1;
         },
         error: () => {
-          this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudo actualizar la compania.' });
+          this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudo actualizar la compa??a.' });
         },
       });
   }
@@ -501,7 +501,7 @@ export class SetupCreatePageComponent implements OnInit {
         },
         error: (err) => {
           const message =
-            err?.error?.message || 'No se pudo finalizar la configuracion de la organizacion.';
+            err?.error?.message || 'No se pudo finalizar la configuraci?n de la organizaci?n.';
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
@@ -538,7 +538,7 @@ export class SetupCreatePageComponent implements OnInit {
           const detail =
             status === 401 || status === 403
               ? 'Debes iniciar sesion para continuar.'
-              : 'No se pudo cargar la configuracion de la organizacion.';
+              : 'No se pudo cargar la configuraci?n de la organizaci?n.';
           this.messageService.add({
             severity: 'error',
             summary: 'Error',

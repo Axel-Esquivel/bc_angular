@@ -1,9 +1,9 @@
 <section class="modules-page">
-  <p-card header="Selecciona modulos" class="modules-card">
+  <p-card header="Selecciona m?dulos" class="modules-card">
     <form [formGroup]="form" (ngSubmit)="save()" class="form">
-      <div class="state" *ngIf="isLoading">Cargando modulos...</div>
+      <div class="state" *ngIf="isLoading">Cargando m?dulos...</div>
       <div class="state" *ngIf="!isLoading && selectableModules.length === 0">
-        No hay modulos disponibles.
+        No hay m?dulos disponibles.
       </div>
       <div class="module-row" *ngFor="let module of selectableModules; let i = index">
         <p-checkbox [inputId]="module.key" [formControl]="modulesArray.at(i)"></p-checkbox>

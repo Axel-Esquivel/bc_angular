@@ -85,7 +85,7 @@ export class StockPageComponent implements OnInit {
       this.messageService.add({
         severity: 'warn',
         summary: 'Contexto incompleto',
-        detail: 'Selecciona organizacion y empresa antes de consultar stock.',
+        detail: 'Selecciona organizaci?n y empresa antes de consultar stock.',
       });
       return;
     }

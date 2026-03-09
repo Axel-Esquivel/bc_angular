@@ -65,7 +65,7 @@ export class SetupStepCountriesCurrenciesComponent implements OnChanges {
       this.messageService.add({
         severity: 'info',
         summary: 'Atencion',
-        detail: 'Primero crea la organizacion.',
+        detail: 'Primero crea la organizaci?n.',
       });
       return;
     }
@@ -77,7 +77,7 @@ export class SetupStepCountriesCurrenciesComponent implements OnChanges {
       this.messageService.add({
         severity: 'info',
         summary: 'Atencion',
-        detail: 'Primero crea la organizacion.',
+        detail: 'Primero crea la organizaci?n.',
       });
       return;
     }
@@ -89,7 +89,7 @@ export class SetupStepCountriesCurrenciesComponent implements OnChanges {
       this.messageService.add({
         severity: 'info',
         summary: 'Atencion',
-        detail: 'Primero crea la organizacion.',
+        detail: 'Primero crea la organizaci?n.',
       });
       return;
     }
@@ -99,7 +99,7 @@ export class SetupStepCountriesCurrenciesComponent implements OnChanges {
 
   onCountryCreated(_: Country): void {
     this.loadCoreSettings();
-    this.messageService.add({ severity: 'success', summary: 'Listo', detail: 'Pais creado.' });
+    this.messageService.add({ severity: 'success', summary: 'Listo', detail: 'Pa?s creado.' });
   }
 
   onCurrencyCreated(_: Currency): void {
@@ -207,7 +207,7 @@ export class SetupStepCountriesCurrenciesComponent implements OnChanges {
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
-            detail: 'No se pudieron cargar los datos de paises y monedas.',
+            detail: 'No se pudieron cargar los datos de pa?ses y monedas.',
           });
         },
       });

@@ -129,7 +129,7 @@ export class WarehousesPageComponent implements OnInit {
       this.messageService.add({
         severity: 'warn',
         summary: 'Contexto incompleto',
-        detail: 'Selecciona organizacion y empresa antes de gestionar bodegas.',
+        detail: 'Selecciona organizaci?n y empresa antes de gestionar bodegas.',
       });
       return;
     }
@@ -450,7 +450,7 @@ export class WarehousesPageComponent implements OnInit {
       this.messageService.add({
         severity: 'warn',
         summary: 'Contexto incompleto',
-        detail: 'Selecciona organizacion y empresa antes de continuar.',
+        detail: 'Selecciona organizaci?n y empresa antes de continuar.',
       });
       return null;
     }

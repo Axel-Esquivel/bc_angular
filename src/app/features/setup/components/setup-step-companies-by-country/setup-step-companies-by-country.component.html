@@ -5,8 +5,8 @@
         <i class="pi pi-info-circle" aria-hidden="true"></i>
       </div>
       <div class="bc-alert__content">
-        <div class="bc-alert__title">Primero crea la organizacion</div>
-        <div class="bc-alert__text">Completa el paso anterior para habilitar esta seccion.</div>
+        <div class="bc-alert__title">Primero crea la organizaci?n</div>
+        <div class="bc-alert__text">Completa el paso anterior para habilitar esta secci?n.</div>
       </div>
     </div>
   </div>
@@ -17,12 +17,12 @@
         <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
       </div>
       <div class="bc-alert__content">
-        <div class="bc-alert__title">Faltan companias</div>
-        <div class="bc-alert__text">Agrega al menos una compania para continuar.</div>
+        <div class="bc-alert__title">Faltan compa??as</div>
+        <div class="bc-alert__text">Agrega al menos una compa??a para continuar.</div>
       </div>
       <div class="bc-alert__action">
         <p-button
-          label="Crear compania"
+          label="Crear compa??a"
           icon="pi pi-plus"
           severity="secondary"
           text
@@ -34,7 +34,7 @@
   </div>
 
   <div class="bc-panel-header">
-    <h3>Filtrar por pais</h3>
+    <h3>Filtrar por pa?s</h3>
   </div>
   <p-select
     inputId="countryFilter"
@@ -64,9 +64,9 @@
   </p-select>
 
   <div class="bc-panel-header bc-panel-header--spaced">
-    <h3>Companias</h3>
+    <h3>Compa??as</h3>
     <p-button
-      label="Agregar compania"
+      label="Agregar compa??a"
       icon="pi pi-plus"
       severity="secondary"
       text
@@ -102,12 +102,12 @@
   </div>
 </div>
   <ng-template #emptyCompanies>
-    <div class="bc-empty">No hay companias para el pais seleccionado.</div>
+    <div class="bc-empty">No hay compa??as para el pa?s seleccionado.</div>
   </ng-template>
 </div>
 
 <p-dialog
-  header="Nueva compania"
+  header="Nueva compa??a"
   [(visible)]="isCompanyDialogOpen"
   [modal]="true"
   [closable]="true"
@@ -119,7 +119,7 @@
       <div class="bc-field">
         <p-floatLabel>
           <input id="companyName" type="text" pInputText formControlName="name" class="w-full" />
-          <label for="companyName">Nombre de compania</label>
+          <label for="companyName">Nombre de compa??a</label>
         </p-floatLabel>
       </div>
     </div>
@@ -137,7 +137,7 @@
             formControlName="countryId"
             appendTo="body"
           ></p-select>
-          <label for="companyCountry">Pais base</label>
+          <label for="companyCountry">Pa?s base</label>
         </p-floatLabel>
       </div>
     </div>

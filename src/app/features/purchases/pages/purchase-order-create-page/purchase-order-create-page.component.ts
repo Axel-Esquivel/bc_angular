@@ -277,7 +277,7 @@ export class PurchaseOrderCreatePageComponent implements OnInit, OnChanges {
     const companyId = this.companyId ?? undefined;
 
     if (!supplierId || !OrganizationId || !companyId) {
-      this.showError('Selecciona organizacion, empresa y proveedor.');
+      this.showError('Selecciona organizaci?n, empresa y proveedor.');
       return;
     }
 
@@ -345,7 +345,7 @@ export class PurchaseOrderCreatePageComponent implements OnInit, OnChanges {
     const supplierId = this.selectedProviderId ?? undefined;
 
     if (!OrganizationId || !companyId) {
-      this.showError('Selecciona organizacion y empresa antes de continuar.');
+      this.showError('Selecciona organizaci?n y empresa antes de continuar.');
       return;
     }
     if (!supplierId) {

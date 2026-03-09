@@ -1,11 +1,11 @@
 <section [class.bc-page-center]="mode === 'page'" [class.bc-dialog-wrapper]="mode === 'dialog'">
-  <p-card header="Crear organizacion" class="bc-card">
+  <p-card header="Crear organizaci?n" class="bc-card">
     <p-stepper [value]="activeStep" (valueChange)="onStepperValueChange($event)">
       <p-step-list>
-        <p-step [value]="1">Organizacion</p-step>
-        <p-step [value]="2" [disabled]="!canActivateStep(2)">Paises y Monedas</p-step>
-        <p-step [value]="3" [disabled]="!canActivateStep(3)">Companias por Pais</p-step>
-        <p-step [value]="4" [disabled]="!canActivateStep(4)">Empresas por Compania</p-step>
+        <p-step [value]="1">Organizaci?n</p-step>
+        <p-step [value]="2" [disabled]="!canActivateStep(2)">Pa?ses y Monedas</p-step>
+        <p-step [value]="3" [disabled]="!canActivateStep(3)">Compa??as por Pa?s</p-step>
+        <p-step [value]="4" [disabled]="!canActivateStep(4)">Empresas por Compa??a</p-step>
       </p-step-list>
 
       <p-step-panels>
@@ -93,7 +93,7 @@
 </section>
 
 <p-dialog
-  header="Editar pais"
+  header="Editar pa?s"
   [(visible)]="editCountryDialogOpen"
   [modal]="true"
   [closable]="true"
@@ -110,7 +110,7 @@
     <div class="bc-field">
       <p-floatLabel>
         <input id="editCountryCode" type="text" pInputText formControlName="code" class="w-full" />
-        <label for="editCountryCode">Codigo</label>
+        <label for="editCountryCode">C?digo</label>
       </p-floatLabel>
     </div>
   </form>
@@ -140,7 +140,7 @@
     <div class="bc-field">
       <p-floatLabel>
         <input id="editCurrencyCode" type="text" pInputText formControlName="code" class="w-full" />
-        <label for="editCurrencyCode">Codigo</label>
+        <label for="editCurrencyCode">C?digo</label>
       </p-floatLabel>
     </div>
     <div class="bc-field">
@@ -159,7 +159,7 @@
 </p-dialog>
 
 <p-dialog
-  header="Editar compania"
+  header="Editar compa??a"
   [(visible)]="editCompanyDialogOpen"
   [modal]="true"
   [closable]="true"

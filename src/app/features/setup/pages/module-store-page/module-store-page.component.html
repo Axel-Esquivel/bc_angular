@@ -1,8 +1,8 @@
 ﻿<section class="module-store">
   <header class="module-store__header">
     <div>
-      <h1>Tienda de modulos</h1>
-      <p>Instala y administra funcionalidades por organizacion.</p>
+      <h1>Tienda de m?dulos</h1>
+      <p>Instala y administra funcionalidades por organizaci?n.</p>
     </div>
     <div class="module-store__header-actions">
       <p-button
@@ -12,10 +12,10 @@
         severity="secondary"
         (onClick)="goBack()"
       ></p-button>
-      <p-tag *ngIf="organizationId" severity="success" value="Organizacion activa"></p-tag>
+      <p-tag *ngIf="organizationId" severity="success" value="Organizaci?n activa"></p-tag>
       <p-button
         *ngIf="organization && isOwner && organization.setupStatus !== 'completed'"
-        label="Finalizar configuracion"
+        label="Finalizar configuraci?n"
         icon="pi pi-check"
         (onClick)="completeSetup()"
       ></p-button>
@@ -29,7 +29,7 @@
         <input
           pInputText
           type="text"
-          placeholder="Buscar modulos..."
+          placeholder="Buscar m?dulos..."
           [(ngModel)]="searchText"
           (ngModelChange)="onToolbarChange()"
         />
@@ -73,7 +73,7 @@
   </div>
 
   <div class="module-store__empty" *ngIf="!organizationId">
-    Selecciona una organizacion para ver los modulos instalables.
+    Selecciona una organizaci?n para ver los m?dulos instalables.
   </div>
 
   <div class="module-store__loading" *ngIf="organizationId && isLoading">
@@ -152,7 +152,7 @@
   </ng-container>
 
   <div class="module-store__empty" *ngIf="organizationId && !isLoading && !errorMessage && !hasVisibleModules()">
-    No hay modulos instalables disponibles.
+    No hay m?dulos instalables disponibles.
   </div>
 
   <p-confirmDialog></p-confirmDialog>

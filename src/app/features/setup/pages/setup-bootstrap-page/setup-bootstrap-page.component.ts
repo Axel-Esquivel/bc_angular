@@ -76,7 +76,7 @@ export class SetupBootstrapPageComponent implements OnInit {
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
-            detail: 'No se pudieron cargar los paises.',
+            detail: 'No se pudieron cargar los pa?ses.',
           });
         },
       });
@@ -93,7 +93,7 @@ export class SetupBootstrapPageComponent implements OnInit {
       this.messageService.add({
         severity: 'error',
         summary: 'Error',
-        detail: 'Completa los datos de la organizacion antes de continuar.',
+        detail: 'Completa los datos de la organizaci?n antes de continuar.',
       });
       this.router.navigate(['/setup/create']);
       return;
@@ -106,7 +106,7 @@ export class SetupBootstrapPageComponent implements OnInit {
       this.messageService.add({
         severity: 'error',
         summary: 'Error',
-        detail: 'Selecciona pais y moneda para la organizacion.',
+        detail: 'Selecciona pa?s y moneda para la organizaci?n.',
       });
       this.router.navigate(['/setup/create']);
       return;
@@ -139,7 +139,7 @@ export class SetupBootstrapPageComponent implements OnInit {
             this.messageService.add({
               severity: 'error',
               summary: 'Error',
-              detail: 'No se recibio el identificador de la organizacion.',
+              detail: 'No se recibio el identificador de la organizaci?n.',
             });
             return;
           }
@@ -152,7 +152,7 @@ export class SetupBootstrapPageComponent implements OnInit {
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
-            detail: 'No se pudo crear el bootstrap de la organizacion.',
+            detail: 'No se pudo crear el bootstrap de la organizaci?n.',
           });
         },
       });

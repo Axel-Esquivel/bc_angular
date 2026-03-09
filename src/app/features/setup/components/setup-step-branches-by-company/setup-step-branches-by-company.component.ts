@@ -70,7 +70,7 @@ export class SetupStepBranchesByCompanyComponent implements OnChanges {
       this.messageService.add({
         severity: 'info',
         summary: 'Atencion',
-        detail: 'Selecciona una compania para continuar.',
+        detail: 'Selecciona una compa??a para continuar.',
       });
       return;
     }
@@ -107,7 +107,7 @@ export class SetupStepBranchesByCompanyComponent implements OnChanges {
         this.messageService.add({
           severity: 'warn',
           summary: 'Atencion',
-          detail: 'La compania seleccionada no tiene pais base.',
+          detail: 'La compa??a seleccionada no tiene pa?s base.',
         });
       }
       return;
@@ -212,7 +212,7 @@ export class SetupStepBranchesByCompanyComponent implements OnChanges {
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
-            detail: 'No se pudieron cargar las companias.',
+            detail: 'No se pudieron cargar las compa??as.',
           });
         },
       });

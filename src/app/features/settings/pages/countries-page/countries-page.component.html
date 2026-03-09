@@ -1,9 +1,9 @@
 
 <div class="countries-page">
   <p-card>
-    <ng-template pTemplate="title">Catalogo de paises</ng-template>
+    <ng-template pTemplate="title">Cat?logo de pa?ses</ng-template>
     <div class="actions">
-      <p-button label="Nuevo pais" icon="pi pi-plus" (onClick)="openCreate()"></p-button>
+      <p-button label="Nuevo pa?s" icon="pi pi-plus" (onClick)="openCreate()"></p-button>
     </div>
   </p-card>
 
@@ -35,7 +35,7 @@
   </p-card>
 </div>
 
-<p-dialog header="Pais" [(visible)]="dialogOpen" [modal]="true" [style]="{ width: '480px' }">
+<p-dialog header="Pa?s" [(visible)]="dialogOpen" [modal]="true" [style]="{ width: '480px' }">
   <form [formGroup]="form" class="dialog-form">
     <label>ISO2</label>
     <input pInputText formControlName="iso2" [disabled]="!!editingCountry" />

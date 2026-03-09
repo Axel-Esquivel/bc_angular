@@ -371,7 +371,7 @@ export class ProductFormComponent implements OnInit, OnChanges, OnDestroy {
       this.messageService.add({
         severity: 'warn',
         summary: 'Contexto',
-        detail: 'Selecciona una organizacion antes de crear categorias.',
+        detail: 'Selecciona una organizaci?n antes de crear categorias.',
       });
       return;
     }
@@ -429,7 +429,7 @@ export class ProductFormComponent implements OnInit, OnChanges, OnDestroy {
       this.messageService.add({
         severity: 'warn',
         summary: 'Contexto',
-        detail: 'Selecciona una organizacion antes de crear categorias UoM.',
+        detail: 'Selecciona una organizaci?n antes de crear categorias UoM.',
       });
       return;
     }
@@ -487,7 +487,7 @@ export class ProductFormComponent implements OnInit, OnChanges, OnDestroy {
       this.messageService.add({
         severity: 'warn',
         summary: 'Contexto',
-        detail: 'Selecciona una organizacion antes de crear unidades.',
+        detail: 'Selecciona una organizaci?n antes de crear unidades.',
       });
       return;
     }
@@ -600,7 +600,7 @@ export class ProductFormComponent implements OnInit, OnChanges, OnDestroy {
       this.messageService.add({
         severity: 'warn',
         summary: 'Contexto',
-        detail: 'Selecciona una organizacion antes de crear nombres de empaque.',
+        detail: 'Selecciona una organizaci?n antes de crear nombres de empaque.',
       });
       return;
     }
@@ -665,7 +665,7 @@ export class ProductFormComponent implements OnInit, OnChanges, OnDestroy {
       this.messageService.add({
         severity: 'warn',
         summary: 'Contexto',
-        detail: 'Selecciona una organizacion para generar el codigo interno.',
+        detail: 'Selecciona una organizaci?n para generar el c?digo interno.',
       });
       return;
     }
@@ -699,7 +699,7 @@ export class ProductFormComponent implements OnInit, OnChanges, OnDestroy {
           this.messageService.add({
             severity: 'error',
             summary: 'Empaques',
-            detail: 'No se pudo generar el codigo interno.',
+            detail: 'No se pudo generar el c?digo interno.',
           });
         },
       });
@@ -1165,7 +1165,7 @@ export class ProductFormComponent implements OnInit, OnChanges, OnDestroy {
       this.messageService.add({
         severity: 'warn',
         summary: 'Contexto',
-        detail: 'Selecciona una organizacion antes de generar el SKU.',
+        detail: 'Selecciona una organizaci?n antes de generar el SKU.',
       });
       return;
     }

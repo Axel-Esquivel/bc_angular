@@ -44,7 +44,7 @@ export class CreateCurrencyFormComponent {
     const trimmedName = name.trim();
     const trimmedCode = code.trim().toUpperCase();
     if (!trimmedName || trimmedCode.length < 2) {
-      this.error.emit('El codigo debe tener al menos 2 letras.');
+      this.error.emit('El c?digo debe tener al menos 2 letras.');
       return;
     }
 

@@ -172,7 +172,7 @@ export class ContextSelectPageComponent implements OnInit {
           this.messageService.add({
             severity: 'error',
             summary: 'Contexto',
-            detail: 'No se pudieron cargar las organizaciones.',
+            detail: 'No se pudieron cargar las organizaci?nes.',
           });
         },
       });
@@ -203,7 +203,7 @@ export class ContextSelectPageComponent implements OnInit {
         this.messageService.add({
           severity: 'error',
           summary: 'Contexto',
-          detail: 'No se pudieron cargar los catalogos de la organizacion.',
+          detail: 'No se pudieron cargar los cat?logos de la organizaci?n.',
         });
         return of<IOrganization | null>(null);
       }),
@@ -229,7 +229,7 @@ export class ContextSelectPageComponent implements OnInit {
         this.messageService.add({
           severity: 'error',
           summary: 'Contexto',
-          detail: 'No se pudieron cargar las companias.',
+          detail: 'No se pudieron cargar las compa??as.',
         });
         return of({ companies: [] as Company[], countryId });
       }),
@@ -667,7 +667,7 @@ export class ContextSelectPageComponent implements OnInit {
       this.messageService.add({
         severity: 'warn',
         summary: 'Contexto',
-        detail: 'Selecciona una organizacion para guardar un predeterminado.',
+        detail: 'Selecciona una organizaci?n para guardar un predeterminado.',
       });
       return;
     }
@@ -741,7 +741,7 @@ export class ContextSelectPageComponent implements OnInit {
             this.messageService.add({
               severity: 'error',
               summary: 'Contexto invalido',
-              detail: missingList || 'Verifica la configuracion del contexto.',
+              detail: missingList || 'Verifica la configuraci?n del contexto.',
             });
             return of(null);
           }
@@ -887,9 +887,9 @@ export class ContextSelectPageComponent implements OnInit {
 
   private mapMissingLabels(keys: string[]): string[] {
     const labels: Record<string, string> = {
-      organizationId: 'Organizacion',
-      countryId: 'Pais',
-      companyId: 'Compania',
+      organizationId: 'Organizaci?n',
+      countryId: 'Pa?s',
+      companyId: 'Compa??a',
       enterpriseId: 'Empresa',
       currencyId: 'Moneda',
     };

@@ -126,8 +126,8 @@ export class SetupEntryPageComponent implements OnInit {
           }
           this.messageService.add({
             severity: 'error',
-            summary: 'Organizaciones',
-            detail: 'No se pudieron cargar las organizaciones.',
+            summary: 'Organizaci?nes',
+            detail: 'No se pudieron cargar las organizaci?nes.',
           });
           this.loadMemberships();
         },
@@ -158,7 +158,7 @@ export class SetupEntryPageComponent implements OnInit {
           }
           this.messageService.add({
             severity: 'error',
-            summary: 'Organizaciones',
+            summary: 'Organizaci?nes',
             detail: 'No se pudieron cargar las membresias.',
           });
         },
@@ -239,7 +239,7 @@ export class SetupEntryPageComponent implements OnInit {
   get pendingOrganizationLabel(): string {
     const pendingId = this.pendingSetup?.organizationId;
     if (!pendingId) {
-      return 'Organizacion pendiente';
+      return 'Organizaci?n pendiente';
     }
     const owner = this.ownerOrganizations.find((org) => org.id === pendingId);
     if (owner?.name) {
@@ -297,12 +297,12 @@ export class SetupEntryPageComponent implements OnInit {
       .pipe(take(1))
       .subscribe({
         next: () => {
-          this.messageService.add({ severity: 'success', summary: 'Listo', detail: 'Organizacion actualizada.' });
+          this.messageService.add({ severity: 'success', summary: 'Listo', detail: 'Organizaci?n actualizada.' });
           this.closeEdit();
           this.refreshLists();
         },
         error: () => {
-          this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudo actualizar la organizacion.' });
+          this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudo actualizar la organizaci?n.' });
         },
       });
   }
@@ -328,8 +328,8 @@ export class SetupEntryPageComponent implements OnInit {
           this.selecting = false;
           this.messageService.add({
             severity: 'error',
-            summary: 'Organizaciones',
-            detail: 'No se pudo seleccionar la organizacion.',
+            summary: 'Organizaci?nes',
+            detail: 'No se pudo seleccionar la organizaci?n.',
           });
         },
       });
@@ -349,14 +349,14 @@ export class SetupEntryPageComponent implements OnInit {
           const current = this.activeContextState.getActiveContext();
           this.activeContextState.setActiveContext({ ...current, organizationId: orgId });
           this.selecting = false;
-          this.messageService.add({ severity: 'success', summary: 'Listo', detail: 'Organizacion por defecto actualizada.' });
+          this.messageService.add({ severity: 'success', summary: 'Listo', detail: 'Organizaci?n por defecto actualizada.' });
         },
         error: () => {
           this.selecting = false;
           this.messageService.add({
             severity: 'error',
-            summary: 'Organizaciones',
-            detail: 'No se pudo actualizar la organizacion por defecto.',
+            summary: 'Organizaci?nes',
+            detail: 'No se pudo actualizar la organizaci?n por defecto.',
           });
         },
       });
@@ -374,7 +374,7 @@ export class SetupEntryPageComponent implements OnInit {
       .subscribe({
         next: () => {
           this.selecting = false;
-          this.messageService.add({ severity: 'success', summary: 'Listo', detail: 'Organizacion eliminada.' });
+          this.messageService.add({ severity: 'success', summary: 'Listo', detail: 'Organizaci?n eliminada.' });
           if (this.pendingSetup?.organizationId === orgId) {
             this.sessionState.clearPendingOrgSetup();
             this.pendingSetup = null;
@@ -385,8 +385,8 @@ export class SetupEntryPageComponent implements OnInit {
           this.selecting = false;
           this.messageService.add({
             severity: 'error',
-            summary: 'Organizaciones',
-            detail: 'No se pudo eliminar la organizacion.',
+            summary: 'Organizaci?nes',
+            detail: 'No se pudo eliminar la organizaci?n.',
           });
         },
       });
@@ -404,15 +404,15 @@ export class SetupEntryPageComponent implements OnInit {
       .subscribe({
         next: () => {
           this.selecting = false;
-          this.messageService.add({ severity: 'success', summary: 'Listo', detail: 'Saliste de la organizacion.' });
+          this.messageService.add({ severity: 'success', summary: 'Listo', detail: 'Saliste de la organizaci?n.' });
           this.refreshLists();
         },
         error: () => {
           this.selecting = false;
           this.messageService.add({
             severity: 'error',
-            summary: 'Organizaciones',
-            detail: 'No se pudo salir de la organizacion.',
+            summary: 'Organizaci?nes',
+            detail: 'No se pudo salir de la organizaci?n.',
           });
         },
       });
@@ -517,7 +517,7 @@ export class SetupEntryPageComponent implements OnInit {
     if (!orgId || this.selecting) {
       return;
     }
-    const ok = window.confirm('¿Seguro que deseas eliminar la organizacion pendiente?');
+    const ok = window.confirm('¿Seguro que deseas eliminar la organizaci?n pendiente?');
     if (!ok) {
       return;
     }
@@ -530,15 +530,15 @@ export class SetupEntryPageComponent implements OnInit {
           this.selecting = false;
           this.sessionState.clearPendingOrgSetup();
           this.pendingSetup = null;
-          this.messageService.add({ severity: 'success', summary: 'Listo', detail: 'Organizacion eliminada.' });
+          this.messageService.add({ severity: 'success', summary: 'Listo', detail: 'Organizaci?n eliminada.' });
           this.refreshLists();
         },
         error: () => {
           this.selecting = false;
           this.messageService.add({
             severity: 'error',
-            summary: 'Organizaciones',
-            detail: 'No se pudo eliminar la organizacion pendiente.',
+            summary: 'Organizaci?nes',
+            detail: 'No se pudo eliminar la organizaci?n pendiente.',
           });
         },
       });

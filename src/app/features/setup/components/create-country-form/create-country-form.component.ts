@@ -35,7 +35,7 @@ export class CreateCountryFormComponent {
   submit(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
-      this.error.emit('Completa los datos del pais.');
+      this.error.emit('Completa los datos del pa?s.');
       return;
     }
 
@@ -43,7 +43,7 @@ export class CreateCountryFormComponent {
     const trimmedCode = code.trim().toUpperCase();
     const trimmedName = name.trim();
     if (trimmedCode.length !== 2) {
-      this.error.emit('El codigo debe tener 2 letras.');
+      this.error.emit('El c?digo debe tener 2 letras.');
       return;
     }
     if (!trimmedName) {
@@ -95,7 +95,7 @@ export class CreateCountryFormComponent {
           this.error.emit('Sin permisos.');
           return;
         }
-        this.error.emit('No se pudo crear el pais.');
+        this.error.emit('No se pudo crear el pa?s.');
       },
     });
   }

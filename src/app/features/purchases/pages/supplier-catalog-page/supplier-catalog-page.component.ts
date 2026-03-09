@@ -135,7 +135,7 @@ export class SupplierCatalogPageComponent implements OnInit {
     const supplierId = this.selectedProviderId ?? undefined;
 
     if (!OrganizationId || !companyId || !supplierId) {
-      this.showError('Selecciona organizacion, empresa y proveedor.');
+      this.showError('Selecciona organizaci?n, empresa y proveedor.');
       return;
     }
 
@@ -164,7 +164,7 @@ export class SupplierCatalogPageComponent implements OnInit {
       },
       error: () => {
         this.saving = false;
-        this.showError('No se pudo guardar el item de catalogo.');
+        this.showError('No se pudo guardar el item de cat?logo.');
       },
     });
   }
@@ -256,7 +256,7 @@ export class SupplierCatalogPageComponent implements OnInit {
         this.catalogOverrides = [];
         this.rows = [];
         this.loading = false;
-        this.showError('No se pudo cargar el catalogo.');
+        this.showError('No se pudo cargar el cat?logo.');
       },
     });
   }
@@ -381,7 +381,7 @@ export class SupplierCatalogPageComponent implements OnInit {
   private showError(detail: string): void {
     this.messageService.add({
       severity: 'error',
-      summary: 'Catalogo proveedor-producto',
+      summary: 'Cat?logo proveedor-producto',
       detail,
     });
   }

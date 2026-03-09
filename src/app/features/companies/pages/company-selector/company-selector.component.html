@@ -2,18 +2,18 @@
 <div class="company-selector">
   <div class="page-header">
     <div>
-      <h1>Selecciona tu compania</h1>
-      <div class="breadcrumbs">Organizacion &gt; Compania</div>
+      <h1>Selecciona tu compa??a</h1>
+      <div class="breadcrumbs">Organizaci?n &gt; Compa??a</div>
     </div>
     <p-button label="Volver" icon="pi pi-arrow-left" [text]="true" (onClick)="goBack()"></p-button>
   </div>
 
   <p-card>
-    <ng-template pTemplate="title">Selector de compania</ng-template>
-    <ng-template pTemplate="subtitle">Elige la compania activa para continuar.</ng-template>
+    <ng-template pTemplate="title">Selector de compa??a</ng-template>
+    <ng-template pTemplate="subtitle">Elige la compa??a activa para continuar.</ng-template>
     <div class="selector-grid">
       <div class="field">
-        <label>Compania</label>
+        <label>Compa??a</label>
         <p-select
           [options]="companies"
           [formControl]="selectedCompanyControl"
@@ -38,7 +38,7 @@
           <ng-template pTemplate="footer">
             <div class="select-footer">
               <p-button
-                label="Crear compania"
+                label="Crear compa??a"
                 icon="pi pi-plus"
                 [text]="true"
                 severity="secondary"
@@ -71,21 +71,21 @@
     </div>
 
     <div class="form-field">
-      <label>Paises</label>
+      <label>Pa?ses</label>
       <p-multiselect
         class="w-full"
         [options]="countryOptions"
         optionLabel="name"
         optionValue="_id"
         formControlName="countryIds"
-        placeholder="Seleccionar paises"
+        placeholder="Seleccionar pa?ses"
         display="chip"
         [filter]="true"
         emptyMessage="No results found"
         appendTo="body"
       ></p-multiselect>
       <small class="error" *ngIf="createForm.controls.countryIds.touched && createForm.controls.countryIds.invalid">
-        Selecciona al menos un pais.
+        Selecciona al menos un pa?s.
       </small>
     </div>
 
@@ -139,7 +139,7 @@
     </div>
 
     <div class="accordion-section" *ngIf="selectedCountries.length > 0">
-      <h4>Empresas por pais</h4>
+      <h4>Empresas por pa?s</h4>
       <p-accordion [multiple]="true">
         <p-accordion-panel *ngFor="let country of selectedCountries">
           <p-accordion-header>

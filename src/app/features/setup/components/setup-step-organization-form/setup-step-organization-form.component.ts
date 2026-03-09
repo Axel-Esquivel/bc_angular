@@ -80,7 +80,7 @@ export class SetupStepOrganizationFormComponent implements OnChanges, OnInit {
             this.messageService.add({
               severity: 'success',
               summary: 'Listo',
-              detail: 'Organizacion actualizada.',
+              detail: 'Organizaci?n actualizada.',
             });
             this.created.emit(this.organizationId ?? '');
           },
@@ -88,7 +88,7 @@ export class SetupStepOrganizationFormComponent implements OnChanges, OnInit {
             this.messageService.add({
               severity: 'error',
               summary: 'Error',
-              detail: 'No se pudo actualizar la organizacion.',
+              detail: 'No se pudo actualizar la organizaci?n.',
             });
             this.created.emit('');
           },
@@ -99,15 +99,15 @@ export class SetupStepOrganizationFormComponent implements OnChanges, OnInit {
     const existing = this.findExistingOrganization(name);
     if (existing) {
       this.confirmationService.confirm({
-        header: 'Organizacion existente',
-        message: `Ya existe la organizacion "${existing.name}". ¿Quieres usarla y continuar su configuracion?`,
+        header: 'Organizaci?n existente',
+        message: `Ya existe la organizaci?n "${existing.name}". ¿Quieres usarla y continuar su configuraci?n?`,
         acceptLabel: 'Usar',
         rejectLabel: 'Cancelar',
         accept: () => {
           this.messageService.add({
             severity: 'info',
-            summary: 'Organizacion',
-            detail: 'Usando organizacion existente.',
+            summary: 'Organizaci?n',
+            detail: 'Usando organizaci?n existente.',
           });
           this.created.emit(existing.id);
         },
@@ -128,7 +128,7 @@ export class SetupStepOrganizationFormComponent implements OnChanges, OnInit {
             this.messageService.add({
               severity: 'error',
               summary: 'Error',
-              detail: 'No se pudo obtener el identificador de la organizacion.',
+              detail: 'No se pudo obtener el identificador de la organizaci?n.',
             });
             this.created.emit('');
             return;
@@ -136,7 +136,7 @@ export class SetupStepOrganizationFormComponent implements OnChanges, OnInit {
           this.messageService.add({
             severity: 'success',
             summary: 'Listo',
-            detail: 'Organizacion creada. Ahora configura paises y monedas.',
+            detail: 'Organizaci?n creada. Ahora configura pa?ses y monedas.',
           });
           this.created.emit(organizationId);
         },
@@ -144,7 +144,7 @@ export class SetupStepOrganizationFormComponent implements OnChanges, OnInit {
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
-            detail: 'No se pudo crear la organizacion.',
+            detail: 'No se pudo crear la organizaci?n.',
           });
           this.created.emit('');
         },

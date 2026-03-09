@@ -1,11 +1,11 @@
 <section class="entry-page">
-  <p-card *ngIf="pendingSetup && !hidePendingBanner" header="Configuracion pendiente" class="entry-card">
+  <p-card *ngIf="pendingSetup && !hidePendingBanner" header="Configuraci?n pendiente" class="entry-card">
     <p>
-      Tienes una organizacion en proceso: <strong>{{ pendingOrganizationLabel }}</strong>.
-      Puedes continuar la configuracion o eliminarla.
+      Tienes una organizaci?n en proceso: <strong>{{ pendingOrganizationLabel }}</strong>.
+      Puedes continuar la configuraci?n o eliminarla.
     </p>
     <div class="actions">
-      <p-button type="button" label="Continuar configuracion" (onClick)="continuePendingSetup()"></p-button>
+      <p-button type="button" label="Continuar configuraci?n" (onClick)="continuePendingSetup()"></p-button>
       <p-button
         type="button"
         label="Eliminar"
@@ -22,18 +22,18 @@
     </div>
   </p-card>
 
-  <p-card header="Configura tu organizacion" class="entry-card">
+  <p-card header="Configura tu organizaci?n" class="entry-card">
     <p>Elige como quieres comenzar.</p>
     <div class="actions">
-      <p-button type="button" label="Crear organizacion" (onClick)="goCreate()"></p-button>
+      <p-button type="button" label="Crear organizaci?n" (onClick)="goCreate()"></p-button>
       <p-button type="button" label="Unirme" severity="secondary" (onClick)="goJoin()"></p-button>
     </div>
   </p-card>
 
-  <p-card header="Organizaciones (Owner)" class="entry-card">
-    <p class="state" *ngIf="loading">Cargando organizaciones...</p>
+  <p-card header="Organizaci?nes (Owner)" class="entry-card">
+    <p class="state" *ngIf="loading">Cargando organizaci?nes...</p>
     <p class="state" *ngIf="!loading && ownerOrganizations.length === 0">
-      No tienes organizaciones como owner.
+      No tienes organizaci?nes como owner.
     </p>
     <p-table
       *ngIf="!loading && ownerOrganizations.length > 0"
@@ -44,7 +44,7 @@
       <ng-template pTemplate="header">
         <tr>
           <th>Nombre</th>
-          <th>Pais</th>
+          <th>Pa?s</th>
           <th>Moneda</th>
           <th>Acciones</th>
         </tr>
@@ -88,7 +88,7 @@
     >
       <ng-template pTemplate="header">
         <tr>
-          <th>Organizacion</th>
+          <th>Organizaci?n</th>
           <th>Rol</th>
           <th>Estado</th>
           <th>Acciones</th>
@@ -125,7 +125,7 @@
     >
       <ng-template pTemplate="header">
         <tr>
-          <th>Organizacion</th>
+          <th>Organizaci?n</th>
           <th>Rol</th>
           <th>Estado</th>
         </tr>
@@ -150,7 +150,7 @@
     >
       <ng-template pTemplate="header">
         <tr>
-          <th>Organizacion</th>
+          <th>Organizaci?n</th>
           <th>Rol</th>
           <th>Estado</th>
         </tr>
@@ -166,12 +166,12 @@
   </p-card>
 
   <p-card *ngIf="!loading && isEmpty" class="entry-card">
-    <p class="state">No hay organizaciones ni membresias.</p>
+    <p class="state">No hay organizaci?nes ni membresias.</p>
   </p-card>
 </section>
 
 <p-dialog
-  header="Configurar organizacion"
+  header="Configurar organizaci?n"
   [(visible)]="wizardDialogOpen"
   [modal]="true"
   [closable]="true"
@@ -196,7 +196,7 @@
 </p-dialog>
 
 <p-dialog
-  header="Editar organizacion"
+  header="Editar organizaci?n"
   [(visible)]="editDialogOpen"
   [modal]="true"
   [closable]="true"

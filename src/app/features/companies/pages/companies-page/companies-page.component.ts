@@ -221,7 +221,7 @@ export class CompaniesPageComponent implements OnInit {
     if (enterprises.length === 0) {
       this.messageService.add({
         severity: 'warn',
-        summary: 'Companias',
+        summary: 'Compa??as',
         detail: 'Agrega al menos una empresa.',
       });
       return;
@@ -266,8 +266,8 @@ export class CompaniesPageComponent implements OnInit {
           const message = error?.error?.message;
           this.messageService.add({
             severity: 'error',
-            summary: 'Companias',
-            detail: typeof message === 'string' ? message : 'No se pudo crear la compania.',
+            summary: 'Compa??as',
+            detail: typeof message === 'string' ? message : 'No se pudo crear la compa??a.',
           });
         },
       });
@@ -406,8 +406,8 @@ export class CompaniesPageComponent implements OnInit {
         this.organization = null;
         this.messageService.add({
           severity: 'error',
-          summary: 'Organizacion',
-          detail: 'No se pudo cargar la organizacion.',
+          summary: 'Organizaci?n',
+          detail: 'No se pudo cargar la organizaci?n.',
         });
       },
     });
@@ -424,8 +424,8 @@ export class CompaniesPageComponent implements OnInit {
         this.loading = false;
         this.messageService.add({
           severity: 'error',
-          summary: 'Companias',
-          detail: 'No se pudieron cargar las companias.',
+          summary: 'Compa??as',
+          detail: 'No se pudieron cargar las compa??as.',
         });
       },
     });
@@ -455,8 +455,8 @@ export class CompaniesPageComponent implements OnInit {
         this.currencyOptions = [];
         this.messageService.add({
           severity: 'warn',
-          summary: 'Organizacion',
-          detail: 'No se pudieron cargar los paises y monedas de la organizacion.',
+          summary: 'Organizaci?n',
+          detail: 'No se pudieron cargar los pa?ses y monedas de la organizaci?n.',
         });
       },
     });

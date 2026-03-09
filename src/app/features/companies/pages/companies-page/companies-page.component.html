@@ -2,18 +2,18 @@
 <div class="page">
   <div class="page-header">
     <div>
-      <h1>Companias</h1>
-      <div class="breadcrumbs">Organizacion &gt; Companias</div>
+      <h1>Compa??as</h1>
+      <div class="breadcrumbs">Organizaci?n &gt; Compa??as</div>
     </div>
-    <p-button label="Crear compania" icon="pi pi-plus" (onClick)="openCreateDialog()"></p-button>
+    <p-button label="Crear compa??a" icon="pi pi-plus" (onClick)="openCreateDialog()"></p-button>
   </div>
 
   <p-card>
     <p-table [value]="companies" [loading]="loading">
       <ng-template pTemplate="header">
         <tr>
-          <th>Compania</th>
-          <th>Pais base</th>
+          <th>Compa??a</th>
+          <th>Pa?s base</th>
           <th>Moneda base</th>
         </tr>
       </ng-template>
@@ -28,7 +28,7 @@
   </p-card>
 </div>
 
-<p-dialog header="Crear compania" [(visible)]="createDialogOpen" [modal]="true" [style]="{ width: '760px' }">
+<p-dialog header="Crear compa??a" [(visible)]="createDialogOpen" [modal]="true" [style]="{ width: '760px' }">
   <form [formGroup]="createForm" class="dialog-form p-fluid flex flex-column gap-3">
     <div class="form-field">
       <label>Nombre</label>
@@ -46,14 +46,14 @@
     </div>
 
     <div class="form-field">
-      <label>Paises donde opera</label>
+      <label>Pa?ses donde opera</label>
       <p-multiselect
         class="w-full"
         [options]="countryOptions"
         optionLabel="name"
         optionValue="_id"
         formControlName="operatingCountryIds"
-        placeholder="Seleccionar paises"
+        placeholder="Seleccionar pa?ses"
         display="chip"
         [filter]="true"
         emptyMessage="No results found"
@@ -105,7 +105,7 @@
     </div>
 
     <div class="accordion-section" *ngIf="selectedCountries.length > 0">
-      <h4>Empresas por pais</h4>
+      <h4>Empresas por pa?s</h4>
       <p-accordion [multiple]="true">
         <p-accordion-panel *ngFor="let country of selectedCountries">
           <p-accordion-header>

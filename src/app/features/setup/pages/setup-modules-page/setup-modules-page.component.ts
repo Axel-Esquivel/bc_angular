@@ -75,7 +75,7 @@ export class SetupModulesPageComponent implements OnInit {
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
-            detail: 'No se pudieron cargar los modulos.',
+            detail: 'No se pudieron cargar los m?dulos.',
           });
         },
       });
@@ -116,7 +116,7 @@ export class SetupModulesPageComponent implements OnInit {
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
-            detail: 'No se pudieron guardar los modulos.',
+            detail: 'No se pudieron guardar los m?dulos.',
           });
         },
       });

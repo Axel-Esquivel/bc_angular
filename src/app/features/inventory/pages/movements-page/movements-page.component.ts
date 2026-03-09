@@ -89,7 +89,7 @@ export class MovementsPageComponent implements OnInit {
       this.messageService.add({
         severity: 'warn',
         summary: 'Contexto incompleto',
-        detail: 'Selecciona organizacion y empresa antes de consultar movimientos.',
+        detail: 'Selecciona organizaci?n y empresa antes de consultar movimientos.',
       });
       return;
     }

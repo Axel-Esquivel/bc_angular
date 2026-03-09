@@ -59,7 +59,7 @@ export class PurchaseOrdersListPageComponent implements OnInit {
       this.messageService.add({
         severity: 'warn',
         summary: 'Pedidos',
-        detail: 'Selecciona organizacion y empresa antes de crear pedidos.',
+        detail: 'Selecciona organizaci?n y empresa antes de crear pedidos.',
       });
       return;
     }
@@ -71,7 +71,7 @@ export class PurchaseOrdersListPageComponent implements OnInit {
       this.messageService.add({
         severity: 'warn',
         summary: 'Recepciones',
-        detail: 'Selecciona organizacion y empresa antes de continuar.',
+        detail: 'Selecciona organizaci?n y empresa antes de continuar.',
       });
       return;
     }

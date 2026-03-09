@@ -75,7 +75,7 @@ export class SetupStepCompaniesByCountryComponent implements OnChanges {
       this.messageService.add({
         severity: 'info',
         summary: 'Atencion',
-        detail: 'Primero crea la organizacion.',
+        detail: 'Primero crea la organizaci?n.',
       });
       return;
     }
@@ -137,15 +137,15 @@ export class SetupStepCompaniesByCountryComponent implements OnChanges {
           this.messageService.add({
             severity: 'success',
             summary: 'Listo',
-            detail: 'Compania creada.',
+            detail: 'Compa??a creada.',
           });
         },
         error: (err: unknown) => {
           this.isSubmittingCompany = false;
           const message =
             err instanceof HttpErrorResponse
-              ? (err.error?.message as string | undefined) || 'No se pudo crear la compania.'
-              : 'No se pudo crear la compania.';
+              ? (err.error?.message as string | undefined) || 'No se pudo crear la compa??a.'
+              : 'No se pudo crear la compa??a.';
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
@@ -215,7 +215,7 @@ export class SetupStepCompaniesByCountryComponent implements OnChanges {
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
-            detail: 'No se pudieron cargar las companias.',
+            detail: 'No se pudieron cargar las compa??as.',
           });
         },
       });
@@ -244,7 +244,7 @@ export class SetupStepCompaniesByCountryComponent implements OnChanges {
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
-            detail: 'No se pudieron cargar las companias.',
+            detail: 'No se pudieron cargar las compa??as.',
           });
         },
       });
