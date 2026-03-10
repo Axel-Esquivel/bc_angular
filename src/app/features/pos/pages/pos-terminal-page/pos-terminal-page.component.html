@@ -3,9 +3,7 @@
     <div>
       <p class="eyebrow">Punto de venta</p>
       <h1>POS</h1>
-      <p class="muted">
-        Estado: {{ sessionId ? 'Sesin abierta' : 'Sesin no iniciada' }}
-      </p>
+      <p class="muted">Estado: {{ sessionId ? 'SesiÃ³n abierta' : 'SesiÃ³n cerrada' }}</p>
     </div>
     <div class="pos-controls">
       <p-select
@@ -13,33 +11,36 @@
         [options]="warehouseOptions"
         optionLabel="name"
         optionValue="id"
-        placeholder="Selecciona almacn"
+        placeholder="Selecciona almacÃ©n"
         [(ngModel)]="selectedWarehouseId"
         [disabled]="warehouseOptions.length === 0"
       ></p-select>
-      <ng-container *ngIf="priceListsEnabled">
-      <p-select
-        appendTo="body"
-        [options]="priceListOptions"
-        optionLabel="label"
-        optionValue="value"
-        placeholder="Lista de precios"
-        [(ngModel)]="selectedPriceListId"
-        [disabled]="priceListOptions.length === 0 || priceListsLoading"
-        (onChange)="onPriceListChange()"
-      ></p-select>
-      </ng-container>
+
+      <p-inputNumber
+        inputId="openingAmount"
+        [ngModel]="openingForm.controls.openingAmount.value"
+        (ngModelChange)="openingForm.controls.openingAmount.setValue($event ?? 0)"
+        [min]="0"
+        locale="en-US"
+        placeholder="Monto apertura"
+      ></p-inputNumber>
+
       <p-button
-        label="Abrir sesin"
+        label="Abrir sesiÃ³n"
         icon="pi pi-play"
         severity="success"
-        [disabled]="!!sessionId || !selectedWarehouseId"
+        [disabled]="!!sessionId || !selectedWarehouseId || sessionLoading"
         (onClick)="openSession()"
       ></p-button>
+      <p-button
+        label="Cerrar sesiÃ³n"
+        icon="pi pi-stop"
+        severity="secondary"
+        [disabled]="!sessionId || sessionLoading"
+        (onClick)="closeSession()"
+      ></p-button>
     </div>
-    <p class="pos-note">
-      Precio: lista seleccionada (min. cantidad) o precio base si no aplica.
-    </p>
+    <p class="pos-note">La venta se registra con el precio base de la variante.</p>
   </header>
 
   <section class="pos-layout">
@@ -63,6 +64,8 @@
 
       <p-card>
         <bc-pos-totals
+          [subtotal]="subtotal"
+          [discountTotal]="discountTotal"
           [total]="total"
           [itemsCount]="cartLines.length"
           (checkout)="onCheckout($event)"
@@ -71,32 +74,3 @@
     </div>
   </section>
 </section>
-
-<p-dialog
-  *ngIf="prepaidEnabled"
-  header="Recarga"
-  [(visible)]="prepaidDialogVisible"
-  [modal]="true"
-  [draggable]="false"
-  [style]="{ width: '420px' }"
->
-  <form [formGroup]="prepaidForm" class="dialog-form">
-    <label for="prepaidPhone">Número de teléfono</label>
-    <input id="prepaidPhone" type="text" pInputText formControlName="phoneNumber" />
-    <label for="prepaidDenomination">Denominación</label>
-    <p-inputNumber
-      inputId="prepaidDenomination"
-      formControlName="denomination"
-      [min]="0"
-      locale="en-US"
-      [readonly]="prepaidDialogLockedDenomination"
-    ></p-inputNumber>
-  </form>
-  <ng-template #footer>
-    <div class="dialog-actions">
-      <p-button label="Cancelar" severity="secondary" (onClick)="cancelPrepaidLine()"></p-button>
-      <p-button label="Agregar" icon="pi pi-check" (onClick)="confirmPrepaidLine()"></p-button>
-    </div>
-  </ng-template>
-</p-dialog>
-

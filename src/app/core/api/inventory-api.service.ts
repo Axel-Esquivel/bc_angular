@@ -35,5 +35,20 @@ export class InventoryApiService {
     return this.http.get<ApiResponse<PaginatedResponse<VariantStock>>>(`${this.baseUrl}/stock`, { params: httpParams });
   }
 
+  getVariantStock(params: {
+    enterpriseId: string;
+    variantId: string;
+    warehouseId?: string;
+    locationId?: string;
+  }): Observable<ApiResponse<VariantStock[]>> {
+    let httpParams = new HttpParams()
+      .set('enterpriseId', params.enterpriseId)
+      .set('variantId', params.variantId);
+    if (params.warehouseId) httpParams = httpParams.set('warehouseId', params.warehouseId);
+    if (params.locationId) httpParams = httpParams.set('locationId', params.locationId);
+
+    return this.http.get<ApiResponse<VariantStock[]>>(`${this.baseUrl}/stock`, { params: httpParams });
+  }
+
   // TODO: Endpoint para registrar ajustes o movimientos de inventario cuando el backend lo exponga
 }

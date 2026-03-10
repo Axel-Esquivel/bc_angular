@@ -32,7 +32,7 @@ export const appRoutes: Routes = [
     children: [
       { path: '', pathMatch: 'full', redirectTo: 'home' },
       { path: 'home', component: AppDashboardPageComponent },
-      { path: 'pos', loadChildren: () => import('../pos/pos.module').then((m) => m.PosModule) },
+      { path: 'pos', loadChildren: () => import('../POS/pos.module').then((m) => m.PosModule) },
       { path: 'products', loadChildren: () => import('../products/products.module').then((m) => m.ProductsModule) },
       { path: 'providers', loadChildren: () => import('../providers/providers.module').then((m) => m.ProvidersModule) },
       { path: 'purchases', loadChildren: () => import('../purchases/purchases.module').then((m) => m.PurchasesModule) },

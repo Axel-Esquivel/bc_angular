@@ -1,49 +1,45 @@
 <section class="totals-panel">
-  <div class="summary">
+  <header class="panel-header">
     <div>
       <p class="eyebrow">Resumen</p>
-      <h3>Total a cobrar</h3>
-      <p class="muted">{{ itemsCount }} artículo(s) en el carrito</p>
+      <h2>Totales</h2>
     </div>
-    <div class="amount">{{ total | currency: 'USD' }}</div>
+    <p class="items-count">{{ itemsCount }} Ã­tems</p>
+  </header>
+
+  <div class="totals-row">
+    <span>Subtotal</span>
+    <strong>{{ subtotal | currency: 'USD' }}</strong>
+  </div>
+  <div class="totals-row">
+    <span>Descuentos</span>
+    <strong>- {{ discountTotal | currency: 'USD' }}</strong>
+  </div>
+  <div class="totals-row total">
+    <span>Total</span>
+    <strong>{{ total | currency: 'USD' }}</strong>
   </div>
 
-  <form class="payment-form" [formGroup]="paymentForm" (ngSubmit)="onCheckout()">
-    <div class="form-row">
-      <label for="method">Método de pago</label>
-      <p-select
-        inputId="method"
-        formControlName="method"
-        [options]="paymentMethods"
-        optionLabel="label"
-        optionValue="value"
-        placeholder="Selecciona método"
-       appendTo="body"></p-select>
+  <form [formGroup]="paymentForm" class="payment-form">
+    <label for="paymentMethod">MÃ©todo de pago</label>
+    <p-select
+      inputId="paymentMethod"
+      [options]="paymentMethods"
+      optionLabel="label"
+      optionValue="value"
+      formControlName="method"
+    ></p-select>
+
+    <label for="paymentAmount">Monto recibido</label>
+    <p-inputNumber inputId="paymentAmount" formControlName="amount" [min]="0" locale="en-US"></p-inputNumber>
+
+    <div class="totals-row change">
+      <span>Cambio</span>
+      <strong>{{ changeDue | currency: 'USD' }}</strong>
     </div>
-
-    <div class="form-row">
-      <label for="amount">Monto recibido</label>
-      <p-inputNumber
-        inputId="amount"
-        formControlName="amount"
-        mode="currency"
-        currency="USD"
-        [minFractionDigits]="0"
-        [maxFractionDigits]="2"
-      ></p-inputNumber>
-      <small class="muted">Cambio: {{ changeDue | currency: 'USD' }}</small>
-    </div>
-
-    <div *ngIf="insufficientAmount" class="warning">El monto recibido es menor al total.</div>
-
-    <p-button
-      type="submit"
-      label="Cobrar"
-      icon="pi pi-check"
-      size="large"
-      severity="success"
-      class="checkout-button"
-      [disabled]="itemsCount === 0"
-    ></p-button>
   </form>
+
+  <p *ngIf="insufficientAmount" class="error-text">Monto insuficiente para completar la venta.</p>
+
+  <p-button label="Confirmar venta" icon="pi pi-check" (onClick)="onCheckout()"></p-button>
 </section>

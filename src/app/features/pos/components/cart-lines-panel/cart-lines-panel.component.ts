@@ -15,10 +15,10 @@ export class CartLinesPanelComponent {
 
   onQuantityChange(line: PosCartLine, value: number | null): void {
     const quantity = value && value > 0 ? value : 1;
-    this.quantityChange.emit({ lineId: line.productId, quantity });
+    this.quantityChange.emit({ lineId: line.variantId, quantity });
   }
 
   onRemove(line: PosCartLine): void {
-    this.remove.emit(line.productId);
+    this.remove.emit(line.variantId);
   }
 }

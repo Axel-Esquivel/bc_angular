@@ -1,41 +1,40 @@
-<section class="products-panel">
-  <header class="panel-header">
-    <div>
-      <p class="eyebrow">POS</p>
-      <h2>Seleccionar producto</h2>
-      <p class="subtitle">Busca por nombre o SKU y agrega productos al carrito.</p>
-    </div>
-  </header>
-
+<section class="product-selector">
   <form class="search-form" [formGroup]="searchForm" (ngSubmit)="onSubmit()">
-    <input pInputText formControlName="term" placeholder="Nombre, SKU o cóC?digo" />
-    <p-button type="submit" label="Buscar" icon="pi pi-search" [disabled]="loading"></p-button>
+    <input pInputText formControlName="term" placeholder="Buscar por nombre, SKU o cÃ³digo" />
+    <p-button type="submit" label="Buscar" icon="pi pi-search"></p-button>
   </form>
 
-  <p-table [value]="products" [loading]="loading" responsiveLayout="scroll" class="products-table">
+  <p-table [value]="products" [loading]="loading" responsiveLayout="scroll">
     <ng-template pTemplate="header">
       <tr>
         <th>Producto</th>
+        <th>SKU</th>
         <th>Precio</th>
-        <th style="width: 8rem"></th>
+        <th></th>
       </tr>
     </ng-template>
-    <ng-template pTemplate="body" let-product>
+    <ng-template pTemplate="body" let-item>
       <tr>
         <td>
-          <div class="product-name">{{ product.name }}</div>
-          <small class="muted">SKU: {{ product.sku || 'N/D' }}</small>
-          <small class="muted" *ngIf="product.barcode">C?digo: {{ product.barcode }}</small>
+          <div class="line-title">{{ item.name }}</div>
+          <div class="line-meta">{{ item.barcode || '-' }}</div>
         </td>
-        <td>{{ product.price | currency: 'USD' }}</td>
-        <td>
-          <p-button label="Agregar" icon="pi pi-plus" size="small" (onClick)="onAdd(product)"></p-button>
+        <td>{{ item.sku || '-' }}</td>
+        <td>{{ item.price | currency: 'USD' }}</td>
+        <td class="actions">
+          <p-button
+            icon="pi pi-plus"
+            label="Agregar"
+            size="small"
+            [disabled]="!item.isActive"
+            (onClick)="onAdd(item)"
+          ></p-button>
         </td>
       </tr>
     </ng-template>
     <ng-template pTemplate="emptymessage">
       <tr>
-        <td colspan="3">Sin resultados. Intenta con otro término.</td>
+        <td colspan="4">No hay resultados.</td>
       </tr>
     </ng-template>
   </p-table>

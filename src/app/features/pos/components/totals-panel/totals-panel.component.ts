@@ -1,6 +1,11 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { PosPayment } from '../../../../shared/models/pos.model';
+import { PosPayment, PosPaymentMethod } from '../../../../shared/models/pos.model';
+
+interface PaymentOption {
+  label: string;
+  value: PosPaymentMethod;
+}
 
 @Component({
   standalone: false,
@@ -9,12 +14,19 @@ import { PosPayment } from '../../../../shared/models/pos.model';
   styleUrl: './totals-panel.component.scss',
 })
 export class TotalsPanelComponent {
+  @Input() subtotal = 0;
+  @Input() discountTotal = 0;
   @Input() total = 0;
   @Input() itemsCount = 0;
 
   @Output() checkout = new EventEmitter<PosPayment>();
 
-  readonly paymentMethods = [{ label: 'Efectivo', value: 'CASH' as const }];
+  readonly paymentMethods: PaymentOption[] = [
+    { label: 'Efectivo', value: 'CASH' },
+    { label: 'Tarjeta', value: 'CARD' },
+    { label: 'Vale', value: 'VOUCHER' },
+    { label: 'Transferencia', value: 'TRANSFER' },
+  ];
 
   readonly paymentForm: FormGroup;
 

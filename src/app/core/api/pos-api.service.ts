@@ -20,7 +20,7 @@ export class PosApiService {
     return this.http.post<ApiResponse<PosCart>>(`${this.baseUrl}/carts`, {});
   }
 
-  addLine(cartId: string, line: { productId: string; quantity: number }): Observable<ApiResponse<PosCartLine>> {
+  addLine(cartId: string, line: { variantId: string; quantity: number }): Observable<ApiResponse<PosCartLine>> {
     return this.http.post<ApiResponse<PosCartLine>>(`${this.baseUrl}/carts/${cartId}/lines`, line);
   }
 

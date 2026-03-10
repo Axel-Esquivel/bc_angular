@@ -2,7 +2,7 @@
   <header class="panel-header">
     <div>
       <p class="eyebrow">Carrito</p>
-      <h2>Líneas</h2>
+      <h2>LÃ­neas</h2>
     </div>
   </header>
 
@@ -34,7 +34,7 @@
             [min]="1"
             [showButtons]="true"
             buttonLayout="horizontal"
-            inputId="qty-{{ line.productId }}"
+            inputId="qty-{{ line.variantId }}"
             decrementButtonClass="p-button-text"
             incrementButtonClass="p-button-text"
           ></p-inputNumber>
@@ -48,7 +48,7 @@
     </ng-template>
     <ng-template pTemplate="emptymessage">
       <tr>
-        <td colspan="5">Aún no hay productos en el carrito.</td>
+        <td colspan="5">AÃºn no hay productos en el carrito.</td>
       </tr>
     </ng-template>
   </p-table>

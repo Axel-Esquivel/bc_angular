@@ -20,7 +20,7 @@ export interface PosSession {
 }
 
 export interface PosSaleLineInput {
-  productId: string;
+  variantId: string;
   qty: number;
   unitPrice: number;
   taxRate?: number;
@@ -83,11 +83,22 @@ export class PosHttpService {
     companyId: string;
     enterpriseId: string;
     warehouseId: string;
-    cashierUserId?: string;
+    cashierUserId: string;
     openingAmount: number;
   }): Observable<PosSession> {
     return this.http
       .post<ApiResponse<PosSession>>(`${this.baseUrl}/sessions/open`, payload)
+      .pipe(map((response) => response.result));
+  }
+
+  getActiveSession(payload: {
+    OrganizationId: string;
+    companyId: string;
+    enterpriseId: string;
+    cashierUserId: string;
+  }): Observable<PosSession | null> {
+    return this.http
+      .get<ApiResponse<PosSession | null>>(`${this.baseUrl}/sessions/active`, { params: payload })
       .pipe(map((response) => response.result));
   }
 
@@ -96,7 +107,7 @@ export class PosHttpService {
     companyId: string;
     enterpriseId: string;
     sessionId: string;
-    cashierUserId?: string;
+    cashierUserId: string;
     closingAmount: number;
   }): Observable<PosSession> {
     return this.http

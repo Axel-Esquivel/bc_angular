@@ -2,23 +2,17 @@ import { Component, DestroyRef, OnInit, inject } from '@angular/core';
 import { FormBuilder, Validators } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { forkJoin, map } from 'rxjs';
 
 import { ActiveContextStateService } from '../../../../core/context/active-context-state.service';
 import { AuthService } from '../../../../core/auth/auth.service';
+import { InventoryApiService } from '../../../../core/api/inventory-api.service';
 import { WarehousesApiService, Warehouse } from '../../../../core/api/warehouses-api.service';
-import { RealtimeService } from '../../../../core/realtime/realtime.service';
 import { PosCartLine, PosPayment } from '../../../../shared/models/pos.model';
 import { ActiveContext } from '../../../../shared/models/active-context.model';
 import { PosProduct } from '../../models/pos-product.model';
 import { PosHttpService } from '../../services/pos.service';
 import { PosProductsService } from '../../services/products.service';
-import { PrepaidApiService } from '../../../../core/api/prepaid-api.service';
-import { ProductsApiService } from '../../../../core/api/products-api.service';
-import { OrganizationsService } from '../../../../core/api/organizations-api.service';
-import { OrganizationModuleOverviewItem } from '../../../../shared/models/organization-modules.model';
-import { PrepaidVariantConfig } from '../../../../shared/models/prepaid.model';
-import { PriceListsService } from '../../../price-lists/services/price-lists.service';
-import { PriceList } from '../../../price-lists/models/price-list.model';
 
 @Component({
   standalone: false,
@@ -33,39 +27,24 @@ export class PosTerminalPageComponent implements OnInit {
   private readonly posService = inject(PosHttpService);
   private readonly activeContext = inject(ActiveContextStateService);
   private readonly authService = inject(AuthService);
-  private readonly realtimeService = inject(RealtimeService);
+  private readonly inventoryApi = inject(InventoryApiService);
   private readonly warehousesApi = inject(WarehousesApiService);
-  private readonly prepaidApi = inject(PrepaidApiService);
-  private readonly organizationsApi = inject(OrganizationsService);
-  private readonly priceListsService = inject(PriceListsService);
-  private readonly productsApi = inject(ProductsApiService);
   private readonly fb = inject(FormBuilder);
 
   products: PosProduct[] = [];
   productsLoading = false;
-  priceLists: PriceList[] = [];
-  priceListOptions: SelectOption[] = [];
-  selectedPriceListId: string | null = null;
-  defaultPriceListId: string | null = null;
-  priceListsLoading = false;
-  priceListsEnabled = false;
   cartLines: PosCartLine[] = [];
+  subtotal = 0;
+  discountTotal = 0;
   total = 0;
   sessionId: string | null = null;
+  sessionLoading = false;
   warehouseOptions: Warehouse[] = [];
   selectedWarehouseId: string | null = null;
-  readonly stockByVariant = new Map<string, number>();
   private context: ActiveContext | null = null;
-  private readonly prepaidConfigByVariant = new Map<string, PrepaidVariantConfig>();
-  private readonly basePriceByVariant = new Map<string, number>();
-  prepaidDialogVisible = false;
-  prepaidDialogLockedDenomination = false;
-  pendingPrepaidProduct: PosProduct | null = null;
-  prepaidEnabled = false;
 
-  readonly prepaidForm = this.fb.nonNullable.group({
-    phoneNumber: ['', Validators.required],
-    denomination: [0, [Validators.min(0)]],
+  readonly openingForm = this.fb.nonNullable.group({
+    openingAmount: [0, [Validators.min(0)]],
   });
 
   ngOnInit(): void {
@@ -74,43 +53,30 @@ export class PosTerminalPageComponent implements OnInit {
       this.messageService.add({
         severity: 'warn',
         summary: 'Contexto incompleto',
-        detail: 'Selecciona organizacin, empresa y sucursal antes de usar POS.',
+        detail: 'Selecciona organizaciÃ³n, empresa y sucursal antes de usar POS.',
       });
       return;
     }
 
     this.context = context;
-    this.loadModuleAvailability();
-    this.realtimeService.joinContext(context.organizationId!, context.enterpriseId!);
-    this.realtimeService.inventoryStockChanged$
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((payload) => {
-        this.stockByVariant.set(payload.variantId, payload.available);
-      });
-    this.realtimeService.posSalePosted$
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => {
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Venta registrada',
-          detail: 'La venta se confirm correctamente.',
-        });
-      });
-
     this.loadWarehouses(context.companyId!);
-    this.onSearchProducts('');
+    this.loadActiveSession();
   }
 
   onSearchProducts(term: string): void {
     if (!this.context?.enterpriseId) {
       return;
     }
-    this.productsLoading = true;
     const query = term?.trim() || '';
+    if (!query) {
+      this.products = [];
+      return;
+    }
+    this.productsLoading = true;
     this.productsService
       .search({
         enterpriseId: this.context.enterpriseId!,
-        q: query || '',
+        q: query,
         OrganizationId: this.context.organizationId ?? undefined,
         companyId: this.context.companyId ?? undefined,
       })
@@ -119,29 +85,28 @@ export class PosTerminalPageComponent implements OnInit {
           this.products = response;
           this.productsLoading = false;
         },
-        error: (error) => {
+        error: (error: Error | { error?: { message?: string } } | null) => {
           this.products = [];
           this.productsLoading = false;
           this.handleError(error, 'No se pudieron cargar los productos');
         },
       });
 
-    if (query) {
-      this.productsService
-        .findByCode({
-          enterpriseId: this.context.enterpriseId!,
-          code: query,
-          OrganizationId: this.context.organizationId ?? undefined,
-          companyId: this.context.companyId ?? undefined,
-        })
-        .subscribe({
-          next: (result) => {
-            if (result) {
-              this.onAddProduct(result);
-            }
-          },
-        });
-    }
+    this.productsService
+      .findByCode({
+        enterpriseId: this.context.enterpriseId!,
+        code: query,
+        OrganizationId: this.context.organizationId ?? undefined,
+        companyId: this.context.companyId ?? undefined,
+      })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (result) => {
+          if (result) {
+            this.onAddProduct(result);
+          }
+        },
+      });
   }
 
   onAddProduct(product: PosProduct): void {
@@ -153,348 +118,100 @@ export class PosTerminalPageComponent implements OnInit {
       });
       return;
     }
-    const prepaidConfig = this.prepaidEnabled ? this.prepaidConfigByVariant.get(product.id) : undefined;
-    if (prepaidConfig) {
-      this.pendingPrepaidProduct = product;
-      this.prepaidDialogLockedDenomination = prepaidConfig.denomination > 0;
-      this.prepaidForm.reset({
-        phoneNumber: '',
-        denomination: prepaidConfig.denomination ?? 0,
-      });
-      this.prepaidDialogVisible = true;
-      return;
-    }
     this.addOrUpdateLine(product);
   }
 
   onQuantityChange(lineId: string, quantity: number): void {
     const safeQuantity = quantity > 0 ? quantity : 1;
     this.cartLines = this.cartLines.map((line) =>
-      line.productId === lineId
-        ? this.withResolvedPrice(line, safeQuantity)
+      line.variantId === lineId
+        ? {
+            ...line,
+            quantity: safeQuantity,
+            subtotal: safeQuantity * line.unitPrice,
+          }
         : line,
     );
-    this.requestResolvedPrice(lineId, safeQuantity);
     this.recalculateTotals();
   }
 
   onRemoveLine(lineId: string): void {
-    this.cartLines = this.cartLines.filter((line) => line.productId !== lineId);
+    this.cartLines = this.cartLines.filter((line) => line.variantId !== lineId);
     this.recalculateTotals();
   }
 
   onCheckout(payment: PosPayment): void {
-    if (!this.context?.enterpriseId || !this.sessionId || !this.selectedWarehouseId) {
+    const context = this.context;
+    const sessionId = this.sessionId;
+    const warehouseId = this.selectedWarehouseId;
+    if (!context?.enterpriseId || !sessionId || !warehouseId) {
       this.messageService.add({
         severity: 'warn',
         summary: 'Falta contexto',
-        detail: 'No se puede confirmar la venta sin sesin abierta y almacn.',
+        detail: 'No se puede confirmar la venta sin sesiÃ³n abierta y almacÃ©n.',
       });
-      return;
-    }
-
-    const payload = {
-      OrganizationId: this.context.organizationId!,
-      companyId: this.context.companyId!,
-      enterpriseId: this.context.enterpriseId!,
-      sessionId: this.sessionId,
-      warehouseId: this.selectedWarehouseId,
-      currency: this.context.currencyId ?? undefined,
-      lines: this.cartLines.map((line) => ({
-        productId: line.productId,
-        qty: line.quantity,
-        unitPrice: line.unitPrice,
-        phoneNumber: line.prepaid?.phoneNumber,
-        denomination: line.prepaid?.denomination,
-        prepaidProviderId: line.prepaid?.providerId,
-      })),
-      payments: [
-        {
-          method: payment.method,
-          amount: payment.amount,
-          received: payment.received,
-          change: payment.change,
-        },
-      ],
-    };
-
-    this.posService.createSale(payload).subscribe({
-      next: (sale) => {
-        this.posService
-          .postSale(sale.id, {
-            OrganizationId: this.context!.organizationId!,
-            companyId: this.context!.companyId!,
-            enterpriseId: this.context!.enterpriseId!,
-          })
-          .subscribe({
-            next: () => {
-              this.cartLines = [];
-              this.recalculateTotals();
-            },
-            error: (error) => this.handleError(error, 'No se pudo confirmar la venta'),
-          });
-      },
-      error: (error) => this.handleError(error, 'No se pudo crear la venta'),
-    });
-  }
-
-  confirmPrepaidLine(): void {
-    if (this.prepaidForm.invalid || !this.pendingPrepaidProduct) {
-      this.prepaidForm.markAllAsTouched();
-      return;
-    }
-    const product = this.pendingPrepaidProduct;
-    const config = this.prepaidConfigByVariant.get(product.id);
-    const prepaid = {
-      phoneNumber: this.prepaidForm.controls.phoneNumber.value.trim(),
-      denomination: this.prepaidForm.controls.denomination.value,
-      providerId: config?.providerId,
-    };
-    this.addOrUpdateLine(product, prepaid);
-    this.pendingPrepaidProduct = null;
-    this.prepaidDialogVisible = false;
-  }
-
-  cancelPrepaidLine(): void {
-    this.pendingPrepaidProduct = null;
-    this.prepaidDialogVisible = false;
-  }
-
-  private recalculateTotals(): void {
-    this.total = this.cartLines.reduce((acc, line) => acc + line.subtotal, 0);
-  }
-
-  private addOrUpdateLine(product: PosProduct, prepaid?: PosCartLine['prepaid']): void {
-    this.registerBasePrice(product);
-    const existing = this.cartLines.find((line) => line.productId === product.id);
-    if (existing) {
-      const nextQuantity = existing.quantity + 1;
-      this.cartLines = this.cartLines.map((line) =>
-        line.productId === product.id
-          ? {
-              ...line,
-              quantity: nextQuantity,
-              unitPrice: existing.unitPrice,
-              subtotal: nextQuantity * existing.unitPrice,
-              prepaid: prepaid ?? line.prepaid,
-            }
-          : line
-      );
-      this.requestResolvedPrice(product.id, nextQuantity, existing.unitPrice);
-    } else {
-      this.cartLines = [
-        ...this.cartLines,
-        {
-          productId: product.id,
-          productName: product.name,
-          quantity: 1,
-          unitPrice: product.price,
-          subtotal: product.price,
-          prepaid,
-        },
-      ];
-      this.requestResolvedPrice(product.id, 1, product.price);
-    }
-    this.recalculateTotals();
-  }
-
-  private loadWarehouses(companyId: string) {
-    this.warehousesApi.listByCompany(companyId).subscribe({
-      next: (response) => {
-        this.warehouseOptions = response.result ?? [];
-        this.selectedWarehouseId = this.warehouseOptions[0]?.id ?? null;
-        this.openSession();
-      },
-      error: (error) => {
-        this.handleError(error, 'No se pudieron cargar los almacenes');
-      },
-    });
-  }
-
-  private loadPrepaidConfigs(): void {
-    if (!this.prepaidEnabled) {
-      this.prepaidConfigByVariant.clear();
-      return;
-    }
-    if (!this.context?.organizationId || !this.context?.enterpriseId) {
-      return;
-    }
-    this.prepaidApi
-      .listVariantConfigs({
-        organizationId: this.context.organizationId,
-        enterpriseId: this.context.enterpriseId,
-      })
-      .subscribe({
-        next: (response) => {
-          const configs = response.result ?? [];
-          this.prepaidConfigByVariant.clear();
-          configs.forEach((config) => {
-            if (config.isActive && config.variantId) {
-              this.prepaidConfigByVariant.set(config.variantId, config);
-            }
-          });
-        },
-        error: () => {
-          this.prepaidConfigByVariant.clear();
-        },
-      });
-  }
-
-  onPriceListChange(): void {
-    this.applyPriceListToCart();
-  }
-
-  private loadPriceLists(): void {
-    if (!this.priceListsEnabled) {
-      this.priceLists = [];
-      this.priceListOptions = [];
-      this.selectedPriceListId = null;
-      return;
-    }
-    if (!this.context?.organizationId || !this.context?.companyId) {
-      this.priceLists = [];
-      this.priceListOptions = [];
-      this.selectedPriceListId = null;
-      return;
-    }
-    this.priceListsLoading = true;
-    this.priceListsService.list().subscribe({
-      next: ({ result }) => {
-        const list = Array.isArray(result) ? result : [];
-        this.priceLists = list.filter(
-          (item) =>
-            item.OrganizationId === this.context?.organizationId &&
-            item.companyId === this.context?.companyId,
-        );
-        this.priceListOptions = this.priceLists.map((item) => ({
-          label: item.name,
-          value: item.id,
-        }));
-        this.applyDefaultPriceListSelection();
-        this.applyPriceListToCart();
-        this.priceListsLoading = false;
-      },
-      error: () => {
-        this.priceLists = [];
-        this.priceListOptions = [];
-        this.selectedPriceListId = null;
-        this.priceListsLoading = false;
-      },
-    });
-  }
-
-  private loadDefaultPriceList(): void {
-    if (!this.priceListsEnabled) {
-      this.defaultPriceListId = null;
-      return;
-    }
-    if (!this.context?.organizationId || !this.context?.companyId) {
-      this.defaultPriceListId = null;
-      return;
-    }
-    this.organizationsApi.getById(this.context.organizationId).subscribe({
-      next: ({ result }) => {
-        const settings = result?.moduleSettings?.['price-lists'] as {
-          defaultByCompanyId?: Record<string, string | null>;
-        } | null;
-        const companyId = this.context?.companyId ?? null;
-        if (!companyId) {
-          this.defaultPriceListId = null;
-          return;
-        }
-        const current = settings?.defaultByCompanyId?.[companyId] ?? null;
-        this.defaultPriceListId = typeof current === 'string' && current.trim() ? current.trim() : null;
-        this.applyDefaultPriceListSelection();
-        this.applyPriceListToCart();
-      },
-      error: () => {
-        this.defaultPriceListId = null;
-      },
-    });
-  }
-
-  private applyDefaultPriceListSelection(): void {
-    if (!this.priceLists || this.priceLists.length === 0) {
-      this.selectedPriceListId = null;
-      return;
-    }
-    if (this.defaultPriceListId) {
-      const exists = this.priceLists.some((item) => item.id === this.defaultPriceListId);
-      if (exists) {
-        this.selectedPriceListId = this.defaultPriceListId;
-        return;
-      }
-    }
-    if (!this.selectedPriceListId) {
-      this.selectedPriceListId = this.priceLists[0]?.id ?? null;
-    }
-  }
-
-  private applyPriceListToCart(): void {
-    if (!this.priceListsEnabled) {
       return;
     }
     if (this.cartLines.length === 0) {
-      return;
-    }
-    this.cartLines = this.cartLines.map((line) => this.withResolvedPrice(line, line.quantity));
-    this.cartLines.forEach((line) => {
-      this.requestResolvedPrice(line.productId, line.quantity, line.unitPrice);
-    });
-    this.recalculateTotals();
-  }
-
-  private withResolvedPrice(line: PosCartLine, quantity: number): PosCartLine {
-    const basePrice = this.basePriceByVariant.get(line.productId) ?? line.unitPrice;
-    return {
-      ...line,
-      quantity,
-      unitPrice: basePrice,
-      subtotal: quantity * basePrice,
-    };
-  }
-
-  private registerBasePrice(product: PosProduct): void {
-    if (!this.basePriceByVariant.has(product.id)) {
-      this.basePriceByVariant.set(product.id, product.price);
-    }
-  }
-
-  private requestResolvedPrice(variantId: string, quantity: number, fallbackPrice?: number): void {
-    if (!this.priceListsEnabled) {
-      return;
-    }
-    if (!this.context?.organizationId || !this.context?.companyId) {
-      return;
-    }
-    this.productsApi
-      .resolvePrice({
-        OrganizationId: this.context.organizationId,
-        companyId: this.context.companyId,
-        enterpriseId: this.context.enterpriseId ?? undefined,
-        variantId,
-        quantity,
-        priceListId: this.selectedPriceListId ?? undefined,
-        fallbackPrice,
-      })
-      .subscribe({
-        next: ({ result }) => {
-          if (!result) {
-            return;
-          }
-          this.cartLines = this.cartLines.map((line) =>
-            line.productId === variantId
-              ? {
-                  ...line,
-                  unitPrice: result.unitPrice,
-                  subtotal: line.quantity * result.unitPrice,
-                }
-              : line,
-          );
-          this.recalculateTotals();
-        },
-        error: () => undefined,
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Carrito vacÃ­o',
+        detail: 'Agrega productos antes de confirmar la venta.',
       });
+      return;
+    }
+
+    this.validateStockAvailability((stockOk) => {
+      if (!stockOk) {
+        return;
+      }
+      const payload = {
+        OrganizationId: context.organizationId!,
+        companyId: context.companyId!,
+        enterpriseId: context.enterpriseId!,
+        sessionId,
+        warehouseId,
+        currency: context.currencyId ?? undefined,
+        lines: this.cartLines.map((line) => ({
+          variantId: line.variantId,
+          qty: line.quantity,
+          unitPrice: line.unitPrice,
+        })),
+        payments: [
+          {
+            method: payment.method,
+            amount: payment.amount,
+            received: payment.received,
+            change: payment.change,
+          },
+        ],
+      };
+
+      this.posService.createSale(payload).subscribe({
+        next: (sale) => {
+          this.posService
+            .postSale(sale.id, {
+              OrganizationId: context.organizationId!,
+              companyId: context.companyId!,
+              enterpriseId: context.enterpriseId!,
+            })
+            .subscribe({
+              next: () => {
+                this.clearCart();
+                this.messageService.add({
+                  severity: 'success',
+                  summary: 'Venta registrada',
+                  detail: 'La venta se confirmÃ³ correctamente.',
+                });
+              },
+              error: (error: Error | { error?: { message?: string } } | null) =>
+                this.handleError(error, 'No se pudo confirmar la venta'),
+            });
+        },
+        error: (error: Error | { error?: { message?: string } } | null) =>
+          this.handleError(error, 'No se pudo crear la venta'),
+      });
+    });
   }
 
   openSession(): void {
@@ -502,71 +219,202 @@ export class PosTerminalPageComponent implements OnInit {
       return;
     }
     const user = this.authService.getCurrentUser();
+    if (!user?.id) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Usuario no disponible',
+        detail: 'No se pudo abrir sesiÃ³n sin usuario autenticado.',
+      });
+      return;
+    }
+    this.sessionLoading = true;
     this.posService
       .openSession({
         OrganizationId: this.context.organizationId!,
         companyId: this.context.companyId!,
         enterpriseId: this.context.enterpriseId!,
         warehouseId: this.selectedWarehouseId,
-        cashierUserId: user?.id,
-        openingAmount: 0,
+        cashierUserId: user.id,
+        openingAmount: this.openingForm.controls.openingAmount.value,
       })
       .subscribe({
         next: (session) => {
           this.sessionId = session.id;
+          this.sessionLoading = false;
         },
-        error: (error) => {
-          this.handleError(error, 'No se pudo abrir sesin POS');
+        error: (error: Error | { error?: { message?: string } } | null) => {
+          this.sessionLoading = false;
+          this.handleError(error, 'No se pudo abrir sesiÃ³n POS');
         },
       });
   }
 
-  private loadModuleAvailability(): void {
-    if (!this.context?.organizationId) {
-      this.prepaidEnabled = false;
-      this.priceListsEnabled = false;
+  closeSession(): void {
+    if (!this.context || !this.sessionId) {
       return;
     }
-    this.organizationsApi.getModulesOverview(this.context.organizationId).subscribe({
-      next: ({ result }) => {
-        const modules = result?.modules ?? [];
-        this.prepaidEnabled = this.isModuleEnabled(modules, 'prepaid');
-        this.priceListsEnabled = this.isModuleEnabled(modules, 'price-lists');
-        if (this.priceListsEnabled) {
-          this.loadDefaultPriceList();
-          this.loadPriceLists();
-        } else {
-          this.priceLists = [];
-          this.priceListOptions = [];
-          this.selectedPriceListId = null;
-        }
-        if (this.prepaidEnabled) {
-          this.loadPrepaidConfigs();
-        } else {
-          this.prepaidConfigByVariant.clear();
-        }
+    const user = this.authService.getCurrentUser();
+    if (!user?.id) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Usuario no disponible',
+        detail: 'No se pudo cerrar sesiÃ³n sin usuario autenticado.',
+      });
+      return;
+    }
+    this.sessionLoading = true;
+    this.posService
+      .closeSession({
+        OrganizationId: this.context.organizationId!,
+        companyId: this.context.companyId!,
+        enterpriseId: this.context.enterpriseId!,
+        sessionId: this.sessionId,
+        cashierUserId: user.id,
+        closingAmount: this.total,
+      })
+      .subscribe({
+        next: () => {
+          this.sessionId = null;
+          this.sessionLoading = false;
+        },
+        error: (error: Error | { error?: { message?: string } } | null) => {
+          this.sessionLoading = false;
+          this.handleError(error, 'No se pudo cerrar sesiÃ³n POS');
+        },
+      });
+  }
+
+  private loadWarehouses(companyId: string): void {
+    this.warehousesApi.listByCompany(companyId).subscribe({
+      next: (response) => {
+        this.warehouseOptions = response.result ?? [];
+        this.selectedWarehouseId = this.warehouseOptions[0]?.id ?? null;
       },
-      error: () => {
-        this.prepaidEnabled = false;
-        this.priceListsEnabled = false;
-        this.priceLists = [];
-        this.priceListOptions = [];
-        this.selectedPriceListId = null;
-        this.prepaidConfigByVariant.clear();
+      error: (error: Error | { error?: { message?: string } } | null) => {
+        this.handleError(error, 'No se pudieron cargar los almacenes');
       },
     });
   }
 
-  private isModuleEnabled(modules: OrganizationModuleOverviewItem[], key: string): boolean {
-    const module = modules.find((item) => item.key === key);
-    return module ? module.state?.status !== 'disabled' : false;
+  private loadActiveSession(): void {
+    if (!this.context) {
+      return;
+    }
+    const user = this.authService.getCurrentUser();
+    if (!user?.id) {
+      return;
+    }
+    this.posService
+      .getActiveSession({
+        OrganizationId: this.context.organizationId!,
+        companyId: this.context.companyId!,
+        enterpriseId: this.context.enterpriseId!,
+        cashierUserId: user.id,
+      })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (session) => {
+          if (session) {
+            this.sessionId = session.id;
+            this.selectedWarehouseId = session.warehouseId ?? this.selectedWarehouseId;
+          }
+        },
+      });
   }
 
-  private handleError(error: unknown, fallback: string): void {
-    const detail =
-      typeof error === 'object' && error !== null && 'error' in error
-        ? (error as { error?: { message?: string } }).error?.message ?? fallback
-        : fallback;
+  private addOrUpdateLine(product: PosProduct): void {
+    const existing = this.cartLines.find((line) => line.variantId === product.id);
+    if (existing) {
+      const nextQuantity = existing.quantity + 1;
+      this.cartLines = this.cartLines.map((line) =>
+        line.variantId === product.id
+          ? {
+              ...line,
+              quantity: nextQuantity,
+              subtotal: nextQuantity * line.unitPrice,
+            }
+          : line,
+      );
+    } else {
+      this.cartLines = [
+        ...this.cartLines,
+        {
+          variantId: product.id,
+          productName: product.name,
+          quantity: 1,
+          unitPrice: product.price,
+          subtotal: product.price,
+        },
+      ];
+    }
+    this.recalculateTotals();
+  }
+
+  private recalculateTotals(): void {
+    this.subtotal = this.cartLines.reduce((acc, line) => acc + line.quantity * line.unitPrice, 0);
+    this.discountTotal = 0;
+    this.total = this.subtotal - this.discountTotal;
+  }
+
+  private clearCart(): void {
+    this.cartLines = [];
+    this.recalculateTotals();
+  }
+
+  private validateStockAvailability(done: (ok: boolean) => void): void {
+    if (!this.context?.enterpriseId || !this.selectedWarehouseId) {
+      done(false);
+      return;
+    }
+    const requests = this.cartLines.map((line) =>
+      this.inventoryApi
+        .getVariantStock({
+          enterpriseId: this.context!.enterpriseId!,
+          variantId: line.variantId,
+          warehouseId: this.selectedWarehouseId ?? undefined,
+        })
+        .pipe(
+          map((response) => ({
+            line,
+            stocks: response.result ?? [],
+          })),
+        ),
+    );
+
+    if (requests.length === 0) {
+      done(true);
+      return;
+    }
+
+    forkJoin(requests)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (results) => {
+          const insufficient = results.find((result) => {
+            const entry = result.stocks[0];
+            const available = entry?.available ?? entry?.onHand ?? entry?.quantity ?? 0;
+            return available < result.line.quantity;
+          });
+          if (insufficient) {
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Stock insuficiente',
+              detail: `No hay stock disponible para ${insufficient.line.productName}.`,
+            });
+            done(false);
+            return;
+          }
+          done(true);
+        },
+        error: (error: Error | { error?: { message?: string } } | null) => {
+          this.handleError(error, 'No se pudo validar stock');
+          done(false);
+        },
+      });
+  }
+
+  private handleError(error: Error | { error?: { message?: string } } | null, fallback: string): void {
+    const detail = error instanceof Error ? error.message : error?.error?.message ?? fallback;
     this.messageService.add({
       severity: 'error',
       summary: 'Error',
@@ -574,9 +422,3 @@ export class PosTerminalPageComponent implements OnInit {
     });
   }
 }
-
-interface SelectOption {
-  label: string;
-  value: string;
-}
-

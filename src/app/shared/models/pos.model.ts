@@ -6,7 +6,7 @@ export interface PosCart {
 }
 
 export interface PosCartLine {
-  productId: string;
+  variantId: string;
   productName: string;
   quantity: number;
   unitPrice: number;
@@ -18,7 +18,7 @@ export interface PosCartLine {
   };
 }
 
-export type PosPaymentMethod = 'CASH';
+export type PosPaymentMethod = 'CASH' | 'CARD' | 'VOUCHER' | 'TRANSFER';
 
 export interface PosPayment {
   method: PosPaymentMethod;
