@@ -37,6 +37,7 @@ export class PriceListsPageComponent implements OnInit {
   private organizationId: string | null = null;
   private companyId: string | null = null;
   private companyNames = new Map<string, string>();
+  private priceLists: PriceList[] = [];
 
   ngOnInit(): void {
     const context = this.activeContextState.getActiveContext();
@@ -96,7 +97,7 @@ export class PriceListsPageComponent implements OnInit {
             .filter((company) => !!company.id)
             .map((company) => [company.id ?? '', company.name ?? company.id ?? '']),
         );
-        this.rows = this.buildRows(this.rows);
+        this.rows = this.buildRows(this.priceLists);
       },
       error: () => {
         this.companyNames = new Map();
@@ -114,7 +115,8 @@ export class PriceListsPageComponent implements OnInit {
     this.priceListsService.list().subscribe({
       next: ({ result }) => {
         const list = Array.isArray(result) ? result : [];
-        this.rows = this.buildRows(list);
+        this.priceLists = list;
+        this.rows = this.buildRows(this.priceLists);
         this.loading = false;
       },
       error: () => {
