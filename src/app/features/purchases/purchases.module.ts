@@ -7,6 +7,7 @@ import { DatePickerModule } from 'primeng/datepicker';
 import { DialogModule } from 'primeng/dialog';
 import { FloatLabelModule } from 'primeng/floatlabel';
 import { InputNumberModule } from 'primeng/inputnumber';
+import { InputGroupModule } from 'primeng/inputgroup';
 import { InputTextModule } from 'primeng/inputtext';
 import { TextareaModule } from 'primeng/textarea';
 import { SelectModule } from 'primeng/select';
@@ -57,6 +58,7 @@ import { purchasesRoutes } from './purchases.routes';
     DialogModule,
     FloatLabelModule,
     InputNumberModule,
+    InputGroupModule,
     InputTextModule,
     TextareaModule,
     SelectModule,

@@ -1,7 +1,7 @@
-<div class="receipt-bonuses">
+﻿<div class="receipt-bonuses">
   <p-fieldset legend="Bonificaciones adicionales">
     <div class="bonus-actions">
-      <p-button label="Agregar bonificación" icon="pi pi-plus" (onClick)="addBonus.emit()"></p-button>
+      <p-button label="Agregar bonificacion" icon="pi pi-plus" (onClick)="addBonus.emit()"></p-button>
     </div>
     <div *ngIf="bonusesForm.length > 0">
       <p-table [value]="bonusesForm.controls" [tableStyle]="{ width: '100%' }">
@@ -15,22 +15,19 @@
         <ng-template pTemplate="body" let-group let-i="rowIndex">
           <tr [formGroup]="group">
             <td>
-              <p-floatLabel>
-                <p-autoComplete
-                  inputId="bonusVariant-{{ i }}"
-                  [suggestions]="variantOptions"
-                  field="label"
-                  [forceSelection]="true"
-                  [appendTo]="'body'"
-                  placeholder="Buscar por SKU, código de barras o nombre"
-                  (completeMethod)="searchVariants($event)"
-                  [ngModel]="selections[i]"
-                  [ngModelOptions]="{ standalone: true }"
-                  (onSelect)="setVariant(i, $event.value)"
-                  (onClear)="clearVariant(i)"
-                ></p-autoComplete>
-                <label for="bonusVariant-{{ i }}">Producto</label>
-              </p-floatLabel>
+              <p-inputgroup>
+                <input
+                  pInputText
+                  [readonly]="true"
+                  [value]="getSelectionLabel(i)"
+                  placeholder="Seleccionar variante"
+                />
+                <p-button
+                  icon="pi pi-search"
+                  type="button"
+                  (onClick)="openVariantPicker(i)"
+                ></p-button>
+              </p-inputgroup>
             </td>
             <td>
               <p-inputNumber
@@ -53,5 +50,10 @@
       </p-table>
     </div>
   </p-fieldset>
-</div>
 
+  <app-variant-picker
+    #bonusVariantPicker
+    [hideInput]="true"
+    (variantSelected)="onVariantPicked($event)"
+  ></app-variant-picker>
+</div>

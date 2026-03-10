@@ -1,4 +1,4 @@
-.receipt-bonuses {
+﻿.receipt-bonuses {
   display: grid;
   gap: 0.75rem;
 }
@@ -8,12 +8,12 @@
 }
 
 .receipt-bonuses :global(.p-inputnumber),
-.receipt-bonuses :global(.p-autocomplete) {
+.receipt-bonuses :global(.p-inputgroup) {
   width: 100%;
 }
 
 .receipt-bonuses :global(.p-inputnumber-input),
-.receipt-bonuses :global(.p-autocomplete-input) {
+.receipt-bonuses :global(.p-inputtext) {
   width: 100%;
 }
 

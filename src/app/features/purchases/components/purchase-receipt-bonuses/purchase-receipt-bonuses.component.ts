@@ -1,16 +1,14 @@
-import { Component, EventEmitter, Input, Output, OnChanges, SimpleChanges, DestroyRef, inject } from '@angular/core';
+﻿import { Component, EventEmitter, Input, Output, OnChanges, SimpleChanges, DestroyRef, ViewChild, inject } from '@angular/core';
 import { FormArray, FormGroup } from '@angular/forms';
-import { Subscription, Subject } from 'rxjs';
-import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
+import { Subscription } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { PurchasesProductsLookupService } from '../../services/purchases-products-lookup.service';
+import { VariantPickerComponent } from '../../../../shared/components/variant-picker/variant-picker.component';
+import { VariantOption } from '../../../../shared/services/variants-lookup.service';
 
-interface VariantOption {
+interface BonusSelection {
   id: string;
-  name: string;
-  sku?: string;
-  barcode?: string;
   label: string;
 }
 
@@ -31,37 +29,16 @@ export class PurchaseReceiptBonusesComponent implements OnChanges {
   @Output() addBonus = new EventEmitter<void>();
   @Output() removeBonus = new EventEmitter<number>();
 
+  @ViewChild('bonusVariantPicker') bonusVariantPicker?: VariantPickerComponent;
+
   private readonly destroyRef = inject(DestroyRef);
   private bonusesSub: Subscription | null = null;
-  private readonly searchSubject = new Subject<string>();
 
   readonly numberLocale = 'en-US';
-  variantOptions: VariantOption[] = [];
-  selections: (VariantOption | null)[] = [];
+  selections: (BonusSelection | null)[] = [];
+  activeBonusIndex: number | null = null;
 
-  constructor(private readonly lookupService: PurchasesProductsLookupService) {
-    this.searchSubject
-      .pipe(
-        debounceTime(250),
-        distinctUntilChanged(),
-        switchMap((term) => this.lookupService.searchVariants(term)),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe({
-        next: (items) => {
-          this.variantOptions = items.map((item) => ({
-            id: item.id,
-            name: item.name,
-            sku: item.sku,
-            barcode: item.barcode,
-            label: this.buildLabel(item),
-          }));
-        },
-        error: () => {
-          this.variantOptions = [];
-        },
-      });
-  }
+  constructor(private readonly lookupService: PurchasesProductsLookupService) {}
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['bonuses']) {
@@ -74,11 +51,52 @@ export class PurchaseReceiptBonusesComponent implements OnChanges {
     return this.bonuses;
   }
 
-  syncSelections(): void {
+  openVariantPicker(index: number): void {
+    this.activeBonusIndex = index;
+    this.bonusVariantPicker?.openDialog();
+  }
+
+  onVariantPicked(option: VariantOption): void {
+    if (this.activeBonusIndex === null) {
+      return;
+    }
+    const group = this.bonusesForm.at(this.activeBonusIndex);
+    group.controls.variantId.setValue(option.id);
+    this.selections[this.activeBonusIndex] = {
+      id: option.id,
+      label: option.label || option.name || option.id,
+    };
+    this.activeBonusIndex = null;
+  }
+
+  getSelectionLabel(index: number): string {
+    const selection = this.selections[index];
+    if (selection?.label) {
+      return selection.label;
+    }
+    const group = this.bonusesForm.at(index);
+    const variantId = group?.controls.variantId.value ?? '';
+    return variantId || '';
+  }
+
+  private syncSelections(): void {
     const length = this.bonuses.length;
     if (this.selections.length !== length) {
       this.selections = Array.from({ length }, (_, index) => this.selections[index] ?? null);
     }
+    this.selections = this.selections.map((current, index) => {
+      const group = this.bonuses.at(index);
+      const variantId = group?.controls.variantId.value ?? '';
+      if (!variantId) {
+        return null;
+      }
+      if (current?.id === variantId) {
+        return current;
+      }
+      const cached = this.lookupService.getVariantById(variantId);
+      const label = cached ? this.buildLabel(cached) : variantId;
+      return { id: variantId, label };
+    });
   }
 
   private bindBonusesChanges(): void {
@@ -88,27 +106,11 @@ export class PurchaseReceiptBonusesComponent implements OnChanges {
       .subscribe(() => this.syncSelections());
   }
 
-  searchVariants(event: { query: string }): void {
-    const term = event.query ?? '';
-    this.searchSubject.next(term);
-  }
-
   private buildLabel(option: { name: string; sku?: string; barcode?: string }): string {
     const skuPart = option.sku ? option.sku : '';
-    const barcodePart = option.barcode ? ` · ${option.barcode}` : '';
-    const namePart = option.name ? ` · ${option.name}` : '';
-    return `${skuPart}${barcodePart}${namePart}`.trim().replace(/^·\s*/, '');
-  }
-
-  setVariant(index: number, option: VariantOption): void {
-    const group = this.bonusesForm.at(index);
-    group.controls.variantId.setValue(option.id);
-    this.selections[index] = option;
-  }
-
-  clearVariant(index: number): void {
-    const group = this.bonusesForm.at(index);
-    group.controls.variantId.setValue('');
-    this.selections[index] = null;
+    const barcodePart = option.barcode ? ` - ${option.barcode}` : '';
+    const namePart = option.name ? ` - ${option.name}` : '';
+    return `${skuPart}${barcodePart}${namePart}`.trim().replace(/^-\s*/, '');
   }
 }
+
