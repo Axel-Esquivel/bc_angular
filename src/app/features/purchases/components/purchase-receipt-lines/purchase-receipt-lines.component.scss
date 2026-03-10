@@ -6,3 +6,7 @@
 .receipt-lines :global(.p-inputnumber-input) {
   width: 100%;
 }
+
+input, p-inputnumber, p-select {
+  width: 100%;
+}

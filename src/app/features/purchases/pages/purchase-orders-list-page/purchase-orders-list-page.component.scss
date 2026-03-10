@@ -9,3 +9,9 @@
 .orders-table {
   margin-top: 1rem;
 }
+
+.actions {
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+}
