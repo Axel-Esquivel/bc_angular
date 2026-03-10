@@ -3,10 +3,10 @@
     <p-floatLabel class="field">
       <input pInputText id="provider-name" type="text" formControlName="name" />
       <label for="provider-name">Nombre</label>
+      <small class="field-error" *ngIf="form.controls.name.invalid && form.controls.name.touched">
+        El nombre es requerido.
+      </small>
     </p-floatLabel>
-    <small class="field-error" *ngIf="form.controls.name.invalid && form.controls.name.touched">
-      El nombre es requerido.
-    </small>
 
     <p-floatLabel class="field">
       <input pInputText id="provider-nit" type="text" formControlName="nit" />
