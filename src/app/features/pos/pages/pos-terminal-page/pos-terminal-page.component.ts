@@ -15,6 +15,7 @@ import { PosProductsService } from '../../services/products.service';
 import { PrepaidApiService } from '../../../../core/api/prepaid-api.service';
 import { ProductsApiService } from '../../../../core/api/products-api.service';
 import { OrganizationsService } from '../../../../core/api/organizations-api.service';
+import { OrganizationModuleOverviewItem } from '../../../../shared/models/organization-modules.model';
 import { PrepaidVariantConfig } from '../../../../shared/models/prepaid.model';
 import { PriceListsService } from '../../../price-lists/services/price-lists.service';
 import { PriceList } from '../../../price-lists/models/price-list.model';
@@ -47,6 +48,7 @@ export class PosTerminalPageComponent implements OnInit {
   selectedPriceListId: string | null = null;
   defaultPriceListId: string | null = null;
   priceListsLoading = false;
+  priceListsEnabled = false;
   cartLines: PosCartLine[] = [];
   total = 0;
   sessionId: string | null = null;
@@ -59,6 +61,7 @@ export class PosTerminalPageComponent implements OnInit {
   prepaidDialogVisible = false;
   prepaidDialogLockedDenomination = false;
   pendingPrepaidProduct: PosProduct | null = null;
+  prepaidEnabled = false;
 
   readonly prepaidForm = this.fb.nonNullable.group({
     phoneNumber: ['', Validators.required],
@@ -71,13 +74,13 @@ export class PosTerminalPageComponent implements OnInit {
       this.messageService.add({
         severity: 'warn',
         summary: 'Contexto incompleto',
-        detail: 'Selecciona organización, empresa y sucursal antes de usar POS.',
+        detail: 'Selecciona organizacin, empresa y sucursal antes de usar POS.',
       });
       return;
     }
 
     this.context = context;
-    this.loadDefaultPriceList();
+    this.loadModuleAvailability();
     this.realtimeService.joinContext(context.organizationId!, context.enterpriseId!);
     this.realtimeService.inventoryStockChanged$
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -90,14 +93,12 @@ export class PosTerminalPageComponent implements OnInit {
         this.messageService.add({
           severity: 'success',
           summary: 'Venta registrada',
-          detail: 'La venta se confirmó correctamente.',
+          detail: 'La venta se confirm correctamente.',
         });
       });
 
     this.loadWarehouses(context.companyId!);
-    this.loadPriceLists();
     this.onSearchProducts('');
-    this.loadPrepaidConfigs();
   }
 
   onSearchProducts(term: string): void {
@@ -152,7 +153,7 @@ export class PosTerminalPageComponent implements OnInit {
       });
       return;
     }
-    const prepaidConfig = this.prepaidConfigByVariant.get(product.id);
+    const prepaidConfig = this.prepaidEnabled ? this.prepaidConfigByVariant.get(product.id) : undefined;
     if (prepaidConfig) {
       this.pendingPrepaidProduct = product;
       this.prepaidDialogLockedDenomination = prepaidConfig.denomination > 0;
@@ -187,7 +188,7 @@ export class PosTerminalPageComponent implements OnInit {
       this.messageService.add({
         severity: 'warn',
         summary: 'Falta contexto',
-        detail: 'No se puede confirmar la venta sin sesión abierta y almacén.',
+        detail: 'No se puede confirmar la venta sin sesin abierta y almacn.',
       });
       return;
     }
@@ -311,6 +312,10 @@ export class PosTerminalPageComponent implements OnInit {
   }
 
   private loadPrepaidConfigs(): void {
+    if (!this.prepaidEnabled) {
+      this.prepaidConfigByVariant.clear();
+      return;
+    }
     if (!this.context?.organizationId || !this.context?.enterpriseId) {
       return;
     }
@@ -340,6 +345,12 @@ export class PosTerminalPageComponent implements OnInit {
   }
 
   private loadPriceLists(): void {
+    if (!this.priceListsEnabled) {
+      this.priceLists = [];
+      this.priceListOptions = [];
+      this.selectedPriceListId = null;
+      return;
+    }
     if (!this.context?.organizationId || !this.context?.companyId) {
       this.priceLists = [];
       this.priceListOptions = [];
@@ -373,6 +384,10 @@ export class PosTerminalPageComponent implements OnInit {
   }
 
   private loadDefaultPriceList(): void {
+    if (!this.priceListsEnabled) {
+      this.defaultPriceListId = null;
+      return;
+    }
     if (!this.context?.organizationId || !this.context?.companyId) {
       this.defaultPriceListId = null;
       return;
@@ -416,6 +431,9 @@ export class PosTerminalPageComponent implements OnInit {
   }
 
   private applyPriceListToCart(): void {
+    if (!this.priceListsEnabled) {
+      return;
+    }
     if (this.cartLines.length === 0) {
       return;
     }
@@ -443,6 +461,9 @@ export class PosTerminalPageComponent implements OnInit {
   }
 
   private requestResolvedPrice(variantId: string, quantity: number, fallbackPrice?: number): void {
+    if (!this.priceListsEnabled) {
+      return;
+    }
     if (!this.context?.organizationId || !this.context?.companyId) {
       return;
     }
@@ -495,9 +516,50 @@ export class PosTerminalPageComponent implements OnInit {
           this.sessionId = session.id;
         },
         error: (error) => {
-          this.handleError(error, 'No se pudo abrir sesión POS');
+          this.handleError(error, 'No se pudo abrir sesin POS');
         },
       });
+  }
+
+  private loadModuleAvailability(): void {
+    if (!this.context?.organizationId) {
+      this.prepaidEnabled = false;
+      this.priceListsEnabled = false;
+      return;
+    }
+    this.organizationsApi.getModulesOverview(this.context.organizationId).subscribe({
+      next: ({ result }) => {
+        const modules = result?.modules ?? [];
+        this.prepaidEnabled = this.isModuleEnabled(modules, 'prepaid');
+        this.priceListsEnabled = this.isModuleEnabled(modules, 'price-lists');
+        if (this.priceListsEnabled) {
+          this.loadDefaultPriceList();
+          this.loadPriceLists();
+        } else {
+          this.priceLists = [];
+          this.priceListOptions = [];
+          this.selectedPriceListId = null;
+        }
+        if (this.prepaidEnabled) {
+          this.loadPrepaidConfigs();
+        } else {
+          this.prepaidConfigByVariant.clear();
+        }
+      },
+      error: () => {
+        this.prepaidEnabled = false;
+        this.priceListsEnabled = false;
+        this.priceLists = [];
+        this.priceListOptions = [];
+        this.selectedPriceListId = null;
+        this.prepaidConfigByVariant.clear();
+      },
+    });
+  }
+
+  private isModuleEnabled(modules: OrganizationModuleOverviewItem[], key: string): boolean {
+    const module = modules.find((item) => item.key === key);
+    return module ? module.state?.status !== 'disabled' : false;
   }
 
   private handleError(error: unknown, fallback: string): void {

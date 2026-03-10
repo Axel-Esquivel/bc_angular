@@ -4,7 +4,7 @@
       <p class="eyebrow">Punto de venta</p>
       <h1>POS</h1>
       <p class="muted">
-        Estado: {{ sessionId ? 'Sesión abierta' : 'Sesión no iniciada' }}
+        Estado: {{ sessionId ? 'Sesin abierta' : 'Sesin no iniciada' }}
       </p>
     </div>
     <div class="pos-controls">
@@ -13,10 +13,11 @@
         [options]="warehouseOptions"
         optionLabel="name"
         optionValue="id"
-        placeholder="Selecciona almacén"
+        placeholder="Selecciona almacn"
         [(ngModel)]="selectedWarehouseId"
         [disabled]="warehouseOptions.length === 0"
       ></p-select>
+      <ng-container *ngIf="priceListsEnabled">
       <p-select
         appendTo="body"
         [options]="priceListOptions"
@@ -27,8 +28,9 @@
         [disabled]="priceListOptions.length === 0 || priceListsLoading"
         (onChange)="onPriceListChange()"
       ></p-select>
+      </ng-container>
       <p-button
-        label="Abrir sesión"
+        label="Abrir sesin"
         icon="pi pi-play"
         severity="success"
         [disabled]="!!sessionId || !selectedWarehouseId"
@@ -71,6 +73,7 @@
 </section>
 
 <p-dialog
+  *ngIf="prepaidEnabled"
   header="Recarga"
   [(visible)]="prepaidDialogVisible"
   [modal]="true"
