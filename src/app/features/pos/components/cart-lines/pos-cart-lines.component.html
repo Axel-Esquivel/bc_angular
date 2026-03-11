@@ -1,7 +1,9 @@
-﻿<section class="pos-panel">
-  <header class="pos-panel__header">
-    <h2>Carrito</h2>
-  </header>
+﻿<p-card class="pos-panel">
+  <ng-template pTemplate="header">
+    <div class="pos-panel__header">
+      <h2>Carrito</h2>
+    </div>
+  </ng-template>
 
   <p-table [value]="lines" dataKey="variantId">
     <ng-template pTemplate="header">
@@ -31,9 +33,9 @@
         <td>{{ line.unitPrice | currency: 'USD' }}</td>
         <td>{{ line.subtotal | currency: 'USD' }}</td>
         <td class="pos-actions">
-          <button pButton type="button" icon="pi pi-trash" (click)="onRemove(line)"></button>
+          <p-button type="button" icon="pi pi-trash" severity="danger" (onClick)="onRemove(line)"></p-button>
         </td>
       </tr>
     </ng-template>
   </p-table>
-</section>
+</p-card>

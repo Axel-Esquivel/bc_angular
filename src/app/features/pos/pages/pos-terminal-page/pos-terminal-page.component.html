@@ -5,7 +5,7 @@
       <p class="eyebrow">Punto de venta</p>
       <h1>Terminal POS</h1>
     </div>
-    <span class="pos-context">Empresa: {{ context?.enterpriseId || '-' }}</span>
+    <span class="pos-context">Empresa: {{ (enterpriseName$ | async) || 'No disponible' }}</span>
   </header>
 
   <bc-pos-session-controls

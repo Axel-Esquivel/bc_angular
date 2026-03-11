@@ -34,7 +34,8 @@ export class PosProductsService {
   private readonly baseUrl: string;
 
   constructor(@Inject(APP_CONFIG_TOKEN) private readonly config: AppConfig, private readonly http: HttpClient) {
-    this.baseUrl = `${this.config.apiBaseUrl}/pos/variants`;
+    const apiBase = this.config.apiBaseUrl.replace(/\/$/, '');
+    this.baseUrl = `${apiBase}/pos/variants`;
   }
 
   search(query: PosProductSearchQuery): Observable<PosProduct[]> {

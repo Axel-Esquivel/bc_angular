@@ -1,11 +1,13 @@
-﻿<section class="pos-panel">
-  <header class="pos-panel__header">
-    <div>
-      <p class="eyebrow">Resumen</p>
-      <h2>Totales</h2>
+﻿<p-card class="pos-panel">
+  <ng-template pTemplate="header">
+    <div class="pos-panel__header">
+      <div>
+        <p class="eyebrow">Resumen</p>
+        <h2>Totales</h2>
+      </div>
+      <p class="items-count">{{ itemsCount }} artículos</p>
     </div>
-    <p class="items-count">{{ itemsCount }} artículos</p>
-  </header>
+  </ng-template>
 
   <div class="totals-row">
     <span>Subtotal</span>
@@ -41,5 +43,5 @@
 
   <p *ngIf="insufficientAmount" class="error-text">El monto es insuficiente para completar la venta.</p>
 
-  <button pButton type="button" label="Confirmar venta" icon="pi pi-check" (click)="onCheckout()"></button>
-</section>
+  <p-button type="button" label="Confirmar venta" icon="pi pi-check" (onClick)="onCheckout()"></p-button>
+</p-card>

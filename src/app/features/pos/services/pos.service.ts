@@ -66,7 +66,8 @@ export class PosHttpService {
   private readonly baseUrl: string;
 
   constructor(@Inject(APP_CONFIG_TOKEN) private readonly config: AppConfig, private readonly http: HttpClient) {
-    this.baseUrl = `${this.config.apiBaseUrl}/pos`;
+    const apiBase = this.config.apiBaseUrl.replace(/\/$/, '');
+    this.baseUrl = `${apiBase}/pos`;
   }
 
   openSession(payload: OpenPosSessionPayload): Observable<PosSession> {

@@ -1,7 +1,9 @@
-﻿<section class="pos-panel">
-  <header class="pos-panel__header">
-    <h2>Búsqueda de variantes</h2>
-  </header>
+﻿<p-card class="pos-panel">
+  <ng-template pTemplate="header">
+    <div class="pos-panel__header">
+      <h2>Búsqueda de variantes</h2>
+    </div>
+  </ng-template>
 
   <div class="pos-search">
     <input
@@ -11,7 +13,7 @@
       [(ngModel)]="query"
       (keyup.enter)="onSearch()"
     />
-    <button pButton type="button" label="Buscar" icon="pi pi-search" (click)="onSearch()"></button>
+    <p-button type="button" label="Buscar" icon="pi pi-search" (onClick)="onSearch()"></p-button>
   </div>
 
   <p-table [value]="products" [loading]="loading" dataKey="id" [rows]="6">
@@ -29,16 +31,15 @@
         <td>{{ item.sku || '-' }}</td>
         <td>{{ item.price | currency: 'USD' }}</td>
         <td class="pos-actions">
-          <button
-            pButton
+          <p-button
             type="button"
             icon="pi pi-plus"
             label="Agregar"
-            (click)="onAdd(item)"
+            (onClick)="onAdd(item)"
             [disabled]="!item.isActive"
-          ></button>
+          ></p-button>
         </td>
       </tr>
     </ng-template>
   </p-table>
-</section>
+</p-card>

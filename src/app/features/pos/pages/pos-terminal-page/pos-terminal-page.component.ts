@@ -1,9 +1,11 @@
 ﻿import { Component, DestroyRef, OnInit, inject } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import { MessageService } from 'primeng/api';
 import { catchError, forkJoin, map, of } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { ActiveContextStateService } from '../../../../core/context/active-context-state.service';
+import { ActiveEnterpriseLabelService } from '../../../../core/context/active-enterprise-label.service';
 import { AuthService } from '../../../../core/auth/auth.service';
 import { InventoryApiService } from '../../../../core/api/inventory-api.service';
 import { OrganizationsService } from '../../../../core/api/organizations-api.service';
@@ -27,6 +29,7 @@ export class PosTerminalPageComponent implements OnInit {
   private readonly productsService = inject(PosProductsService);
   private readonly posService = inject(PosHttpService);
   private readonly activeContext = inject(ActiveContextStateService);
+  private readonly enterpriseLabelService = inject(ActiveEnterpriseLabelService);
   private readonly authService = inject(AuthService);
   private readonly inventoryApi = inject(InventoryApiService);
   private readonly warehousesApi = inject(WarehousesService);
@@ -47,6 +50,7 @@ export class PosTerminalPageComponent implements OnInit {
   openingAmount = 0;
   context: ActiveContext | null = null;
   priceListsEnabled = false;
+  readonly enterpriseName$ = this.enterpriseLabelService.enterpriseName$;
 
   ngOnInit(): void {
     const context = this.activeContext.getActiveContext();
@@ -363,6 +367,13 @@ export class PosTerminalPageComponent implements OnInit {
             this.selectedWarehouseId = session.warehouseId ?? this.selectedWarehouseId;
           }
         },
+        error: (error: HttpErrorResponse | Error | { error?: { message?: string } } | null) => {
+          if (error instanceof HttpErrorResponse && error.status === 404) {
+            this.handleError(error, 'La ruta de sesión activa no está disponible.');
+            return;
+          }
+          this.handleError(error, 'No se pudo consultar la sesión activa.');
+        },
       });
   }
 
@@ -502,3 +513,5 @@ export class PosTerminalPageComponent implements OnInit {
     });
   }
 }
+
+

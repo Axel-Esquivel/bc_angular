@@ -9,19 +9,20 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 1rem;
 }
 
 .eyebrow {
   text-transform: uppercase;
   font-size: 0.75rem;
   letter-spacing: 0.08em;
-  color: #64748b;
+  color: var(--text-color-secondary);
   margin: 0;
 }
 
 .pos-context {
   font-weight: 600;
-  color: #334155;
+  color: var(--text-color);
 }
 
 .pos-layout {
