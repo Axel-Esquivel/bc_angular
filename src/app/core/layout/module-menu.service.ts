@@ -21,7 +21,6 @@ export class ModuleMenuService {
     dashboard: '/app',
     products: '/app/products',
     inventory: '/app/inventory',
-    pos: '/app/pos',
     prepaid: '/app/prepaid',
   };
 
@@ -124,4 +123,3 @@ export class ModuleMenuService {
     return name.charAt(0).toUpperCase() + name.slice(1);
   }
 }
-

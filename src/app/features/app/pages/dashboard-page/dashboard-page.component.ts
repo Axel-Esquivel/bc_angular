@@ -31,12 +31,6 @@ const MODULE_META: Record<string, { icon: string; route: string; name?: string; 
     name: 'Contabilidad',
     description: 'Pólizas y cuentas.',
   },
-  pos: {
-    icon: 'pi pi-shopping-cart',
-    route: '/app/pos',
-    name: 'POS',
-    description: 'Point of sale.',
-  },
   prepaid: {
     icon: 'pi pi-mobile',
     route: '/app/prepaid',

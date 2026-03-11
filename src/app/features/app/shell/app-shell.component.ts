@@ -98,10 +98,6 @@ export class AppShellComponent implements OnInit {
           items: [{ label: 'Inicio', icon: 'pi pi-home', routerLink: '/app/home' }],
         },
         {
-          label: 'Ventas',
-          items: [{ label: 'POS', icon: 'pi pi-shopping-cart', routerLink: '/app/pos' }],
-        },
-        {
           label: 'Inventario',
           items: [{ label: 'Stock', icon: 'pi pi-box', routerLink: '/app/inventory' }],
         },

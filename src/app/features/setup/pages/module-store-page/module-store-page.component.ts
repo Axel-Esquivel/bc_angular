@@ -39,7 +39,6 @@ interface SelectOption<T = string> {
 const SUITE_LABELS: Record<string, string> = {
   'inventory-suite': 'Inventario',
   'master-data-suite': 'Datos Maestros',
-  'pos-suite': 'Punto de Venta',
   'utilities-suite': 'Utilidades',
 };
 
