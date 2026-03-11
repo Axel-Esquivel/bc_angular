@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+﻿import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { MegaMenu } from 'primeng/megamenu';
@@ -96,6 +96,10 @@ export class AppShellComponent implements OnInit {
         {
           label: 'Home',
           items: [{ label: 'Inicio', icon: 'pi pi-home', routerLink: '/app/home' }],
+        },
+        {
+          label: 'Ventas',
+          items: [{ label: 'POS', icon: 'pi pi-shopping-cart', routerLink: '/app/pos' }],
         },
         {
           label: 'Inventario',

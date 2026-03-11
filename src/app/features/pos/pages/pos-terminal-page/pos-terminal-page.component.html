@@ -1,0 +1,50 @@
+﻿<p-toast></p-toast>
+<section class="pos-page">
+  <header class="pos-header">
+    <div>
+      <p class="eyebrow">Punto de venta</p>
+      <h1>Terminal POS</h1>
+    </div>
+    <span class="pos-context">Empresa: {{ context?.enterpriseId || '-' }}</span>
+  </header>
+
+  <bc-pos-session-controls
+    [warehouses]="warehouses"
+    [selectedWarehouseId]="selectedWarehouseId"
+    [sessionId]="sessionId"
+    [openedAt]="sessionOpenedAt"
+    [loading]="sessionLoading"
+    [openingAmount]="openingAmount"
+    (warehouseChange)="onWarehouseChange($event)"
+    (openingAmountChange)="onOpeningAmountChange($event)"
+    (openSession)="openSession()"
+    (closeSession)="closeSession()"
+  ></bc-pos-session-controls>
+
+  <section class="pos-layout">
+    <div class="pos-column">
+      <bc-pos-product-selector
+        [products]="products"
+        [loading]="productsLoading"
+        (search)="onSearchProducts($event)"
+        (add)="onAddProduct($event)"
+      ></bc-pos-product-selector>
+    </div>
+
+    <div class="pos-column">
+      <bc-pos-cart-lines
+        [lines]="cartLines"
+        (quantityChange)="onQuantityChange($event)"
+        (remove)="onRemoveLine($event)"
+      ></bc-pos-cart-lines>
+
+      <bc-pos-totals
+        [subtotal]="subtotal"
+        [discountTotal]="discountTotal"
+        [total]="total"
+        [itemsCount]="cartLines.length"
+        (checkout)="onCheckout($event)"
+      ></bc-pos-totals>
+    </div>
+  </section>
+</section>

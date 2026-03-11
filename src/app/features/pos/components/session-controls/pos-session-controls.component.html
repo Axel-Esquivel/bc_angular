@@ -1,0 +1,61 @@
+﻿<section class="pos-panel">
+  <header class="pos-panel__header">
+    <h2>Sesión y almacén</h2>
+  </header>
+
+  <div class="pos-session-grid">
+    <div class="field">
+      <label for="warehouse">Almacén</label>
+      <p-select
+        inputId="warehouse"
+        [options]="warehouses"
+        optionLabel="name"
+        optionValue="id"
+        [ngModel]="selectedWarehouseId"
+        (ngModelChange)="onWarehouseChange($event)"
+        [disabled]="loading"
+      ></p-select>
+    </div>
+
+    <div class="field">
+      <label for="opening">Monto de apertura</label>
+      <p-inputNumber
+        inputId="opening"
+        [ngModel]="openingAmount"
+        (ngModelChange)="onOpeningAmountChange($event)"
+        [min]="0"
+        locale="es-GT"
+        [disabled]="loading || !!sessionId"
+      ></p-inputNumber>
+    </div>
+  </div>
+
+  <div class="pos-session-actions">
+    <button
+      pButton
+      type="button"
+      label="Abrir sesión"
+      icon="pi pi-lock-open"
+      (click)="openSession.emit()"
+      [disabled]="loading || !selectedWarehouseId || !!sessionId"
+    ></button>
+    <button
+      pButton
+      type="button"
+      label="Cerrar sesión"
+      icon="pi pi-lock"
+      severity="secondary"
+      (click)="closeSession.emit()"
+      [disabled]="loading || !sessionId"
+    ></button>
+  </div>
+
+  <p *ngIf="sessionId" class="pos-session-status">
+    Sesión activa: {{ sessionId }}
+    <span *ngIf="openedAt">· Abierta {{ openedAt | date: 'short' }}</span>
+  </p>
+  <p *ngIf="sessionId" class="pos-session-meta">
+    Monto de apertura: {{ openingAmount | currency: 'USD' }}
+  </p>
+  <p *ngIf="!sessionId" class="pos-session-status">Sin sesión activa</p>
+</section>

@@ -1,0 +1,38 @@
+﻿.pos-panel {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 1rem;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.08);
+}
+
+.pos-panel__header {
+  margin-bottom: 1rem;
+}
+
+.pos-session-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.field {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.pos-session-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.pos-session-status {
+  margin-top: 0.75rem;
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.pos-session-meta {
+  margin-top: 0.25rem;
+  color: #475569;
+}

@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+﻿import { Injectable, inject } from '@angular/core';
 import { Observable, catchError, combineLatest, map, of, shareReplay } from 'rxjs';
 import { MenuItem } from 'primeng/api';
 
@@ -21,6 +21,7 @@ export class ModuleMenuService {
     dashboard: '/app',
     products: '/app/products',
     inventory: '/app/inventory',
+    pos: '/app/pos',
     prepaid: '/app/prepaid',
   };
 
@@ -90,19 +91,19 @@ export class ModuleMenuService {
     if (isOwner) {
       if (companyId) {
         configItems.push({
-          label: 'Configuraci?n de m?dulos',
+          label: 'Configuración de módulos',
           routerLink: ['/companies', companyId, 'settings/modules'],
         });
       }
       configItems.push({
-        label: 'Tienda de m?dulos',
+        label: 'Tienda de módulos',
         routerLink: '/app/modules/store',
         queryParams: { returnUrl: '/app/home' },
       });
       configItems.push({
-        label: 'Cat?logos',
+        label: 'Catálogos',
         items: [
-          { label: 'Pa?ses', routerLink: '/settings/countries' },
+          { label: 'Países', routerLink: '/settings/countries' },
           ...(showPriceLists ? [{ label: 'Listas de precios', routerLink: '/app/price-lists' }] : []),
         ],
       });
@@ -111,7 +112,7 @@ export class ModuleMenuService {
     return [
       { label: 'Dashboard', routerLink: '/app' },
       ...moduleItems,
-      ...(configItems.length > 0 ? [{ label: 'Configuraci?n', items: configItems }] : []),
+      ...(configItems.length > 0 ? [{ label: 'Configuración', items: configItems }] : []),
     ];
   }
 

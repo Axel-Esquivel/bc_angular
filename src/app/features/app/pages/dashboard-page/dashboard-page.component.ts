@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+﻿import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, inject } from '@angular/core';
 import { Router } from '@angular/router';
@@ -30,6 +30,12 @@ const MODULE_META: Record<string, { icon: string; route: string; name?: string; 
     route: '/app/accounting',
     name: 'Contabilidad',
     description: 'Pólizas y cuentas.',
+  },
+  pos: {
+    icon: 'pi pi-shopping-cart',
+    route: '/app/pos',
+    name: 'POS',
+    description: 'Punto de venta.',
   },
   prepaid: {
     icon: 'pi pi-mobile',
@@ -192,22 +198,22 @@ export class AppDashboardPageComponent implements OnInit {
       .map((module) => applyModuleUiMeta(module))
       .filter((module) => module.visibility === 'app')
       .map((module) => {
-      const meta = MODULE_META[module.key] ?? {
-        icon: 'pi pi-th-large',
-        route: `/app/${module.key}`,
-        name: module.name || module.key,
-      };
-      const route = meta.route?.trim() ?? '';
-      const name = meta.name ?? module.name ?? module.key;
-      return {
-        key: module.key,
-        name,
-        icon: meta.icon,
-        route,
-        description: meta.description,
-        hasRoute: Boolean(route),
-      };
-    });
+        const meta = MODULE_META[module.key] ?? {
+          icon: 'pi pi-th-large',
+          route: `/app/${module.key}`,
+          name: module.name || module.key,
+        };
+        const route = meta.route?.trim() ?? '';
+        const name = meta.name ?? module.name ?? module.key;
+        return {
+          key: module.key,
+          name,
+          icon: meta.icon,
+          route,
+          description: meta.description,
+          hasRoute: Boolean(route),
+        };
+      });
   }
 
   private showError(message: string): void {
@@ -232,4 +238,3 @@ export class AppDashboardPageComponent implements OnInit {
     return 'No se pudieron cargar los módulos.';
   }
 }
-

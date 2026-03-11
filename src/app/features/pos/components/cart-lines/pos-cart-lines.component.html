@@ -1,0 +1,39 @@
+﻿<section class="pos-panel">
+  <header class="pos-panel__header">
+    <h2>Carrito</h2>
+  </header>
+
+  <p-table [value]="lines" dataKey="variantId">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Producto</th>
+        <th>Cantidad</th>
+        <th>Precio</th>
+        <th>Total</th>
+        <th></th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-line>
+      <tr>
+        <td>
+          <div class="line-name">{{ line.productName }}</div>
+          <div class="line-sku" *ngIf="line.sku">SKU: {{ line.sku }}</div>
+        </td>
+        <td>
+          <p-inputNumber
+            [ngModel]="line.quantity"
+            (ngModelChange)="onQtyChange(line, $event)"
+            [min]="1"
+            [showButtons]="true"
+            inputId="qty-{{ line.variantId }}"
+          ></p-inputNumber>
+        </td>
+        <td>{{ line.unitPrice | currency: 'USD' }}</td>
+        <td>{{ line.subtotal | currency: 'USD' }}</td>
+        <td class="pos-actions">
+          <button pButton type="button" icon="pi pi-trash" (click)="onRemove(line)"></button>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</section>
