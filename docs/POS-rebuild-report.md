@@ -2,13 +2,7 @@
 
 Fecha: 2026-03-10
 
-**Resumen**
-Se reconstruyÃ³ el mÃ³dulo POS en `angular/src/app/features/POS`, eliminando la base anterior. Se creÃ³ una base funcional real con terminal POS, selector de variantes, carrito, totales y flujo de venta.
-
-**Eliminado/Reemplazado**
-- Carpeta anterior: `angular/src/app/features/pos` (reemplazada por `angular/src/app/features/POS`).
-
-**Estructura final**
+## Estructura final
 - `angular/src/app/features/POS/`
   - `pos.module.ts`
   - `pos.routes.ts`
@@ -18,29 +12,30 @@ Se reconstruyÃ³ el mÃ³dulo POS en `angular/src/app/features/POS`, eliminando
   - `components/totals-panel/*`
   - `services/pos.service.ts`
   - `services/products.service.ts`
+  - `models/pos.model.ts`
   - `models/pos-product.model.ts`
 
-**Componentes creados**
+## Componentes creados
 - Terminal POS
 - Selector de variantes
-- Panel de carrito
-- Panel de totales y pago
+- Carrito
+- Totales y pago
 
-**Servicios**
-- `PosHttpService` (sesiones, ventas, post/void)
-- `PosProductsService` (consulta de variantes POS)
- - `InventoryApiService.getVariantStock` (validaciÃ³n de stock por variante en POS)
+## Servicios creados
+- `PosHttpService` (sesiones, ventas, post)
+- `PosProductsService` (busqueda de variantes)
 
-**Dependencias**
-- PrimeNG: `ButtonModule`, `CardModule`, `InputNumberModule`, `InputTextModule`, `SelectModule`, `TableModule`
-- Core: `ActiveContextStateService`, `WarehousesApiService`, `AuthService`, `MessageService`
+## Integraciones
+- Validacion de stock previa a la venta con `InventoryApiService`.
+- Manejo de errores con `MessageService`.
 
-**Integraciones opcionales**
-- No se acopla directamente a mÃ³dulos opcionales. El POS funciona sin price-lists/prepaid.
+## Archivos modificados
+- `angular/src/app/features/app/app.routes.ts`
+- `angular/src/app/features/app/shell/app-shell.component.ts`
+- `angular/src/app/features/app/pages/dashboard-page/dashboard-page.component.ts`
+- `angular/src/app/core/layout/module-menu.service.ts`
+- `angular/src/app/features/setup/pages/module-store-page/module-store-page.component.ts`
 
-**IntegraciÃ³n con inventario**
-- Antes de confirmar venta, se valida disponibilidad de stock por variante en el almacÃ©n activo.
-
-**Riesgos / deuda tÃ©cnica**
-- Falta UI de descuentos avanzada (se calcula descuento como 0 en esta base).
-- Mejorar UX de apertura/cierre con monto configurable si se requiere.
+## Notas
+- Uso consistente de `variantId`.
+- UI con PrimeNG 20.

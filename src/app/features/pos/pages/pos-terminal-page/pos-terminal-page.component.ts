@@ -1,15 +1,15 @@
 import { Component, DestroyRef, OnInit, inject } from '@angular/core';
 import { FormBuilder, Validators } from '@angular/forms';
 import { MessageService } from 'primeng/api';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { forkJoin, map } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { ActiveContextStateService } from '../../../../core/context/active-context-state.service';
 import { AuthService } from '../../../../core/auth/auth.service';
 import { InventoryApiService } from '../../../../core/api/inventory-api.service';
 import { WarehousesApiService, Warehouse } from '../../../../core/api/warehouses-api.service';
-import { PosCartLine, PosPayment } from '../../../../shared/models/pos.model';
 import { ActiveContext } from '../../../../shared/models/active-context.model';
+import { PosCartLine, PosPayment } from '../../models/pos.model';
 import { PosProduct } from '../../models/pos-product.model';
 import { PosHttpService } from '../../services/pos.service';
 import { PosProductsService } from '../../services/products.service';
@@ -52,8 +52,8 @@ export class PosTerminalPageComponent implements OnInit {
     if (!this.activeContext.isComplete(context)) {
       this.messageService.add({
         severity: 'warn',
-        summary: 'Contexto incompleto',
-        detail: 'Selecciona organizaciÃ³n, empresa y sucursal antes de usar POS.',
+        summary: 'Context missing',
+        detail: 'Select organization, company, enterprise, and warehouse before using POS.',
       });
       return;
     }
@@ -67,11 +67,12 @@ export class PosTerminalPageComponent implements OnInit {
     if (!this.context?.enterpriseId) {
       return;
     }
-    const query = term?.trim() || '';
+    const query = term.trim();
     if (!query) {
       this.products = [];
       return;
     }
+
     this.productsLoading = true;
     this.productsService
       .search({
@@ -88,7 +89,7 @@ export class PosTerminalPageComponent implements OnInit {
         error: (error: Error | { error?: { message?: string } } | null) => {
           this.products = [];
           this.productsLoading = false;
-          this.handleError(error, 'No se pudieron cargar los productos');
+          this.handleError(error, 'Failed to load products');
         },
       });
 
@@ -113,8 +114,8 @@ export class PosTerminalPageComponent implements OnInit {
     if (!product.isActive) {
       this.messageService.add({
         severity: 'warn',
-        summary: 'Producto inactivo',
-        detail: 'No se puede agregar un producto inactivo.',
+        summary: 'Inactive product',
+        detail: 'Cannot add an inactive product.',
       });
       return;
     }
@@ -125,11 +126,7 @@ export class PosTerminalPageComponent implements OnInit {
     const safeQuantity = quantity > 0 ? quantity : 1;
     this.cartLines = this.cartLines.map((line) =>
       line.variantId === lineId
-        ? {
-            ...line,
-            quantity: safeQuantity,
-            subtotal: safeQuantity * line.unitPrice,
-          }
+        ? { ...line, quantity: safeQuantity, subtotal: safeQuantity * line.unitPrice }
         : line,
     );
     this.recalculateTotals();
@@ -147,30 +144,41 @@ export class PosTerminalPageComponent implements OnInit {
     if (!context?.enterpriseId || !sessionId || !warehouseId) {
       this.messageService.add({
         severity: 'warn',
-        summary: 'Falta contexto',
-        detail: 'No se puede confirmar la venta sin sesiÃ³n abierta y almacÃ©n.',
+        summary: 'Missing context',
+        detail: 'Open a session and select a warehouse before confirming the sale.',
       });
       return;
     }
     if (this.cartLines.length === 0) {
       this.messageService.add({
         severity: 'warn',
-        summary: 'Carrito vacÃ­o',
-        detail: 'Agrega productos antes de confirmar la venta.',
+        summary: 'Empty cart',
+        detail: 'Add items before confirming the sale.',
       });
       return;
     }
 
-    this.validateStockAvailability((stockOk) => {
-      if (!stockOk) {
+    this.validateStockAvailability((ok) => {
+      if (!ok) {
         return;
       }
+      const user = this.authService.getCurrentUser();
+      if (!user?.id) {
+        this.messageService.add({
+          severity: 'warn',
+          summary: 'User missing',
+          detail: 'User is required to confirm the sale.',
+        });
+        return;
+      }
+
       const payload = {
         OrganizationId: context.organizationId!,
         companyId: context.companyId!,
         enterpriseId: context.enterpriseId!,
-        sessionId,
         warehouseId,
+        sessionId,
+        cashierUserId: user.id,
         currency: context.currencyId ?? undefined,
         lines: this.cartLines.map((line) => ({
           variantId: line.variantId,
@@ -200,16 +208,16 @@ export class PosTerminalPageComponent implements OnInit {
                 this.clearCart();
                 this.messageService.add({
                   severity: 'success',
-                  summary: 'Venta registrada',
-                  detail: 'La venta se confirmÃ³ correctamente.',
+                  summary: 'Sale completed',
+                  detail: 'The sale was posted successfully.',
                 });
               },
               error: (error: Error | { error?: { message?: string } } | null) =>
-                this.handleError(error, 'No se pudo confirmar la venta'),
+                this.handleError(error, 'Failed to post sale'),
             });
         },
         error: (error: Error | { error?: { message?: string } } | null) =>
-          this.handleError(error, 'No se pudo crear la venta'),
+          this.handleError(error, 'Failed to create sale'),
       });
     });
   }
@@ -222,8 +230,8 @@ export class PosTerminalPageComponent implements OnInit {
     if (!user?.id) {
       this.messageService.add({
         severity: 'warn',
-        summary: 'Usuario no disponible',
-        detail: 'No se pudo abrir sesiÃ³n sin usuario autenticado.',
+        summary: 'User missing',
+        detail: 'User is required to open a session.',
       });
       return;
     }
@@ -244,7 +252,7 @@ export class PosTerminalPageComponent implements OnInit {
         },
         error: (error: Error | { error?: { message?: string } } | null) => {
           this.sessionLoading = false;
-          this.handleError(error, 'No se pudo abrir sesiÃ³n POS');
+          this.handleError(error, 'Failed to open POS session');
         },
       });
   }
@@ -257,8 +265,8 @@ export class PosTerminalPageComponent implements OnInit {
     if (!user?.id) {
       this.messageService.add({
         severity: 'warn',
-        summary: 'Usuario no disponible',
-        detail: 'No se pudo cerrar sesiÃ³n sin usuario autenticado.',
+        summary: 'User missing',
+        detail: 'User is required to close a session.',
       });
       return;
     }
@@ -279,7 +287,7 @@ export class PosTerminalPageComponent implements OnInit {
         },
         error: (error: Error | { error?: { message?: string } } | null) => {
           this.sessionLoading = false;
-          this.handleError(error, 'No se pudo cerrar sesiÃ³n POS');
+          this.handleError(error, 'Failed to close POS session');
         },
       });
   }
@@ -291,7 +299,7 @@ export class PosTerminalPageComponent implements OnInit {
         this.selectedWarehouseId = this.warehouseOptions[0]?.id ?? null;
       },
       error: (error: Error | { error?: { message?: string } } | null) => {
-        this.handleError(error, 'No se pudieron cargar los almacenes');
+        this.handleError(error, 'Failed to load warehouses');
       },
     });
   }
@@ -328,11 +336,7 @@ export class PosTerminalPageComponent implements OnInit {
       const nextQuantity = existing.quantity + 1;
       this.cartLines = this.cartLines.map((line) =>
         line.variantId === product.id
-          ? {
-              ...line,
-              quantity: nextQuantity,
-              subtotal: nextQuantity * line.unitPrice,
-            }
+          ? { ...line, quantity: nextQuantity, subtotal: nextQuantity * line.unitPrice }
           : line,
       );
     } else {
@@ -398,8 +402,8 @@ export class PosTerminalPageComponent implements OnInit {
           if (insufficient) {
             this.messageService.add({
               severity: 'error',
-              summary: 'Stock insuficiente',
-              detail: `No hay stock disponible para ${insufficient.line.productName}.`,
+              summary: 'Insufficient stock',
+              detail: `Not enough stock for ${insufficient.line.productName}.`,
             });
             done(false);
             return;
@@ -407,7 +411,7 @@ export class PosTerminalPageComponent implements OnInit {
           done(true);
         },
         error: (error: Error | { error?: { message?: string } } | null) => {
-          this.handleError(error, 'No se pudo validar stock');
+          this.handleError(error, 'Failed to validate stock');
           done(false);
         },
       });

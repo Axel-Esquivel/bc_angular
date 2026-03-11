@@ -1,17 +1,17 @@
 <section class="cart-panel">
   <header class="panel-header">
     <div>
-      <p class="eyebrow">Carrito</p>
-      <h2>LÃ­neas</h2>
+      <p class="eyebrow">Cart</p>
+      <h2>Lines</h2>
     </div>
   </header>
 
   <p-table [value]="lines" responsiveLayout="scroll">
     <ng-template pTemplate="header">
       <tr>
-        <th>Producto</th>
-        <th style="width: 8rem">Cantidad</th>
-        <th style="width: 6rem">Precio</th>
+        <th>Product</th>
+        <th style="width: 8rem">Qty</th>
+        <th style="width: 6rem">Price</th>
         <th style="width: 7rem">Subtotal</th>
         <th style="width: 4rem"></th>
       </tr>
@@ -20,12 +20,6 @@
       <tr>
         <td>
           <div class="line-title">{{ line.productName }}</div>
-          <div class="line-meta" *ngIf="line.prepaid">
-            <span *ngIf="line.prepaid.phoneNumber">Tel: {{ line.prepaid.phoneNumber }}</span>
-            <span *ngIf="line.prepaid.denomination !== undefined">
-              Denom: {{ line.prepaid.denomination | number: '1.2-2':'en-US' }}
-            </span>
-          </div>
         </td>
         <td>
           <p-inputNumber
@@ -48,7 +42,7 @@
     </ng-template>
     <ng-template pTemplate="emptymessage">
       <tr>
-        <td colspan="5">AÃºn no hay productos en el carrito.</td>
+        <td colspan="5">No items in cart.</td>
       </tr>
     </ng-template>
   </p-table>

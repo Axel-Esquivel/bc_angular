@@ -2,36 +2,26 @@
 
 Fecha: 2026-03-10
 
-**Objetivo**
-Documentar integraciones opcionales en el POS y el comportamiento seguro cuando no estÃ¡n disponibles.
+## Dependencias obligatorias del POS
+- `POS` endpoints (`/api/pos/*`)
+- `inventory` stock (`/api/inventory/stock`)
+- `warehouses` (`/api/warehouses`)
+- contexto activo y auth
 
-## Dependencias obligatorias del POS (Frontend)
-- POS base consume:
-  - `POS` endpoints (`/api/pos/*`)
-  - `inventory` stock (`/api/inventory/stock`)
-  - `warehouses` (`/api/warehouses`)
-  - contexto activo y auth
-
-## Integraciones opcionales y comportamiento
-- **prepaid**
-  - No se consume desde el POS base actual.
-  - Si se agrega en el futuro, debe verificarse disponibilidad del mÃ³dulo antes de mostrar UI.
-
+## Integraciones opcionales evaluadas
 - **price-lists**
-  - No se consume desde el POS base actual.
-  - El POS usa precio base de la variante.
-
+  - No se consume en la UI base.
+  - POS opera con precio base de la variante.
+- **prepaid**
+  - No hay UI ni consumo en POS base.
+  - Los metodos de pago se mantienen en `CASH` hasta habilitar integraciones reales.
 - **customers**
-  - No se requiere para operar el POS base.
-  - Si se agrega selecciÃ³n de cliente, debe ser opcional.
-
+  - No hay selector en POS base.
 - **promotions**
-  - No se consume desde el POS base actual.
-  - Cualquier promociÃ³n futura debe degradar con fallback al precio base.
-
+  - No hay UI ni consumo; descuentos quedan en `0`.
 - **accounting**
-  - No hay integraciÃ³n directa desde frontend.
-  - Se delega a eventos backend (outbox).
+  - No hay integracion directa en frontend.
 
-## Notas
-- El POS base estÃ¡ diseÃ±ado para no fallar si un mÃ³dulo opcional no estÃ¡ instalado.
+## Degradacion segura
+- El POS base funciona sin modulos opcionales.
+- Si se agregan en el futuro, deben habilitarse solo cuando el modulo este instalado.

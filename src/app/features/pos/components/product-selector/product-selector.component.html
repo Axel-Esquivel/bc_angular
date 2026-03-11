@@ -1,15 +1,15 @@
 <section class="product-selector">
   <form class="search-form" [formGroup]="searchForm" (ngSubmit)="onSubmit()">
-    <input pInputText formControlName="term" placeholder="Buscar por nombre, SKU o cÃ³digo" />
-    <p-button type="submit" label="Buscar" icon="pi pi-search"></p-button>
+    <input pInputText formControlName="term" placeholder="Search by name, SKU, or barcode" />
+    <p-button type="submit" label="Search" icon="pi pi-search"></p-button>
   </form>
 
   <p-table [value]="products" [loading]="loading" responsiveLayout="scroll">
     <ng-template pTemplate="header">
       <tr>
-        <th>Producto</th>
+        <th>Product</th>
         <th>SKU</th>
-        <th>Precio</th>
+        <th>Price</th>
         <th></th>
       </tr>
     </ng-template>
@@ -24,7 +24,7 @@
         <td class="actions">
           <p-button
             icon="pi pi-plus"
-            label="Agregar"
+            label="Add"
             size="small"
             [disabled]="!item.isActive"
             (onClick)="onAdd(item)"
@@ -34,7 +34,7 @@
     </ng-template>
     <ng-template pTemplate="emptymessage">
       <tr>
-        <td colspan="4">No hay resultados.</td>
+        <td colspan="4">No results.</td>
       </tr>
     </ng-template>
   </p-table>

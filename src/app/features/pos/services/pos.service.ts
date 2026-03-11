@@ -4,7 +4,7 @@ import { Observable, map } from 'rxjs';
 
 import { APP_CONFIG_TOKEN, AppConfig } from '../../../core/config/app-config';
 import { ApiResponse } from '../../../shared/models/api-response.model';
-import { PosPaymentMethod } from '../../../shared/models/pos.model';
+import { PosPaymentMethod } from '../models/pos.model';
 
 export interface PosSession {
   id: string;
@@ -23,10 +23,6 @@ export interface PosSaleLineInput {
   variantId: string;
   qty: number;
   unitPrice: number;
-  taxRate?: number;
-  phoneNumber?: string;
-  denomination?: number;
-  prepaidProviderId?: string;
 }
 
 export interface PosPaymentInput {
@@ -40,8 +36,9 @@ export interface CreatePosSalePayload {
   OrganizationId: string;
   companyId: string;
   enterpriseId: string;
-  sessionId: string;
   warehouseId: string;
+  sessionId: string;
+  cashierUserId: string;
   customerId?: string;
   currency?: string;
   lines: PosSaleLineInput[];
@@ -52,7 +49,6 @@ export interface PosSaleActionPayload {
   OrganizationId: string;
   companyId: string;
   enterpriseId: string;
-  cashierUserId?: string;
 }
 
 export interface PosSale {
@@ -61,7 +57,7 @@ export interface PosSale {
   companyId: string;
   enterpriseId: string;
   warehouseId: string;
-  sessionId?: string;
+  sessionId: string;
   status: 'DRAFT' | 'COMPLETED' | 'CANCELLED';
   subtotal: number;
   discountTotal: number;
@@ -124,12 +120,6 @@ export class PosHttpService {
   postSale(saleId: string, payload: PosSaleActionPayload): Observable<PosSale> {
     return this.http
       .post<ApiResponse<PosSale>>(`${this.baseUrl}/sales/${saleId}/post`, payload)
-      .pipe(map((response) => response.result));
-  }
-
-  voidSale(saleId: string, payload: PosSaleActionPayload): Observable<PosSale> {
-    return this.http
-      .post<ApiResponse<PosSale>>(`${this.baseUrl}/sales/${saleId}/void`, payload)
       .pipe(map((response) => response.result));
   }
 }

@@ -35,7 +35,7 @@ const MODULE_META: Record<string, { icon: string; route: string; name?: string; 
     icon: 'pi pi-shopping-cart',
     route: '/app/pos',
     name: 'POS',
-    description: 'Ventas en punto de venta.',
+    description: 'Point of sale.',
   },
   prepaid: {
     icon: 'pi pi-mobile',

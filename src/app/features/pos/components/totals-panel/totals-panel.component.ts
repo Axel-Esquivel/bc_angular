@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { PosPayment, PosPaymentMethod } from '../../../../shared/models/pos.model';
+import { PosPayment, PosPaymentMethod } from '../../models/pos.model';
 
 interface PaymentOption {
   label: string;
@@ -22,10 +22,7 @@ export class TotalsPanelComponent {
   @Output() checkout = new EventEmitter<PosPayment>();
 
   readonly paymentMethods: PaymentOption[] = [
-    { label: 'Efectivo', value: 'CASH' },
-    { label: 'Tarjeta', value: 'CARD' },
-    { label: 'Vale', value: 'VOUCHER' },
-    { label: 'Transferencia', value: 'TRANSFER' },
+    { label: 'Cash', value: 'CASH' },
   ];
 
   readonly paymentForm: FormGroup;

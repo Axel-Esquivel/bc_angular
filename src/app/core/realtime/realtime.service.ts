@@ -17,33 +17,6 @@ export interface InventoryStockChangedEvent {
   occurredAt: string;
 }
 
-export interface PosSalePostedEvent {
-  saleId: string;
-  status: string;
-  totals: {
-    subtotal: number;
-    tax: number;
-    discount: number;
-    grandTotal: number;
-  };
-  payment: {
-    method: string;
-    amount: number;
-  } | null;
-  lines: Array<{
-    productId: string;
-    qty: number;
-    unitPrice: number;
-    total: number;
-  }>;
-  currency: string;
-  occurredAt: string;
-  companyId: string;
-  enterpriseId: string;
-  warehouseId: string;
-  terminalId?: string;
-}
-
 interface ContextRoom {
   organizationId: string;
   enterpriseId: string;
@@ -52,11 +25,9 @@ interface ContextRoom {
 @Injectable({ providedIn: 'root' })
 export class RealtimeService {
   private readonly inventoryStockChangedSubject = new Subject<InventoryStockChangedEvent>();
-  private readonly posSalePostedSubject = new Subject<PosSalePostedEvent>();
   private readonly contextRoomSubject = new BehaviorSubject<ContextRoom | null>(null);
 
   readonly inventoryStockChanged$ = this.inventoryStockChangedSubject.asObservable();
-  readonly posSalePosted$ = this.posSalePostedSubject.asObservable();
 
   constructor(
     private readonly realtimeSocket: RealtimeSocketService,
@@ -64,10 +35,6 @@ export class RealtimeService {
   ) {
     this.realtimeSocket.on<InventoryStockChangedEvent>('inventory.stock.changed', (payload) => {
       this.inventoryStockChangedSubject.next(payload);
-    });
-
-    this.realtimeSocket.on<PosSalePostedEvent>('pos.sale.posted', (payload) => {
-      this.posSalePostedSubject.next(payload);
     });
 
     combineLatest([this.activeContextState.activeContext$, this.realtimeSocket.isConnected$])

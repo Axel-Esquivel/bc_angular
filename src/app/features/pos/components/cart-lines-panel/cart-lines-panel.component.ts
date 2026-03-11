@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { PosCartLine } from '../../../../shared/models/pos.model';
+import { PosCartLine } from '../../models/pos.model';
 
 @Component({
   standalone: false,

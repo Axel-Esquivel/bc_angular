@@ -1,10 +1,10 @@
 <section class="totals-panel">
   <header class="panel-header">
     <div>
-      <p class="eyebrow">Resumen</p>
-      <h2>Totales</h2>
+      <p class="eyebrow">Summary</p>
+      <h2>Totals</h2>
     </div>
-    <p class="items-count">{{ itemsCount }} Ã­tems</p>
+    <p class="items-count">{{ itemsCount }} items</p>
   </header>
 
   <div class="totals-row">
@@ -12,7 +12,7 @@
     <strong>{{ subtotal | currency: 'USD' }}</strong>
   </div>
   <div class="totals-row">
-    <span>Descuentos</span>
+    <span>Discounts</span>
     <strong>- {{ discountTotal | currency: 'USD' }}</strong>
   </div>
   <div class="totals-row total">
@@ -21,7 +21,7 @@
   </div>
 
   <form [formGroup]="paymentForm" class="payment-form">
-    <label for="paymentMethod">MÃ©todo de pago</label>
+    <label for="paymentMethod">Payment method</label>
     <p-select
       inputId="paymentMethod"
       [options]="paymentMethods"
@@ -30,16 +30,16 @@
       formControlName="method"
     ></p-select>
 
-    <label for="paymentAmount">Monto recibido</label>
+    <label for="paymentAmount">Amount received</label>
     <p-inputNumber inputId="paymentAmount" formControlName="amount" [min]="0" locale="en-US"></p-inputNumber>
 
     <div class="totals-row change">
-      <span>Cambio</span>
+      <span>Change</span>
       <strong>{{ changeDue | currency: 'USD' }}</strong>
     </div>
   </form>
 
-  <p *ngIf="insufficientAmount" class="error-text">Monto insuficiente para completar la venta.</p>
+  <p *ngIf="insufficientAmount" class="error-text">Amount is insufficient to complete the sale.</p>
 
-  <p-button label="Confirmar venta" icon="pi pi-check" (onClick)="onCheckout()"></p-button>
+  <p-button label="Confirm sale" icon="pi pi-check" (onClick)="onCheckout()"></p-button>
 </section>

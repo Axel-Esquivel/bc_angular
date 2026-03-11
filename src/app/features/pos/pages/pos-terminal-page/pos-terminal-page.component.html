@@ -1,9 +1,9 @@
 <section class="pos-page">
   <header class="pos-header">
     <div>
-      <p class="eyebrow">Punto de venta</p>
+      <p class="eyebrow">Point of Sale</p>
       <h1>POS</h1>
-      <p class="muted">Estado: {{ sessionId ? 'SesiÃ³n abierta' : 'SesiÃ³n cerrada' }}</p>
+      <p class="muted">Status: {{ sessionId ? 'Session open' : 'Session closed' }}</p>
     </div>
     <div class="pos-controls">
       <p-select
@@ -11,7 +11,7 @@
         [options]="warehouseOptions"
         optionLabel="name"
         optionValue="id"
-        placeholder="Selecciona almacÃ©n"
+        placeholder="Select warehouse"
         [(ngModel)]="selectedWarehouseId"
         [disabled]="warehouseOptions.length === 0"
       ></p-select>
@@ -22,25 +22,25 @@
         (ngModelChange)="openingForm.controls.openingAmount.setValue($event ?? 0)"
         [min]="0"
         locale="en-US"
-        placeholder="Monto apertura"
+        placeholder="Opening amount"
       ></p-inputNumber>
 
       <p-button
-        label="Abrir sesiÃ³n"
+        label="Open session"
         icon="pi pi-play"
         severity="success"
         [disabled]="!!sessionId || !selectedWarehouseId || sessionLoading"
         (onClick)="openSession()"
       ></p-button>
       <p-button
-        label="Cerrar sesiÃ³n"
+        label="Close session"
         icon="pi pi-stop"
         severity="secondary"
         [disabled]="!sessionId || sessionLoading"
         (onClick)="closeSession()"
       ></p-button>
     </div>
-    <p class="pos-note">La venta se registra con el precio base de la variante.</p>
+    <p class="pos-note">Prices use the base variant price.</p>
   </header>
 
   <section class="pos-layout">
