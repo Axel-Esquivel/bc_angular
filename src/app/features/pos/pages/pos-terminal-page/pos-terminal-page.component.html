@@ -9,16 +9,22 @@
   </header>
 
   <bc-pos-session-controls
+    [posConfigs]="posConfigs"
+    [selectedPosConfigId]="selectedPosConfigId"
     [warehouses]="warehouses"
     [selectedWarehouseId]="selectedWarehouseId"
     [sessionId]="sessionId"
     [openedAt]="sessionOpenedAt"
-    [loading]="sessionLoading"
+    [loading]="sessionLoading || posConfigsLoading"
     [openingAmount]="openingAmount"
-    (warehouseChange)="onWarehouseChange($event)"
+    [denominations]="openingDenominations"
+    [canOpenSession]="canOpenSession()"
+    [canCloseSession]="canCloseSession()"
+    (posConfigChange)="onPosConfigChange($event)"
     (openingAmountChange)="onOpeningAmountChange($event)"
+    (denominationsChange)="onDenominationsChange($event)"
     (openSession)="openSession()"
-    (closeSession)="closeSession()"
+    (closeSession)="requestCloseSession()"
   ></bc-pos-session-controls>
 
   <section class="pos-layout">
@@ -43,8 +49,185 @@
         [discountTotal]="discountTotal"
         [total]="total"
         [itemsCount]="cartLines.length"
+        [allowedMethods]="selectedPosConfig?.allowedPaymentMethods ?? null"
+        [canCheckout]="canCreateSale()"
         (checkout)="onCheckout($event)"
       ></bc-pos-totals>
+
+      <p-card class="pos-panel" *ngIf="sessionId && canSessionHistory()">
+        <ng-template pTemplate="header">
+          <div class="pos-panel__header">
+            <div>
+              <p class="eyebrow">Caja</p>
+              <h2>Movimientos</h2>
+            </div>
+            <p-button
+              type="button"
+              icon="pi pi-plus"
+              label="Nuevo movimiento"
+              (onClick)="openCashMovementDialog()"
+              [disabled]="!canCashMove()"
+            ></p-button>
+          </div>
+        </ng-template>
+
+        <p-table [value]="cashMovements" [paginator]="cashMovements.length > 6" [rows]="6">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Tipo</th>
+              <th>Monto</th>
+              <th>Motivo</th>
+              <th>Fecha</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-row>
+            <tr>
+              <td>{{ getMovementTypeLabel(row.type) }}</td>
+              <td>{{ row.amount | currency: row.currencyId }}</td>
+              <td>{{ row.reason }}</td>
+              <td>{{ row.createdAt | date: 'short' }}</td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td colspan="4">No hay movimientos registrados.</td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </p-card>
     </div>
   </section>
 </section>
+
+<p-dialog
+  header="Movimiento de caja"
+  [(visible)]="cashMovementDialogVisible"
+  [modal]="true"
+  [style]="{ width: '560px' }"
+>
+  <form class="pos-movement-form">
+    <div class="field">
+      <label for="movementType">Tipo</label>
+      <p-select
+        inputId="movementType"
+        [options]="cashMovementTypeOptions"
+        optionLabel="label"
+        optionValue="value"
+        [(ngModel)]="cashMovementType"
+        name="movementType"
+      ></p-select>
+    </div>
+
+    <div class="field">
+      <label for="movementAmount">Monto</label>
+      <p-inputNumber
+        inputId="movementAmount"
+        [(ngModel)]="cashMovementAmount"
+        name="movementAmount"
+        locale="es-GT"
+      ></p-inputNumber>
+    </div>
+
+    <div class="field">
+      <label for="movementReason">Motivo</label>
+      <input pInputText id="movementReason" [(ngModel)]="cashMovementReason" name="movementReason" />
+    </div>
+
+    <div class="field">
+      <label for="movementNotes">Observaciones</label>
+      <textarea pTextarea id="movementNotes" [(ngModel)]="cashMovementNotes" name="movementNotes" rows="3"></textarea>
+    </div>
+  </form>
+
+  <ng-template pTemplate="footer">
+    <p-button type="button" label="Cancelar" severity="secondary" (onClick)="cashMovementDialogVisible = false"></p-button>
+    <p-button type="button" label="Guardar" (onClick)="saveCashMovement()" [disabled]="cashMovementLoading"></p-button>
+  </ng-template>
+</p-dialog>
+
+<p-dialog
+  header="Cierre de caja"
+  [(visible)]="closeDialogVisible"
+  [modal]="true"
+  [style]="{ width: '720px' }"
+>
+  <div class="pos-close-dialog">
+    <p *ngIf="!closeSummary" class="error-text">No se pudo cargar el resumen de cierre.</p>
+
+    <div *ngIf="closeSummary" class="pos-close-summary">
+      <div class="summary-row">
+        <span>Ventas de la sesión</span>
+        <strong>{{ closeSummary.totalSales | currency: closeSummary.currency }}</strong>
+      </div>
+      <div class="summary-row">
+        <span>Pagos en efectivo</span>
+        <strong>{{ closeSummary.cashPayments | currency: closeSummary.currency }}</strong>
+      </div>
+      <div class="summary-row">
+        <span>Movimientos de caja</span>
+        <strong>{{ closeSummary.cashMovements | currency: closeSummary.currency }}</strong>
+      </div>
+      <div class="summary-row total">
+        <span>Efectivo esperado</span>
+        <strong>{{ closeSummary.expectedClosingAmount | currency: closeSummary.currency }}</strong>
+      </div>
+    </div>
+
+    <div class="pos-close-denominations">
+      <h3>Denominaciones de cierre</h3>
+      <p-table [value]="closingDenominations" [paginator]="false">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Tipo</th>
+            <th>Denominación</th>
+            <th>Cantidad</th>
+            <th>Subtotal</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-row>
+          <tr>
+            <td>{{ row.denominationType === 'bill' ? 'Billete' : 'Moneda' }}</td>
+            <td>{{ row.denominationValue | number: '1.2-2' }}</td>
+            <td>
+              <p-inputNumber
+                [ngModel]="row.quantity"
+                (ngModelChange)="onClosingDenominationChange(row, $event)"
+                [min]="0"
+                [disabled]="closingLoading"
+              ></p-inputNumber>
+            </td>
+            <td>{{ row.subtotal | currency: closeSummary?.currency || 'USD' }}</td>
+          </tr>
+        </ng-template>
+      </p-table>
+
+      <div class="summary-row total">
+        <span>Total contado</span>
+        <strong>{{ closingTotal | currency: closeSummary?.currency || 'USD' }}</strong>
+      </div>
+      <div class="summary-row difference" [class.positive]="closingDifference > 0" [class.negative]="closingDifference < 0">
+        <span>Diferencia</span>
+        <strong>{{ closingDifference | currency: closeSummary?.currency || 'USD' }}</strong>
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="closeNotes">Observaciones</label>
+      <textarea
+        pTextarea
+        id="closeNotes"
+        [(ngModel)]="closingNotes"
+        rows="3"
+        placeholder="Describe la diferencia si aplica"
+      ></textarea>
+      <small class="pos-field-helper" *ngIf="closingDifference !== 0">
+        La observación es obligatoria cuando existe diferencia de caja.
+      </small>
+    </div>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <p-button type="button" label="Cancelar" severity="secondary" (onClick)="closeDialogVisible = false"></p-button>
+    <p-button type="button" label="Confirmar cierre" (onClick)="confirmCloseSession()" [disabled]="closingLoading"></p-button>
+  </ng-template>
+</p-dialog>

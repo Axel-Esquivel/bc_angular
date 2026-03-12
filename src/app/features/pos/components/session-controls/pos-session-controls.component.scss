@@ -33,3 +33,26 @@
   margin-top: 0.25rem;
   color: var(--text-color-secondary);
 }
+
+.pos-field-helper {
+  color: var(--text-color-secondary);
+  font-size: 0.85rem;
+}
+
+.pos-denominations {
+  margin-top: 1rem;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.pos-denominations h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.pos-denominations-total {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 600;
+  color: var(--text-color);
+}

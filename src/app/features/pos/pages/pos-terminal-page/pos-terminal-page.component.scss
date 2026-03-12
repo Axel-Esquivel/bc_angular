@@ -36,3 +36,54 @@
   flex-direction: column;
   gap: 1.5rem;
 }
+
+.pos-close-dialog {
+  display: grid;
+  gap: 1rem;
+}
+
+.pos-close-summary {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  color: var(--text-color);
+}
+
+.summary-row.total {
+  font-weight: 600;
+}
+
+.summary-row.difference {
+  font-weight: 600;
+}
+
+.summary-row.difference.positive strong {
+  color: var(--green-500);
+}
+
+.summary-row.difference.negative strong {
+  color: var(--red-500);
+}
+
+.pos-close-denominations {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.pos-close-denominations h3 {
+  margin: 0;
+}
+
+.error-text {
+  color: var(--red-500);
+}
+
+.pos-movement-form {
+  display: grid;
+  gap: 0.75rem;
+}

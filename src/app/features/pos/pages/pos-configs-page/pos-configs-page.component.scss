@@ -1,0 +1,51 @@
+﻿.pos-configs-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.pos-configs-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.pos-configs-subtitle {
+  margin: 0.25rem 0 0;
+  color: var(--text-color-secondary);
+}
+
+.pos-config-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+}
+
+.field {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.pos-config-checks {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.75rem 1rem;
+  align-items: center;
+}
+
+.pos-config-checks label {
+  margin-left: 0.5rem;
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.error-text {
+  color: var(--red-500);
+  margin-bottom: 1rem;
+}

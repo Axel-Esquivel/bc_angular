@@ -1,0 +1,158 @@
+﻿<p-toast></p-toast>
+<section class="pos-configs-page">
+  <header class="pos-configs-header">
+    <div>
+      <p class="eyebrow">POS</p>
+      <h1>Configuración de puntos de venta</h1>
+      <p class="pos-configs-subtitle" *ngIf="enterpriseName">Empresa: {{ enterpriseName }}</p>
+    </div>
+    <p-button type="button" icon="pi pi-plus" label="Nuevo POS" (onClick)="openCreate()"></p-button>
+  </header>
+
+  <p-card class="pos-panel">
+    <p *ngIf="contextMissing" class="error-text">
+      Selecciona organización, compañía y empresa antes de configurar puntos de venta.
+    </p>
+    <p *ngIf="errorMessage" class="error-text">{{ errorMessage }}</p>
+
+    <p-table [value]="rows" [loading]="loading" [paginator]="rows.length > 10" [rows]="10">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Nombre</th>
+          <th>Código</th>
+          <th>Almacén</th>
+          <th>Moneda</th>
+          <th>Usuarios</th>
+          <th>Activo</th>
+          <th>Apertura</th>
+          <th></th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-row>
+        <tr>
+          <td>{{ row.name }}</td>
+          <td>{{ row.code }}</td>
+          <td>{{ row.warehouseLabel }}</td>
+          <td>{{ row.currencyLabel }}</td>
+          <td>{{ row.usersLabel }}</td>
+          <td>{{ row.active ? 'Sí' : 'No' }}</td>
+          <td>{{ row.requiresOpening ? 'Requiere' : 'Opcional' }}</td>
+          <td class="actions">
+            <p-button type="button" icon="pi pi-pencil" label="Editar" (onClick)="openEdit(row)"></p-button>
+            <p-button
+              type="button"
+              icon="pi pi-trash"
+              label="Eliminar"
+              severity="secondary"
+              (onClick)="confirmDelete(row)"
+            ></p-button>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="8">No hay POS configurados.</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </p-card>
+
+  <p-dialog
+    header="Configuración de POS"
+    [(visible)]="dialogVisible"
+    [modal]="true"
+    [style]="{ width: '680px' }"
+  >
+    <form [formGroup]="form" class="pos-config-form">
+      <div class="field">
+        <label for="posName">Nombre</label>
+        <input pInputText id="posName" formControlName="name" placeholder="Caja principal" />
+      </div>
+
+      <div class="field">
+        <label for="posCode">Código</label>
+        <input pInputText id="posCode" formControlName="code" placeholder="POS-01" />
+      </div>
+
+      <div class="field">
+        <label for="warehouse">Almacén</label>
+        <p-select
+          inputId="warehouse"
+          [options]="warehouseOptions"
+          optionLabel="label"
+          optionValue="value"
+          formControlName="warehouseId"
+        ></p-select>
+      </div>
+
+      <div class="field">
+        <label for="currency">Moneda</label>
+        <p-select
+          inputId="currency"
+          [options]="currencyOptions"
+          optionLabel="label"
+          optionValue="value"
+          formControlName="currencyId"
+        ></p-select>
+      </div>
+
+      <div class="field">
+        <label for="paymentMethods">Métodos de pago</label>
+        <p-multiSelect
+          inputId="paymentMethods"
+          [options]="paymentMethodOptions"
+          optionLabel="label"
+          optionValue="value"
+          formControlName="allowedPaymentMethods"
+          placeholder="Selecciona métodos"
+        ></p-multiSelect>
+      </div>
+
+      <div class="field">
+        <label for="allowedUsers">Usuarios permitidos</label>
+        <p-multiSelect
+          inputId="allowedUsers"
+          [options]="userOptions"
+          optionLabel="label"
+          optionValue="value"
+          formControlName="allowedUserIds"
+          placeholder="Selecciona usuarios"
+        ></p-multiSelect>
+      </div>
+
+      <div class="pos-config-checks">
+        <p-checkbox formControlName="active" binary="true" inputId="active"></p-checkbox>
+        <label for="active">Activo</label>
+
+        <p-checkbox formControlName="requiresOpening" binary="true" inputId="requiresOpening"></p-checkbox>
+        <label for="requiresOpening">Requiere apertura de caja</label>
+
+        <p-checkbox formControlName="allowOtherUsersClose" binary="true" inputId="allowOtherUsersClose"></p-checkbox>
+        <label for="allowOtherUsersClose">Permitir cierre por otro usuario</label>
+      </div>
+
+      <div class="field">
+        <label for="notes">Observaciones</label>
+        <textarea pTextarea id="notes" formControlName="notes" rows="3"></textarea>
+      </div>
+    </form>
+
+    <ng-template pTemplate="footer">
+      <p-button type="button" label="Cancelar" severity="secondary" (onClick)="closeDialog()"></p-button>
+      <p-button type="button" label="Guardar" (onClick)="save()" [disabled]="saving"></p-button>
+    </ng-template>
+  </p-dialog>
+
+  <p-dialog
+    header="Eliminar POS"
+    [(visible)]="deleteDialogVisible"
+    [modal]="true"
+    [style]="{ width: '480px' }"
+  >
+    <p>¿Seguro que deseas eliminar este POS? Esta acción no se puede deshacer.</p>
+    <ng-template pTemplate="footer">
+      <p-button type="button" label="Cancelar" severity="secondary" (onClick)="cancelDelete()"></p-button>
+      <p-button type="button" label="Eliminar" severity="danger" (onClick)="deleteConfig()" [disabled]="saving"></p-button>
+    </ng-template>
+  </p-dialog>
+</section>

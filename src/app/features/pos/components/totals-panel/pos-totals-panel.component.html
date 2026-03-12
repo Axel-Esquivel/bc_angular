@@ -26,7 +26,7 @@
     <label for="paymentMethod">Método de pago</label>
     <p-select
       inputId="paymentMethod"
-      [options]="paymentMethods"
+      [options]="paymentOptions"
       optionLabel="label"
       optionValue="value"
       formControlName="method"
@@ -43,5 +43,11 @@
 
   <p *ngIf="insufficientAmount" class="error-text">El monto es insuficiente para completar la venta.</p>
 
-  <p-button type="button" label="Confirmar venta" icon="pi pi-check" (onClick)="onCheckout()"></p-button>
+  <p-button
+    type="button"
+    label="Confirmar venta"
+    icon="pi pi-check"
+    (onClick)="onCheckout()"
+    [disabled]="!canCheckout"
+  ></p-button>
 </p-card>

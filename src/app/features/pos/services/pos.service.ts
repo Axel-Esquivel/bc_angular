@@ -4,15 +4,26 @@ import { Observable, map } from 'rxjs';
 
 import { APP_CONFIG_TOKEN, AppConfig } from '../../../core/config/app-config';
 import { ApiResponse } from '../../../shared/models/api-response.model';
-import { PosPayment, PosSession } from '../models/pos.model';
+import {
+  PosCashMovement,
+  PosCashMovementType,
+  PosPaymentMethod,
+  PosPayment,
+  PosSession,
+  PosSessionDenomination,
+  PosSessionSummary,
+} from '../models/pos.model';
 
 export interface OpenPosSessionPayload {
+  posConfigId: string;
   OrganizationId: string;
   companyId: string;
   enterpriseId: string;
   warehouseId: string;
   cashierUserId: string;
   openingAmount?: number;
+  openingDenominations?: PosSessionDenomination[];
+  notes?: string;
 }
 
 export interface ClosePosSessionPayload {
@@ -21,7 +32,11 @@ export interface ClosePosSessionPayload {
   enterpriseId: string;
   sessionId: string;
   cashierUserId: string;
+  posConfigId?: string;
   closingAmount?: number;
+  countedClosingAmount?: number;
+  closingDenominations?: PosSessionDenomination[];
+  notes?: string;
 }
 
 export interface ActivePosSessionQuery {
@@ -29,6 +44,7 @@ export interface ActivePosSessionQuery {
   companyId: string;
   enterpriseId: string;
   cashierUserId: string;
+  posConfigId?: string;
 }
 
 export interface PosSaleLinePayload {
@@ -54,6 +70,20 @@ export interface PosSaleActionPayload {
   OrganizationId: string;
   companyId: string;
   enterpriseId: string;
+}
+
+export interface CreatePosCashMovementPayload {
+  sessionId: string;
+  OrganizationId: string;
+  companyId: string;
+  enterpriseId: string;
+  type: PosCashMovementType;
+  amount: number;
+  currencyId: string;
+  paymentMethod: PosPaymentMethod;
+  reason: string;
+  notes?: string;
+  createdByUserId: string;
 }
 
 export interface PosSale {
@@ -92,6 +122,16 @@ export class PosHttpService {
       .pipe(map((response) => response.result ?? null));
   }
 
+  getSessionSummary(sessionId: string, query: { OrganizationId: string; companyId: string; enterpriseId: string }): Observable<PosSessionSummary | null> {
+    let params = new HttpParams();
+    Object.entries(query).forEach(([key, value]) => {
+      params = params.set(key, value);
+    });
+    return this.http
+      .get<ApiResponse<PosSessionSummary | null>>(`${this.baseUrl}/sessions/${sessionId}/summary`, { params })
+      .pipe(map((response) => response.result ?? null));
+  }
+
   createSale(payload: PosSalePayload): Observable<PosSale> {
     return this.http
       .post<ApiResponse<PosSale>>(`${this.baseUrl}/sales`, payload)
@@ -113,6 +153,25 @@ export class PosHttpService {
     });
     return this.http
       .get<ApiResponse<PosSale[]>>(`${this.baseUrl}/sales/recent`, { params })
+      .pipe(map((response) => response.result ?? []));
+  }
+
+  createCashMovement(sessionId: string, payload: CreatePosCashMovementPayload): Observable<PosCashMovement> {
+    return this.http
+      .post<ApiResponse<PosCashMovement>>(`${this.baseUrl}/sessions/${sessionId}/movements`, payload)
+      .pipe(map((response) => response.result as PosCashMovement));
+  }
+
+  listCashMovements(
+    sessionId: string,
+    query: { OrganizationId: string; companyId: string; enterpriseId: string },
+  ): Observable<PosCashMovement[]> {
+    let params = new HttpParams();
+    Object.entries(query).forEach(([key, value]) => {
+      params = params.set(key, value);
+    });
+    return this.http
+      .get<ApiResponse<PosCashMovement[]>>(`${this.baseUrl}/sessions/${sessionId}/movements`, { params })
       .pipe(map((response) => response.result ?? []));
   }
 }
