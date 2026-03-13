@@ -99,14 +99,14 @@ export class OrganizationsService {
   }
 
   acceptMember(organizationId: string, userId: string): Observable<ApiResponse<IOrganization>> {
-    return this.http.post<ApiResponse<IOrganization>>(
+    return this.http.patch<ApiResponse<IOrganization>>(
       `${this.baseUrl}/${organizationId}/members/${encodeURIComponent(userId)}/accept`,
       {},
     );
   }
 
   rejectMember(organizationId: string, userId: string): Observable<ApiResponse<IOrganization>> {
-    return this.http.post<ApiResponse<IOrganization>>(
+    return this.http.patch<ApiResponse<IOrganization>>(
       `${this.baseUrl}/${organizationId}/members/${encodeURIComponent(userId)}/reject`,
       {},
     );
