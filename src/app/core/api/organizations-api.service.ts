@@ -10,6 +10,7 @@ import {
   IOrganizationMembership,
   IOrganizationOverview,
   IOrganizationRole,
+  OrganizationMemberSummary,
   OrganizationDefaultResult,
   OrganizationDeleteResult,
   UpdateOrganizationRequest,
@@ -246,6 +247,31 @@ export class OrganizationsService {
   listPermissions(id: string): Observable<ApiResponse<Array<{ moduleKey: string; permissions: string[] }>>> {
     return this.http.get<ApiResponse<Array<{ moduleKey: string; permissions: string[] }>>>(
       `${this.baseUrl}/${id}/permissions`,
+    );
+  }
+
+  listMembers(id: string): Observable<ApiResponse<OrganizationMemberSummary[]>> {
+    return this.http.get<ApiResponse<OrganizationMemberSummary[]>>(`${this.baseUrl}/${id}/members`);
+  }
+
+  listPendingMembers(id: string): Observable<ApiResponse<OrganizationMemberSummary[]>> {
+    return this.http.get<ApiResponse<OrganizationMemberSummary[]>>(`${this.baseUrl}/${id}/members/pending`);
+  }
+
+  getMember(id: string, userId: string): Observable<ApiResponse<OrganizationMemberSummary>> {
+    return this.http.get<ApiResponse<OrganizationMemberSummary>>(
+      `${this.baseUrl}/${id}/members/${encodeURIComponent(userId)}`,
+    );
+  }
+
+  updateMemberAccess(
+    id: string,
+    userId: string,
+    payload: { status: 'active' | 'disabled' },
+  ): Observable<ApiResponse<IOrganization>> {
+    return this.http.patch<ApiResponse<IOrganization>>(
+      `${this.baseUrl}/${id}/members/${encodeURIComponent(userId)}/access`,
+      payload,
     );
   }
 

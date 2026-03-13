@@ -11,16 +11,18 @@ import { FloatLabelModule } from 'primeng/floatlabel';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
+import { TagModule } from 'primeng/tag';
 import { TableModule } from 'primeng/table';
 import { ToastModule } from 'primeng/toast';
 import { ToolbarModule } from 'primeng/toolbar';
 
 import { ModulesSettingsPageComponent } from './pages/modules-settings-page/modules-settings-page.component';
+import { OrganizationMembersPageComponent } from './pages/organization-members-page/organization-members-page.component';
 import { PackagingNamesPageComponent } from './pages/packaging-names-page/packaging-names-page.component';
 import { settingsRoutes } from './settings.routes';
 
 @NgModule({
-  declarations: [ModulesSettingsPageComponent, PackagingNamesPageComponent],
+  declarations: [ModulesSettingsPageComponent, PackagingNamesPageComponent, OrganizationMembersPageComponent],
   imports: [
     CommonModule,
     FormsModule,
@@ -35,6 +37,7 @@ import { settingsRoutes } from './settings.routes';
     InputNumberModule,
     InputTextModule,
     SelectModule,
+    TagModule,
     TableModule,
     ToastModule,
     ToolbarModule,

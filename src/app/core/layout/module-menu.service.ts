@@ -41,7 +41,14 @@ export class ModuleMenuService {
     if (!organizationId) {
       return overview$.pipe(
         map((overview) =>
-          this.buildMenu([], overview?.currentOrgRoleKey === 'owner', overview?.currentOrgId ?? null, companyId)
+          this.buildMenu(
+            [],
+            overview?.currentOrgRoleKey === 'owner',
+            overview?.currentOrgId ?? null,
+            companyId,
+            false,
+            overview?.permissions ?? [],
+          )
         ),
         catchError(() => of(this.buildMenu([], false, null, companyId))),
         shareReplay(1)
@@ -66,6 +73,7 @@ export class ModuleMenuService {
           overview?.currentOrgId ?? null,
           companyId,
           hasPriceLists,
+          overview?.permissions ?? [],
         );
       }),
       catchError(() => of(this.buildMenu([], false, null, companyId))),
@@ -86,8 +94,16 @@ export class ModuleMenuService {
     organizationId: string | null,
     companyId?: string,
     showPriceLists = false,
+    permissions: string[] = [],
   ): MenuItem[] {
     const configItems: MenuItem[] = [];
+    const canManageMembers = this.hasPermission(permissions, 'users.read') || this.hasPermission(permissions, 'users.write');
+    if (canManageMembers) {
+      configItems.push({
+        label: 'Miembros de organización',
+        routerLink: '/app/settings/members',
+      });
+    }
     if (isOwner) {
       if (companyId) {
         configItems.push({
@@ -122,5 +138,18 @@ export class ModuleMenuService {
     }
 
     return name.charAt(0).toUpperCase() + name.slice(1);
+  }
+
+  private hasPermission(permissions: string[], required: string): boolean {
+    if (permissions.includes('*') || permissions.includes(required)) {
+      return true;
+    }
+    return permissions.some((permission) => {
+      if (!permission.endsWith('.*')) {
+        return false;
+      }
+      const prefix = permission.slice(0, -1);
+      return required.startsWith(prefix);
+    });
   }
 }

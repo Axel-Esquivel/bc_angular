@@ -1,0 +1,201 @@
+<p-toast></p-toast>
+
+<section class="members-page">
+  <header class="page-header">
+    <div>
+      <h2>Miembros de la organización</h2>
+      <p>Administra accesos, roles y solicitudes pendientes.</p>
+    </div>
+    <div class="header-actions">
+      <p-button
+        label="Actualizar"
+        icon="pi pi-refresh"
+        severity="secondary"
+        [text]="true"
+        (onClick)="refresh()"
+      ></p-button>
+    </div>
+  </header>
+
+  <p-card *ngIf="contextMissing" class="empty-state">
+    <h3>Selecciona un contexto</h3>
+    <p>Debes elegir una organización antes de administrar miembros.</p>
+  </p-card>
+
+  <p-card *ngIf="!contextMissing && !canReadMembers" class="empty-state">
+    <h3>Acceso restringido</h3>
+    <p>No tienes permisos para ver los miembros de esta organización.</p>
+  </p-card>
+
+  <div *ngIf="!contextMissing && canReadMembers" class="members-sections">
+    <p-card>
+      <h3>Miembros activos y deshabilitados</h3>
+      <p-table
+        [value]="members"
+        [paginator]="false"
+        [loading]="loading"
+        responsiveLayout="scroll"
+        dataKey="userId"
+      >
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Nombre</th>
+            <th>Correo</th>
+            <th>Rol</th>
+            <th>Estado</th>
+            <th>Ingreso</th>
+            <th style="width: 220px">Acciones</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-item>
+          <tr>
+            <td>{{ item.name || 'Sin nombre' }}</td>
+            <td>{{ item.email || 'Sin correo' }}</td>
+            <td>{{ item.roleName || item.roleKey }}</td>
+            <td>
+              <p-tag [severity]="statusSeverity(item.status)" [value]="statusLabel(item.status)"></p-tag>
+            </td>
+            <td>{{ (item.activatedAt || item.createdAt) | date: 'mediumDate' }}</td>
+            <td>
+              <div class="table-actions">
+                <p-button
+                  label="Rol"
+                  icon="pi pi-user-edit"
+                  size="small"
+                  [disabled]="!canWriteMembers"
+                  (onClick)="openRoleDialog(item)"
+                ></p-button>
+                <p-button
+                  [label]="item.status === 'disabled' ? 'Activar' : 'Desactivar'"
+                  icon="pi pi-lock"
+                  size="small"
+                  severity="secondary"
+                  [disabled]="!canWriteMembers || item.roleKey === 'owner'"
+                  (onClick)="toggleAccess(item)"
+                ></p-button>
+                <p-button
+                  label="Eliminar"
+                  icon="pi pi-trash"
+                  size="small"
+                  severity="danger"
+                  [disabled]="!canWriteMembers || item.roleKey === 'owner'"
+                  (onClick)="removeMember(item)"
+                ></p-button>
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="6">No hay miembros registrados.</td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </p-card>
+
+    <p-card>
+      <h3>Solicitudes pendientes</h3>
+      <p-table
+        [value]="pendingMembers"
+        [paginator]="false"
+        [loading]="loading"
+        responsiveLayout="scroll"
+        dataKey="userId"
+      >
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Nombre</th>
+            <th>Correo</th>
+            <th>Rol solicitado</th>
+            <th>Estado</th>
+            <th>Solicitud</th>
+            <th style="width: 180px">Acciones</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-item>
+          <tr>
+            <td>{{ item.name || 'Sin nombre' }}</td>
+            <td>{{ item.email || 'Sin correo' }}</td>
+            <td>{{ item.roleName || item.roleKey }}</td>
+            <td>
+              <p-tag [severity]="statusSeverity(item.status)" [value]="statusLabel(item.status)"></p-tag>
+            </td>
+            <td>{{ (item.requestedAt || item.createdAt) | date: 'mediumDate' }}</td>
+            <td>
+              <div class="table-actions">
+                <p-button
+                  label="Aprobar"
+                  icon="pi pi-check"
+                  size="small"
+                  [disabled]="!canWriteMembers"
+                  (onClick)="approveMember(item)"
+                ></p-button>
+                <p-button
+                  label="Rechazar"
+                  icon="pi pi-times"
+                  size="small"
+                  severity="danger"
+                  [disabled]="!canWriteMembers"
+                  (onClick)="rejectMember(item)"
+                ></p-button>
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="6">No hay solicitudes pendientes.</td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </p-card>
+  </div>
+</section>
+
+<p-dialog
+  header="Editar rol del miembro"
+  [(visible)]="roleDialogOpen"
+  [modal]="true"
+  [closable]="true"
+  [draggable]="false"
+  [style]="{ width: 'min(520px, 95vw)' }"
+  (onHide)="closeRoleDialog()"
+>
+  <div class="dialog-body" *ngIf="selectedMember">
+    <div class="dialog-row">
+      <span class="label">Miembro</span>
+      <span>{{ selectedMember.name || selectedMember.email || selectedMember.userId }}</span>
+    </div>
+    <div class="dialog-row">
+      <span class="label">Rol actual</span>
+      <span>{{ selectedMember.roleName || selectedMember.roleKey }}</span>
+    </div>
+    <div class="dialog-row">
+      <p-floatLabel>
+        <p-select
+          inputId="roleSelect"
+          [options]="roleOptions"
+          optionLabel="label"
+          optionValue="value"
+          [(ngModel)]="selectedRoleKey"
+          appendTo="body"
+        ></p-select>
+        <label for="roleSelect">Nuevo rol</label>
+      </p-floatLabel>
+    </div>
+
+    <div class="permissions" *ngIf="getRolePermissions().length > 0">
+      <h4>Permisos del rol</h4>
+      <ul>
+        <li *ngFor="let permission of getRolePermissions()">{{ permission }}</li>
+      </ul>
+    </div>
+  </div>
+
+  <ng-template #footer>
+    <div class="dialog-actions">
+      <p-button label="Cancelar" severity="secondary" (onClick)="closeRoleDialog()"></p-button>
+      <p-button label="Guardar" icon="pi pi-check" [disabled]="!canWriteMembers" (onClick)="saveRole()"></p-button>
+    </div>
+  </ng-template>
+</p-dialog>

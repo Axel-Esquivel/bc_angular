@@ -1,0 +1,71 @@
+.members-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+
+  h2 {
+    margin: 0;
+  }
+
+  p {
+    margin: 0.25rem 0 0;
+    color: var(--text-color-secondary);
+  }
+}
+
+.empty-state {
+  text-align: center;
+}
+
+.members-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.table-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.dialog-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.dialog-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+
+  .label {
+    font-weight: 600;
+    color: var(--text-color-secondary);
+  }
+}
+
+.permissions {
+  h4 {
+    margin-bottom: 0.5rem;
+  }
+
+  ul {
+    margin: 0;
+    padding-left: 1.25rem;
+  }
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}

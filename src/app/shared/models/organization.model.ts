@@ -1,12 +1,28 @@
 import { AuthUser } from './auth.model';
 import { OrganizationCoreSettings } from './organization-core.model';
 
-export type OrganizationMembershipStatus = 'pending' | 'active';
+export type OrganizationMembershipStatus = 'pending' | 'active' | 'disabled';
 
 export interface IOrganizationMember {
   userId: string;
   email?: string;
   roleKey: string;
+  status: OrganizationMembershipStatus;
+  invitedBy?: string;
+  requestedBy?: string;
+  invitedAt?: string;
+  requestedAt?: string;
+  activatedAt?: string;
+  createdAt?: string;
+}
+
+export interface OrganizationMemberSummary {
+  userId: string;
+  email?: string;
+  name?: string;
+  roleKey: string;
+  roleName?: string;
+  permissions?: string[];
   status: OrganizationMembershipStatus;
   invitedBy?: string;
   requestedBy?: string;
