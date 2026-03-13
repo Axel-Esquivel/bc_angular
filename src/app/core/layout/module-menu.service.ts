@@ -97,12 +97,31 @@ export class ModuleMenuService {
     permissions: string[] = [],
   ): MenuItem[] {
     const configItems: MenuItem[] = [];
-    const canManageMembers = this.hasPermission(permissions, 'users.read') || this.hasPermission(permissions, 'users.write');
+    const organizationItems: MenuItem[] = [];
+    const posItems: MenuItem[] = [];
+
+    const canManageMembers =
+      this.hasPermission(permissions, 'users.read') || this.hasPermission(permissions, 'users.write');
     if (canManageMembers) {
-      configItems.push({
-        label: 'Miembros de organización',
+      organizationItems.push({
+        label: 'Miembros de la organización',
         routerLink: '/app/settings/members',
       });
+    }
+
+    const canConfigurePos = this.hasPermission(permissions, 'pos.configure');
+    if (canConfigurePos) {
+      posItems.push({
+        label: 'Configuración POS',
+        routerLink: '/app/pos/configs',
+      });
+    }
+
+    if (organizationItems.length > 0) {
+      configItems.push({ label: 'Organización', items: organizationItems });
+    }
+    if (posItems.length > 0) {
+      configItems.push({ label: 'POS', items: posItems });
     }
     if (isOwner) {
       if (companyId) {
