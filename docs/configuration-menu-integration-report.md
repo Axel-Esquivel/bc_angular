@@ -3,7 +3,7 @@
 Fecha: 2026-03-13
 
 ## Archivo de menú actualizado
-- `angular/src/app/core/layout/module-menu.service.ts`
+- `angular/src/app/features/app/shell/app-shell.component.ts`
 
 ## Nuevas opciones visibles
 - **Organización**

@@ -3,12 +3,14 @@ import { Component, OnInit, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { MegaMenu } from 'primeng/megamenu';
 import { MegaMenuItem, MenuItem } from 'primeng/api';
-import { take } from 'rxjs';
+import { catchError, combineLatest, map, of, take } from 'rxjs';
 
 import { OrganizationsService } from '../../../core/api/organizations-api.service';
 import { ActiveContextStateService } from '../../../core/context/active-context-state.service';
 import { AuthService } from '../../../core/auth/auth.service';
+import { DashboardApiService } from '../../../core/api/dashboard-api.service';
 import { OrganizationModuleOverviewItem } from '../../../shared/models/organization-modules.model';
+import { DashboardOverview } from '../../../shared/models/dashboard.model';
 
 @Component({
   selector: 'app-app-shell',
@@ -21,6 +23,7 @@ export class AppShellComponent implements OnInit {
   private readonly organizationsApi = inject(OrganizationsService);
   private readonly activeContextState = inject(ActiveContextStateService);
   private readonly authService = inject(AuthService);
+  private readonly dashboardApi = inject(DashboardApiService);
 
   menuItems: MegaMenuItem[] = [];
 
@@ -31,26 +34,35 @@ export class AppShellComponent implements OnInit {
       context.organizationId ?? user?.defaults?.organizationId ?? user?.defaultOrganizationId ?? null;
 
     if (!organizationId) {
-      this.menuItems = this.buildMenu(false);
+      this.menuItems = this.buildMenu(false, []);
       return;
     }
 
-    this.organizationsApi
-      .getModulesOverview(organizationId)
+    const companyId = context.companyId ?? undefined;
+    const modules$ = this.organizationsApi.getModulesOverview(organizationId).pipe(
+      map((response) => response.result?.modules ?? []),
+      catchError(() => of([] as OrganizationModuleOverviewItem[])),
+    );
+    const overview$ = this.dashboardApi.getOverview({ orgId: organizationId, companyId }).pipe(
+      map((response) => response.result ?? null),
+      catchError(() => of(null as DashboardOverview | null)),
+    );
+
+    combineLatest([modules$, overview$])
       .pipe(take(1))
       .subscribe({
-        next: (response) => {
-          const modules = response.result?.modules ?? [];
+        next: ([modules, overview]) => {
           const priceListsEnabled = this.isModuleEnabled(modules, 'price-lists');
-          this.menuItems = this.buildMenu(priceListsEnabled);
+          const permissions = overview?.permissions ?? [];
+          this.menuItems = this.buildMenu(priceListsEnabled, permissions);
         },
         error: () => {
-          this.menuItems = this.buildMenu(false);
+          this.menuItems = this.buildMenu(false, []);
         },
       });
   }
 
-  private buildMenu(showPriceLists: boolean): MegaMenuItem[] {
+  private buildMenu(showPriceLists: boolean, permissions: string[]): MegaMenuItem[] {
     const catalogItems: MenuItem[] = [];
     if (showPriceLists) {
       catalogItems.push({
@@ -60,7 +72,27 @@ export class AppShellComponent implements OnInit {
       });
     }
 
+    const organizationItems: MenuItem[] = [];
+    if (this.hasPermission(permissions, 'users.read') || this.hasPermission(permissions, 'users.write')) {
+      organizationItems.push({
+        label: 'Miembros de la organización',
+        icon: 'pi pi-users',
+        routerLink: '/app/settings/members',
+      });
+    }
+
+    const posItems: MenuItem[] = [];
+    if (this.hasPermission(permissions, 'pos.configure')) {
+      posItems.push({
+        label: 'Configuración POS',
+        icon: 'pi pi-cog',
+        routerLink: '/app/pos/configs',
+      });
+    }
+
     const configGroups: MenuItem[] = [
+      ...(organizationItems.length > 0 ? [{ label: 'Organización', items: organizationItems }] : []),
+      ...(posItems.length > 0 ? [{ label: 'POS', items: posItems }] : []),
       {
         label: 'Módulos',
         items: [
@@ -129,5 +161,18 @@ export class AppShellComponent implements OnInit {
   private isModuleEnabled(modules: OrganizationModuleOverviewItem[], key: string): boolean {
     const module = modules.find((item) => item.key === key);
     return Boolean(module && module.state?.status !== 'disabled' && !module.isSystem);
+  }
+
+  private hasPermission(permissions: string[], required: string): boolean {
+    if (permissions.includes('*') || permissions.includes(required)) {
+      return true;
+    }
+    return permissions.some((permission) => {
+      if (!permission.endsWith('.*')) {
+        return false;
+      }
+      const prefix = permission.slice(0, -1);
+      return required.startsWith(prefix);
+    });
   }
 }
